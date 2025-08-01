@@ -21,11 +21,7 @@ import './Dashboard.scss';
 
 const Dashboard: React.FC = () => {
   const dashboardRef = useAnimateOnMount('fadeIn');
-  const { user } = useAuth();
-  
-  // Debug: log user object to see what's available
-  console.log('Dashboard user object:', user);
-  
+  const { user } = useAuth();  
   const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'create' | 'approve-posts' | 'approve-ads'>('overview');
   const [editingNews, setEditingNews] = useState<NewsPost | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -146,7 +142,9 @@ const Dashboard: React.FC = () => {
         {/* Sidebar Navigation */}
         <aside className="dashboard-sidebar">
           <div className="sidebar-header">
-            <h2 className="sidebar-title">Admin Panel</h2>
+            <h2 className="sidebar-title">
+              {user.role === 'admin' ? 'Admin Panel' : 'Dashboard'}
+            </h2>
             <p className="sidebar-subtitle">
               Olá, {user.nickname}
             </p>
@@ -317,18 +315,22 @@ const Dashboard: React.FC = () => {
                           </div>
                         </div>
                         <div className="dashboard__news-actions">
-                          <button
-                            onClick={() => handleEditNews(newsPost)}
-                            className="dashboard__news-button dashboard__news-button--edit"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => handleDeleteNews(newsPost.id)}
-                            className="dashboard__news-button dashboard__news-button--delete"
-                          >
-                            Excluir
-                          </button>
+                          {(user.role === 'admin' || newsPost.authorId === user.id) && (
+                            <button
+                              onClick={() => handleEditNews(newsPost)}
+                              className="dashboard__news-button dashboard__news-button--edit"
+                            >
+                              Editar
+                            </button>
+                          )}
+                          {user.role === 'admin' && (
+                            <button
+                              onClick={() => handleDeleteNews(newsPost.id)}
+                              className="dashboard__news-button dashboard__news-button--delete"
+                            >
+                              Excluir
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}

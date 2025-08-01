@@ -33,6 +33,20 @@ class ApiClient {
     this.instance.interceptors.response.use(
       (response: AxiosResponse<ApiResponse>) => response,
       (error) => {
+        // If we have a response with validation errors
+        if (error.response?.data?.error === 'Validation failed' && error.response?.data?.data) {
+          const validationErrors = error.response.data.data;
+          const errorMessage = validationErrors.map((err: any) => 
+            `${err.field}: ${err.message}`
+          ).join(', ');
+          
+          const apiError: ApiError = {
+            message: errorMessage,
+            status: error.response?.status || 400,
+          };
+          return Promise.reject(apiError);
+        }
+
         const apiError: ApiError = {
           message: error.response?.data?.error || error.message || 'An error occurred',
           status: error.response?.status || 500,

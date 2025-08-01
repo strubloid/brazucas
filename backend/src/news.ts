@@ -68,9 +68,8 @@ async function handleGetNews(event: HandlerEvent) {
 }
 
 async function handleCreateNews(event: HandlerEvent) {
-  // Require admin role
+  // Require authentication (any logged-in user can create news)
   const user = requireAuth(event);
-  requireRole(user, ['admin']);
   
   const body = parseRequestBody(event);
   const validatedData = createNewsSchema.parse(body);
@@ -85,12 +84,23 @@ async function handleCreateNews(event: HandlerEvent) {
 }
 
 async function handleUpdateNews(event: HandlerEvent) {
-  // Require admin role
+  // Require authentication
   const user = requireAuth(event);
-  requireRole(user, ['admin']);
   
   const body = parseRequestBody(event);
   const validatedData = updateNewsSchema.parse(body);
+  
+  // Check if user can update this news post
+  // Admins can update any post, regular users can only update their own posts
+  if (user.role !== 'admin') {
+    const existingNews = await newsService.getNewsById(validatedData.id);
+    if (!existingNews || existingNews.authorId !== user.userId) {
+      return createResponse(403, {
+        success: false,
+        error: 'You can only edit your own news posts',
+      });
+    }
+  }
   
   const news = await newsService.updateNews(user.userId, validatedData);
   
@@ -102,7 +112,7 @@ async function handleUpdateNews(event: HandlerEvent) {
 }
 
 async function handleDeleteNews(event: HandlerEvent) {
-  // Require admin role
+  // Require admin role for deletion
   const user = requireAuth(event);
   requireRole(user, ['admin']);
   
