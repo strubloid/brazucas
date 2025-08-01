@@ -11,6 +11,7 @@ import {
   handleCors 
 } from './utils';
 import { createNewsSchema, updateNewsSchema } from './validation';
+import { ApproveNewsRequest } from './types';
 
 export const handler = async (event: HandlerEvent, context: HandlerContext) => {
   try {
@@ -30,6 +31,8 @@ export const handler = async (event: HandlerEvent, context: HandlerContext) => {
         return await handleCreateNews(event, newsService);
       case 'PUT':
         return await handleUpdateNews(event, newsService);
+      case 'PATCH':
+        return await handleApproveNews(event, newsService);
       case 'DELETE':
         return await handleDeleteNews(event, newsService);
       default:
@@ -46,6 +49,7 @@ export const handler = async (event: HandlerEvent, context: HandlerContext) => {
 async function handleGetNews(event: HandlerEvent, newsService: NewsService) {
   const newsId = event.queryStringParameters?.id;
   const publishedOnly = event.queryStringParameters?.published === 'true';
+  const pendingOnly = event.queryStringParameters?.pending === 'true';
   
   if (newsId) {
     // Get specific news post
@@ -57,6 +61,21 @@ async function handleGetNews(event: HandlerEvent, newsService: NewsService) {
       });
     }
 
+    return createResponse(200, {
+      success: true,
+      data: news,
+    });
+  } else if (pendingOnly) {
+    // Get pending news posts (admin only)
+    const user = requireAuth(event);
+    if (user.role !== 'admin') {
+      return createResponse(403, {
+        success: false,
+        error: 'Only administrators can view pending posts',
+      });
+    }
+    
+    const news = await newsService.getPendingNews();
     return createResponse(200, {
       success: true,
       data: news,
@@ -177,4 +196,51 @@ async function handleDeleteNews(event: HandlerEvent, newsService: NewsService) {
     success: true,
     message: 'News post deleted successfully',
   });
+}
+
+async function handleApproveNews(event: HandlerEvent, newsService: NewsService) {
+  // Require admin authentication
+  const user = requireAuth(event);
+  
+  // Check for admin role
+  if (user.role !== 'admin') {
+    return createResponse(403, {
+      success: false,
+      error: 'Only administrators can approve news posts',
+    });
+  }
+  
+  const body = parseRequestBody(event) as ApproveNewsRequest;
+  
+  if (!body.id) {
+    return createResponse(400, {
+      success: false,
+      error: 'News ID is required',
+    });
+  }
+  
+  if (typeof body.approved !== 'boolean') {
+    return createResponse(400, {
+      success: false,
+      error: 'Approved status is required and must be a boolean',
+    });
+  }
+  
+  try {
+    const updatedNews = await newsService.approveNews(body.id, body.approved);
+    
+    return createResponse(200, {
+      success: true,
+      data: updatedNews,
+      message: body.approved ? 'News post approved successfully' : 'News post rejected successfully',
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('not found')) {
+      return createResponse(404, {
+        success: false,
+        error: 'News post not found',
+      });
+    }
+    throw error;
+  }
 }

@@ -41,6 +41,7 @@ export interface NewsPost {
   createdAt: Date;
   updatedAt: Date;
   published: boolean;
+  approved: boolean;
 }
 
 export interface CreateNewsRequest {
@@ -53,6 +54,11 @@ export interface CreateNewsRequest {
 
 export interface UpdateNewsRequest extends Partial<CreateNewsRequest> {
   id: string;
+}
+
+export interface ApproveNewsRequest {
+  id: string;
+  approved: boolean;
 }
 
 export interface Advertisement {

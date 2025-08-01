@@ -26,10 +26,13 @@ export interface IUserService {
 
 export interface INewsService {
   getAllNews(): Promise<NewsPost[]>;
+  getPublishedNews(): Promise<NewsPost[]>;
+  getPendingNews(): Promise<NewsPost[]>;
   getNewsById(id: string): Promise<NewsPost | null>;
   createNews(authorId: string, newsData: CreateNewsRequest): Promise<NewsPost>;
   updateNews(authorId: string, newsData: UpdateNewsRequest): Promise<NewsPost>;
   deleteNews(authorId: string, newsId: string): Promise<boolean>;
+  approveNews(newsId: string, approved: boolean): Promise<NewsPost>;
 }
 
 export interface IAdService {
@@ -121,7 +124,8 @@ export class NewsService implements INewsService {
 
   async getPublishedNews(): Promise<NewsPost[]> {
     const allNews = await this.newsRepository.findAll();
-    return allNews.filter(news => news.published);
+    // Only return published AND approved news for public viewing
+    return allNews.filter(news => news.published && news.approved);
   }
 
   async getNewsById(id: string): Promise<NewsPost | null> {
@@ -133,7 +137,23 @@ export class NewsService implements INewsService {
       ...newsData,
       authorId,
       published: newsData.published ?? false,
+      approved: false, // All new posts require approval
     });
+  }
+
+  async getPendingNews(): Promise<NewsPost[]> {
+    const allNews = await this.newsRepository.findAll();
+    // Return published but not yet approved posts
+    return allNews.filter(news => news.published && !news.approved);
+  }
+
+  async approveNews(newsId: string, approved: boolean): Promise<NewsPost> {
+    const existingNews = await this.newsRepository.findById(newsId);
+    if (!existingNews) {
+      throw new Error('News post not found');
+    }
+
+    return this.newsRepository.update(newsId, { approved });
   }
 
   async updateNews(authorId: string, newsData: UpdateNewsRequest): Promise<NewsPost> {

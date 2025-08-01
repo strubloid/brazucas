@@ -142,6 +142,13 @@ const Header: React.FC = () => {
                   </Link>
                 </li>
               )}
+              {isAuthenticated && user?.role === 'admin' && (
+                <li>
+                  <Link to="/admin/dashboard" style={styles.navLink}>
+                    Admin
+                  </Link>
+                </li>
+              )}
               {isAuthenticated ? (
                 <>
                   <li>
@@ -203,6 +210,13 @@ const Header: React.FC = () => {
                 <li>
                   <Link to="/dashboard" style={styles.navLink} onClick={() => setIsMenuOpen(false)}>
                     Dashboard
+                  </Link>
+                </li>
+              )}
+              {isAuthenticated && user?.role === 'admin' && (
+                <li>
+                  <Link to="/admin/dashboard" style={styles.navLink} onClick={() => setIsMenuOpen(false)}>
+                    Admin
                   </Link>
                 </li>
               )}

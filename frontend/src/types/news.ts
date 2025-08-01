@@ -8,6 +8,7 @@ export interface NewsPost {
   createdAt: string;
   updatedAt: string;
   published: boolean;
+  approved: boolean;
 }
 
 export interface CreateNewsRequest {

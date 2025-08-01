@@ -59,4 +59,24 @@ export class NewsService {
       throw new Error(response.error || 'Failed to delete news post');
     }
   }
+
+  static async getPendingNews(): Promise<NewsPost[]> {
+    const response = await apiClient.get<NewsPost[]>('/news?pending=true');
+    
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error || 'Failed to fetch pending news');
+  }
+
+  static async approveNews(id: string, approved: boolean): Promise<NewsPost> {
+    const response = await apiClient.patch<NewsPost>('/news', { id, approved });
+    
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error || 'Failed to approve/reject news post');
+  }
 }
