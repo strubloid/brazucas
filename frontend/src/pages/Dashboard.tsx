@@ -17,14 +17,18 @@ import {
   faUsers,
   faTrash,
   faClock,
-  faEye
+  faEye,
+  faEdit,
+  faTimes,
+  faEuroSign,
+  faCog
 } from '@fortawesome/free-solid-svg-icons';
 import './Dashboard.scss';
 
 const Dashboard: React.FC = () => {
   const dashboardRef = useAnimateOnMount('fadeIn');
   const { user } = useAuth();  
-  const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'create' | 'create-ad' | 'approve-posts' | 'approve-ads'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'create' | 'ads' | 'create-ad' | 'approve-posts' | 'approve-ads'>('overview');
   const [editingNews, setEditingNews] = useState<NewsPost | null>(null);
   const [editingAd, setEditingAd] = useState<Advertisement | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -153,6 +157,19 @@ const Dashboard: React.FC = () => {
     setActiveTab('create');
   };
 
+  const handleEditAd = (ad: Advertisement): void => {
+    setAdFormData({
+      title: ad.title,
+      description: ad.description,
+      category: ad.category,
+      price: ad.price,
+      contactEmail: ad.contactEmail,
+      published: ad.published,
+    });
+    setEditingAd(ad);
+    setActiveTab('create-ad');
+  };
+
   const handleDeleteNews = async (id: string): Promise<void> => {
     if (!window.confirm('Tem certeza que deseja excluir esta notícia?')) return;
 
@@ -162,6 +179,18 @@ const Dashboard: React.FC = () => {
       refetch();
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Erro ao excluir notícia');
+    }
+  };
+
+  const handleDeleteAd = async (id: string): Promise<void> => {
+    if (!window.confirm('Tem certeza que deseja excluir este anúncio?')) return;
+
+    try {
+      await AdService.deleteAd(id);
+      setSubmitSuccess('Anúncio excluído com sucesso!');
+      refetchAds();
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Erro ao excluir anúncio');
     }
   };
 
@@ -177,6 +206,21 @@ const Dashboard: React.FC = () => {
       refetch();
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Erro ao publicar notícia');
+    }
+  };
+
+  const handlePublishAd = async (id: string): Promise<void> => {
+    if (!window.confirm('Tem certeza que deseja publicar este anúncio?')) return;
+
+    try {
+      await AdService.updateAd({
+        id,
+        published: true
+      });
+      setSubmitSuccess('Anúncio publicado com sucesso!');
+      refetchAds();
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Erro ao publicar anúncio');
     }
   };
 
@@ -376,6 +420,22 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const getAdStatus = (ad: Advertisement) => {
+    if (ad.published && ad.approved === true) {
+      return { text: 'Publicado', class: 'published' };
+    } else if (ad.approved === true && !ad.published) {
+      return { text: 'Aprovado', class: 'approved' };
+    } else if (ad.approved === false) {
+      return { text: 'Rejeitado', class: 'rejected' };
+    } else if (ad.approved === null && ad.published) {
+      // User tried to publish but needs approval
+      return { text: 'Aguardando Aprovação', class: 'pending' };
+    } else {
+      // approved === null and published === false (or undefined)
+      return { text: 'Rascunho', class: 'draft' };
+    }
+  };
+
   const getStatusDate = (post: NewsPost) => {
     if (post.published && post.approved === true) {
       return `Publicado em ${new Date(post.updatedAt).toLocaleDateString('pt-BR')}`;
@@ -386,6 +446,19 @@ const Dashboard: React.FC = () => {
       return `Enviado para aprovação em ${new Date(post.createdAt).toLocaleDateString('pt-BR')}`;
     } else {
       return `Criado em ${new Date(post.createdAt).toLocaleDateString('pt-BR')}`;
+    }
+  };
+
+  const getAdStatusDate = (ad: Advertisement) => {
+    if (ad.published && ad.approved === true) {
+      return `Publicado em ${new Date(ad.updatedAt).toLocaleDateString('pt-BR')}`;
+    } else if (ad.approved !== null && ad.approvedAt) {
+      const action = ad.approved ? 'Aprovado' : 'Rejeitado';
+      return `${action} em ${new Date(ad.approvedAt).toLocaleDateString('pt-BR')}`;
+    } else if (ad.approved === null && ad.published) {
+      return `Enviado para aprovação em ${new Date(ad.createdAt).toLocaleDateString('pt-BR')}`;
+    } else {
+      return `Criado em ${new Date(ad.createdAt).toLocaleDateString('pt-BR')}`;
     }
   };
 
@@ -434,16 +507,33 @@ const Dashboard: React.FC = () => {
               <span>Nova Notícia</span>
             </button>
 
-            <button
-              className={`nav-item ${activeTab === 'create-ad' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveTab('create-ad');
-                resetAdForm();
-              }}
-            >
-              <FontAwesomeIcon icon={faPlus} className="nav-icon" />
-              <span>Novo Anúncio</span>
-            </button>
+            {/* Anunciante Section - Only for advertisers and admins */}
+            {(user?.role === 'advertiser' || user?.role === 'admin') && (
+              <>
+                <div className="nav-divider">
+                  <span>Anunciante</span>
+                </div>
+
+                <button
+                  className={`nav-item ${activeTab === 'ads' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('ads')}
+                >
+                  <FontAwesomeIcon icon={faAd} className="nav-icon" />
+                  <span>Anúncios</span>
+                </button>
+
+                <button
+                  className={`nav-item ${activeTab === 'create-ad' ? 'active' : ''}`}
+                  onClick={() => {
+                    setActiveTab('create-ad');
+                    resetAdForm();
+                  }}
+                >
+                  <FontAwesomeIcon icon={faPlus} className="nav-icon" />
+                  <span>Novo Anúncio</span>
+                </button>
+              </>
+            )}
 
             {user?.role === 'admin' && (
               <>
@@ -484,6 +574,7 @@ const Dashboard: React.FC = () => {
               {activeTab === 'overview' && 'Dashboard'}
               {activeTab === 'news' && 'Gerenciar Notícias'}
               {activeTab === 'create' && (editingNews ? 'Editar Notícia' : 'Criar Nova Notícia')}
+              {activeTab === 'ads' && 'Gerenciar Anúncios'}
               {activeTab === 'create-ad' && (editingAd ? 'Editar Anúncio' : 'Criar Novo Anúncio')}
               {activeTab === 'approve-posts' && 'Aprovar Posts de Usuários'}
               {activeTab === 'approve-ads' && 'Aprovar Anúncios'}
@@ -542,7 +633,7 @@ const Dashboard: React.FC = () => {
                         <FontAwesomeIcon icon={faAd} />
                       </div>
                       <div className="stat-content">
-                        <h3 className="stat-number">5</h3>
+                        <h3 className="stat-number">{pendingAds?.length || 0}</h3>
                         <p className="stat-label">Anúncios Pendentes</p>
                       </div>
                     </div>
@@ -618,6 +709,66 @@ const Dashboard: React.FC = () => {
                     {news?.length === 0 && (
                       <div className="dashboard__empty">
                         <p>Nenhuma notícia encontrada.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Ads Management Tab */}
+            {activeTab === 'ads' && (
+              <div className="dashboard__news">
+                {adsLoading ? (
+                  <LoadingSpinner text="Carregando anúncios..." />
+                ) : (
+                  <div className="dashboard__news-list">
+                    {ads?.map((ad) => (
+                      <div key={ad.id} className="dashboard__news-item">
+                        <div className="dashboard__news-content">
+                          <h3 className="dashboard__news-title">{ad.title}</h3>
+                          <p className="dashboard__news-excerpt">{ad.description}</p>
+                          <div className="dashboard__news-meta">
+                            <span className="ad-category">{ad.category}</span>
+                            <span className="ad-price">{ad.price}</span>
+                            <span className={`dashboard__news-status dashboard__news-status--${getAdStatus(ad).class}`}>
+                              {getAdStatus(ad).text}
+                            </span>
+                            <span className="dashboard__news-date">
+                              {getAdStatusDate(ad)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="dashboard__news-actions">
+                          <button
+                            onClick={() => handleEditAd(ad)}
+                            className="dashboard__news-button dashboard__news-button--edit"
+                          >
+                            Editar
+                          </button>
+                          
+                          {!ad.published && (
+                            <button
+                              onClick={() => handlePublishAd(ad.id)}
+                              className="dashboard__news-button dashboard__news-button--publish"
+                            >
+                              Publicar
+                            </button>
+                          )}
+                          
+                          <button
+                            onClick={() => handleDeleteAd(ad.id)}
+                            className="dashboard__news-button dashboard__news-button--delete"
+                          >
+                            Excluir
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {ads?.length === 0 && (
+                      <div className="dashboard__empty">
+                        <p>Nenhum anúncio encontrado.</p>
                       </div>
                     )}
                   </div>
