@@ -11,6 +11,7 @@ const userService = new UserService(userRepository);
 // Schema for admin registration
 const createAdminSchema = z.object({
   email: z.string().email('Invalid email address'),
+  nickname: z.string().min(2, 'Nickname must be at least 2 characters').optional(),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   adminSecretKey: z.string(),
 });
@@ -54,6 +55,7 @@ export const handler = async (event: HandlerEvent, context: HandlerContext) => {
     // Register admin user
     const result = await userService.register({
       email: validatedData.email,
+      nickname: validatedData.nickname || 'Admin', // Use provided nickname or default
       password: validatedData.password,
       role: UserRole.ADMIN,
     });

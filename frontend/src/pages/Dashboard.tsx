@@ -150,7 +150,7 @@ const Dashboard: React.FC = () => {
           <div className="sidebar-header">
             <h2 className="sidebar-title">Admin Panel</h2>
             <p className="sidebar-subtitle">
-              Olá, {user.email}
+              Olá, {user.nickname}
             </p>
             <small style={{ color: '#9ca3af', fontSize: '0.75rem' }}>
               Role: {user.role}

@@ -14,6 +14,7 @@ const Register: React.FC = () => {
   const [formData, setFormData] = useState<RegisterRequest>({
     email: '',
     password: '',
+    nickname: '',
     role: UserRole.NORMAL,
   });
   const [confirmPassword, setConfirmPassword] = useState<string>('');
@@ -33,8 +34,13 @@ const Register: React.FC = () => {
   };
 
   const validateForm = (): boolean => {
-    if (!formData.email || !formData.password || !confirmPassword) {
+    if (!formData.email || !formData.password || !formData.nickname || !confirmPassword) {
       setError('Por favor, preencha todos os campos');
+      return false;
+    }
+
+    if (formData.nickname.length < 2) {
+      setError('O apelido deve ter pelo menos 2 caracteres');
       return false;
     }
 
@@ -100,6 +106,25 @@ const Register: React.FC = () => {
               placeholder="seu-email@exemplo.com"
               required
             />
+          </div>
+
+          <div className="register__field">
+            <label htmlFor="nickname" className="register__label">
+              Apelido
+            </label>
+            <input
+              type="text"
+              id="nickname"
+              name="nickname"
+              value={formData.nickname}
+              onChange={handleInputChange}
+              className="register__input"
+              placeholder="Como você gostaria de ser chamado?"
+              required
+            />
+            <small className="register__hint">
+              Este será o nome exibido no site
+            </small>
           </div>
 
           <div className="register__field">

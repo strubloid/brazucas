@@ -46,13 +46,13 @@ export class MongoUserRepository implements IUserRepository {
       { returnDocument: 'after' }
     );
 
-    if (!result.value) {
+    if (!result) {
       throw new Error('User not found');
     }
 
     return {
-      ...result.value,
-      id: result.value._id.toString(),
+      ...result,
+      id: result._id.toString(),
     } as User;
   }
 
@@ -108,13 +108,13 @@ export class MongoNewsRepository implements INewsRepository {
       { returnDocument: 'after' }
     );
 
-    if (!result.value) {
+    if (!result) {
       throw new Error('News post not found');
     }
 
     return {
-      ...result.value,
-      id: result.value._id.toString(),
+      ...result,
+      id: result._id.toString(),
     } as NewsPost;
   }
 
@@ -170,13 +170,13 @@ export class MongoAdRepository implements IAdRepository {
       { returnDocument: 'after' }
     );
 
-    if (!result.value) {
+    if (!result) {
       throw new Error('Advertisement not found');
     }
 
     return {
-      ...result.value,
-      id: result.value._id.toString(),
+      ...result,
+      id: result._id.toString(),
     } as Advertisement;
   }
 

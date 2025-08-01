@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { UserRole } from '../../types/auth';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
-  // Mock authentication state for now
-  const isAuthenticated = false;
+  // Check if user is authenticated
+  const isAuthenticated = !!user;
 
   const handleLogout = (): void => {
-    // Mock logout
+    logout();
     navigate('/');
     setIsMenuOpen(false);
   };
@@ -132,10 +135,17 @@ const Header: React.FC = () => {
                   Notícias
                 </Link>
               </li>
+              {isAuthenticated && user?.role === UserRole.ADMIN && (
+                <li>
+                  <Link to="/dashboard" style={styles.navLink}>
+                    Dashboard
+                  </Link>
+                </li>
+              )}
               {isAuthenticated ? (
                 <>
                   <li>
-                    <span style={styles.navLink}>Olá, usuário!</span>
+                    <span style={styles.navLink}>Olá, {user?.nickname || 'usuário'}!</span>
                   </li>
                   <li>
                     <button 
@@ -189,6 +199,13 @@ const Header: React.FC = () => {
                   Notícias
                 </Link>
               </li>
+              {isAuthenticated && user?.role === UserRole.ADMIN && (
+                <li>
+                  <Link to="/dashboard" style={styles.navLink} onClick={() => setIsMenuOpen(false)}>
+                    Dashboard
+                  </Link>
+                </li>
+              )}
               {isAuthenticated ? (
                 <>
                   <li>

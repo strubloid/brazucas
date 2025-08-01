@@ -26,6 +26,7 @@ export const initializeAdmin = async (email: string, password: string): Promise<
     // Create admin user
     const adminUser = await userService.register({
       email,
+      nickname: 'Admin', // Default nickname for admin
       password,
       role: UserRole.ADMIN,
     });

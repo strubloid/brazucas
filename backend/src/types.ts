@@ -1,6 +1,7 @@
 export interface User {
   id: string;
   email: string;
+  nickname: string;
   password: string;
   role: UserRole;
   createdAt: Date;
@@ -15,6 +16,7 @@ export enum UserRole {
 
 export interface CreateUserRequest {
   email: string;
+  nickname: string;
   password: string;
   role: UserRole;
 }

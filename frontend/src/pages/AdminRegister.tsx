@@ -7,6 +7,7 @@ import './AdminRegister.scss';
 
 interface AdminRegisterRequest {
   email: string;
+  nickname: string;
   password: string;
   role: UserRole;
   adminSecretKey: string;
@@ -18,6 +19,7 @@ const AdminRegister: React.FC = () => {
 
   const [formData, setFormData] = useState<AdminRegisterRequest>({
     email: '',
+    nickname: '',
     password: '',
     role: UserRole.ADMIN,
     adminSecretKey: '',
@@ -42,8 +44,13 @@ const AdminRegister: React.FC = () => {
   };
 
   const validateForm = (): boolean => {
-    if (!formData.email || !formData.password || !confirmPassword || !formData.adminSecretKey) {
+    if (!formData.email || !formData.nickname || !formData.password || !confirmPassword || !formData.adminSecretKey) {
       setError('Por favor, preencha todos os campos');
+      return false;
+    }
+
+    if (formData.nickname.length < 2) {
+      setError('O apelido deve ter pelo menos 2 caracteres');
       return false;
     }
 
@@ -144,6 +151,19 @@ const AdminRegister: React.FC = () => {
               value={formData.email}
               onChange={handleInputChange}
               placeholder="admin@example.com"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="nickname">Apelido</label>
+            <input
+              type="text"
+              id="nickname"
+              name="nickname"
+              value={formData.nickname}
+              onChange={handleInputChange}
+              placeholder="Como você gostaria de ser chamado?"
               required
             />
           </div>

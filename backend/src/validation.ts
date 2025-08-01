@@ -3,6 +3,11 @@ import { UserRole } from './types';
 
 export const createUserSchema = z.object({
   email: z.string().email('Invalid email format'),
+  nickname: z
+    .string()
+    .min(2, 'Nickname must be at least 2 characters')
+    .max(50, 'Nickname must be less than 50 characters')
+    .regex(/^[a-zA-Z0-9_\s]+$/, 'Nickname can only contain letters, numbers, underscores, and spaces'),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
