@@ -63,7 +63,9 @@ export class AdService {
   }
 
   static async updateAd(adData: UpdateAdvertisementRequest): Promise<Advertisement> {
+    console.log('AdService.updateAd called with:', adData);
     const response = await apiClient.put<Advertisement>('/ads', adData);
+    console.log('AdService.updateAd response:', response);
     
     if (response.success && response.data) {
       return response.data;

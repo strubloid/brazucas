@@ -213,13 +213,18 @@ const Dashboard: React.FC = () => {
     if (!window.confirm('Tem certeza que deseja publicar este anúncio?')) return;
 
     try {
-      await AdService.updateAd({
+      console.log('Publishing ad with ID:', id);
+      const updateData = {
         id,
         published: true
-      });
+      };
+      console.log('Update data being sent:', updateData);
+      
+      await AdService.updateAd(updateData);
       setSubmitSuccess('Anúncio publicado com sucesso!');
       refetchAds();
     } catch (error) {
+      console.error('Error publishing ad:', error);
       setSubmitError(error instanceof Error ? error.message : 'Erro ao publicar anúncio');
     }
   };
@@ -723,8 +728,8 @@ const Dashboard: React.FC = () => {
                   <LoadingSpinner text="Carregando anúncios..." />
                 ) : (
                   <div className="dashboard__news-list">
-                    {ads?.map((ad) => (
-                      <div key={ad.id} className="dashboard__news-item">
+                    {ads?.map((ad, index) => (
+                      <div key={ad.id || `ad-${index}`} className="dashboard__news-item">
                         <div className="dashboard__news-content">
                           <h3 className="dashboard__news-title">{ad.title}</h3>
                           <p className="dashboard__news-excerpt">{ad.description}</p>
@@ -1107,8 +1112,8 @@ const Dashboard: React.FC = () => {
                 ) : (
                   <div className="approval-grid">
                     {pendingAds && pendingAds.length > 0 ? (
-                      pendingAds.map((ad) => (
-                        <div key={ad.id} className="approval-card ad-card">
+                      pendingAds.map((ad, index) => (
+                        <div key={ad.id || `pending-ad-${index}`} className="approval-card ad-card">
                           <div className="approval-card-header">
                             <h3>{ad.title}</h3>
                             <span className="pending-badge">Pendente</span>

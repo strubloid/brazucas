@@ -82,6 +82,28 @@ export const createAdvertisementSchema = z.object({
   published: z.boolean().default(false),
 });
 
-export const updateAdvertisementSchema = createAdvertisementSchema.extend({
+export const updateAdvertisementSchema = z.object({
   id: z.string().min(1, 'Advertisement ID is required'),
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(100, 'Title must be less than 100 characters')
+    .optional(),
+  description: z
+    .string()
+    .min(1, 'Description is required')
+    .max(500, 'Description must be less than 500 characters')
+    .optional(),
+  category: z
+    .string()
+    .min(1, 'Category is required')
+    .max(50, 'Category must be less than 50 characters')
+    .optional(),
+  price: z
+    .string()
+    .min(1, 'Price is required')
+    .max(20, 'Price must be less than 20 characters')
+    .optional(),
+  contactEmail: z.string().email('Invalid email format').optional(),
+  published: z.boolean().optional(),
 });
