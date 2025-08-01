@@ -115,7 +115,7 @@ const Footer: React.FC = () => {
             <h4 style={styles.subtitle}>Redes Sociais</h4>
             <div style={styles.social}>
               <a 
-                href="https://facebook.com" 
+                href="https://www.facebook.com/groups/809178700599371" 
                 style={styles.socialLink} 
                 aria-label="Facebook" 
                 target="_blank" 
@@ -123,15 +123,7 @@ const Footer: React.FC = () => {
               >
                 📘
               </a>
-              <a 
-                href="https://instagram.com" 
-                style={styles.socialLink} 
-                aria-label="Instagram" 
-                target="_blank" 
-                rel="noopener noreferrer"
-              >
-                📷
-              </a>
+              
               <a 
                 href="https://whatsapp.com" 
                 style={styles.socialLink} 
@@ -147,9 +139,9 @@ const Footer: React.FC = () => {
           <div style={styles.section}>
             <h4 style={styles.subtitle}>Contato</h4>
             <p style={styles.description}>
-              📧 contato@brazucasemcork.ie<br />
+              📧 brazucascork@gmail.com<br />
               📍 Cork, Irlanda<br />
-              🕒 Atendimento: Seg-Sex 9h-18h
+              🕒 Atendimento: Seg-Sex 10h-17h (UTC+1)
             </p>
           </div>
         </div>
