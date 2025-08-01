@@ -158,15 +158,29 @@ export class MongoAdRepository implements IAdRepository {
   }
 
   async findAll(): Promise<Advertisement[]> {
-    return await this.collection.find({}).sort({ createdAt: -1 }).toArray() as Advertisement[];
+    const ads = await this.collection.find({}).sort({ createdAt: -1 }).toArray();
+    return ads.map(ad => ({
+      ...ad,
+      id: ad._id.toString(),
+    })) as Advertisement[];
   }
 
   async findById(id: string): Promise<Advertisement | null> {
-    return await this.collection.findOne({ _id: id as any }) as Advertisement | null;
+    const ad = await this.collection.findOne({ _id: new ObjectId(id) });
+    if (!ad) return null;
+    
+    return {
+      ...ad,
+      id: ad._id.toString(),
+    } as Advertisement;
   }
 
   async findByAdvertiser(authorId: string): Promise<Advertisement[]> {
-    return await this.collection.find({ authorId }).sort({ createdAt: -1 }).toArray() as Advertisement[];
+    const ads = await this.collection.find({ authorId }).sort({ createdAt: -1 }).toArray();
+    return ads.map(ad => ({
+      ...ad,
+      id: ad._id.toString(),
+    })) as Advertisement[];
   }
 
   async create(adData: Omit<Advertisement, 'id' | 'createdAt' | 'updatedAt'>): Promise<Advertisement> {
@@ -186,7 +200,7 @@ export class MongoAdRepository implements IAdRepository {
 
   async update(id: string, updates: Partial<Advertisement>): Promise<Advertisement> {
     const result = await this.collection.findOneAndUpdate(
-      { _id: id as any },
+      { _id: new ObjectId(id) },
       { 
         $set: { 
           ...updates, 
@@ -207,7 +221,7 @@ export class MongoAdRepository implements IAdRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.collection.deleteOne({ _id: id as any });
+    const result = await this.collection.deleteOne({ _id: new ObjectId(id) });
     return result.deletedCount > 0;
   }
 }

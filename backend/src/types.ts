@@ -88,8 +88,14 @@ export interface CreateAdvertisementRequest {
   published: boolean;
 }
 
-export interface UpdateAdvertisementRequest extends CreateAdvertisementRequest {
+export interface UpdateAdvertisementRequest {
   id: string;
+  title?: string;
+  description?: string;
+  category?: string;
+  price?: string;
+  contactEmail?: string;
+  published?: boolean;
 }
 
 export interface ApproveAdvertisementRequest {

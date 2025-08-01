@@ -83,6 +83,16 @@ const Dashboard: React.FC = () => {
     }
   }, [user, news]);
 
+  // Debug ads logging
+  React.useEffect(() => {
+    if (ads) {
+      console.log('Debug - Ads array:', ads);
+      ads.forEach((ad, index) => {
+        console.log(`Ad ${index}: "${ad.title}", id="${ad.id}", type=${typeof ad.id}`);
+      });
+    }
+  }, [ads]);
+
   const [formData, setFormData] = useState<CreateNewsRequest>({
     title: '',
     content: '',
@@ -394,7 +404,8 @@ const Dashboard: React.FC = () => {
     });
   };
 
-  const truncateContent = (content: string, maxLength: number = 80) => {
+  const truncateContent = (content: string | null | undefined, maxLength: number = 80) => {
+    if (!content) return '';
     if (content.length <= maxLength) return content;
     return content.substring(0, maxLength) + '...';
   };

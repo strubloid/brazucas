@@ -311,17 +311,23 @@ export class AdService implements IAdService {
       throw new Error('You can only update your own advertisements');
     }
 
-    const updatedAd = await this.adRepository.update(adData.id, {
-      title: adData.title,
-      description: adData.description,
-      category: adData.category,
-      price: adData.price,
-      contactEmail: adData.contactEmail,
-      published: adData.published,
-      // Reset approval when ad is updated
-      approved: adData.published ? null : existingAd.approved,
-      approvedAt: adData.published ? undefined : existingAd.approvedAt,
-    });
+    // Build update object with only provided fields
+    const updateFields: Partial<Advertisement> = {};
+    
+    if (adData.title !== undefined) updateFields.title = adData.title;
+    if (adData.description !== undefined) updateFields.description = adData.description;
+    if (adData.category !== undefined) updateFields.category = adData.category;
+    if (adData.price !== undefined) updateFields.price = adData.price;
+    if (adData.contactEmail !== undefined) updateFields.contactEmail = adData.contactEmail;
+    if (adData.published !== undefined) updateFields.published = adData.published;
+    
+    // Handle approval logic
+    if (adData.published !== undefined) {
+      updateFields.approved = adData.published ? null : existingAd.approved;
+      updateFields.approvedAt = adData.published ? undefined : existingAd.approvedAt;
+    }
+
+    const updatedAd = await this.adRepository.update(adData.id, updateFields);
 
     return this.enrichAdWithAuthorNickname(updatedAd);
   }
