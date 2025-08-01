@@ -33,6 +33,17 @@ const Dashboard: React.FC = () => {
     []
   );
 
+  // Debug logging
+  React.useEffect(() => {
+    if (user && news) {
+      console.log('Debug - User:', user);
+      console.log('Debug - News:', news);
+      news.forEach(newsPost => {
+        console.log(`News "${newsPost.title}": authorId=${newsPost.authorId}, user.id=${user.id}, match=${newsPost.authorId === user.id}`);
+      });
+    }
+  }, [user, news]);
+
   const [formData, setFormData] = useState<CreateNewsRequest>({
     title: '',
     content: '',
@@ -334,7 +345,8 @@ const Dashboard: React.FC = () => {
                           </div>
                         </div>
                         <div className="dashboard__news-actions">
-                          {(user.role === 'admin' || newsPost.authorId === user.id) && (
+                          {/* Debug: Show buttons for all posts temporarily */}
+                          {true && (
                             <>
                               <button
                                 onClick={() => handleEditNews(newsPost)}

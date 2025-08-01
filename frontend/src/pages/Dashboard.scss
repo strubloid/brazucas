@@ -646,6 +646,17 @@
             }
           }
 
+          &--publish {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+
+            &:hover {
+              background: #059669;
+              border-color: #059669;
+            }
+          }
+
           &--delete {
             background: #ef4444;
             border-color: #ef4444;
