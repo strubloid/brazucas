@@ -7,7 +7,9 @@ import {
   AuthResponse,
   CreateNewsRequest,
   UpdateNewsRequest,
-  CreateAdRequest,
+  CreateAdvertisementRequest,
+  UpdateAdvertisementRequest,
+  ApproveAdvertisementRequest,
   UserRole,
 } from './types';
 import {
@@ -38,9 +40,14 @@ export interface INewsService {
 
 export interface IAdService {
   getAllAds(): Promise<Advertisement[]>;
+  getPublishedAds(): Promise<Advertisement[]>;
+  getPendingAds(): Promise<Advertisement[]>;
+  getMyAds(userId: string): Promise<Advertisement[]>;
   getAdById(id: string): Promise<Advertisement | null>;
-  createAd(advertiserId: string, adData: CreateAdRequest): Promise<Advertisement>;
-  getAdsByAdvertiser(advertiserId: string): Promise<Advertisement[]>;
+  createAd(authorId: string, adData: CreateAdvertisementRequest): Promise<Advertisement>;
+  updateAd(authorId: string, adData: UpdateAdvertisementRequest): Promise<Advertisement>;
+  deleteAd(authorId: string, adId: string): Promise<boolean>;
+  approveAd(adId: string, approved: boolean): Promise<Advertisement>;
 }
 
 // Service implementations
@@ -236,31 +243,135 @@ export class NewsService implements INewsService {
 }
 
 export class AdService implements IAdService {
-  constructor(private adRepository: IAdRepository) {}
+  constructor(
+    private adRepository: IAdRepository,
+    private userRepository: IUserRepository
+  ) {}
 
   async getAllAds(): Promise<Advertisement[]> {
-    return this.adRepository.findAll();
+    const allAds = await this.adRepository.findAll();
+    return this.enrichAdsListWithAuthorNicknames(allAds);
+  }
+
+  async getPublishedAds(): Promise<Advertisement[]> {
+    const allAds = await this.adRepository.findAll();
+    const publishedAds = allAds.filter(ad => ad.published && ad.approved === true);
+    return this.enrichAdsListWithAuthorNicknames(publishedAds);
+  }
+
+  async getPendingAds(): Promise<Advertisement[]> {
+    const allAds = await this.adRepository.findAll();
+    console.log('Debug - All ads:', allAds.length);
+    console.log('Debug - Ads approval statuses:', allAds.map(a => ({ id: a.id, title: a.title, approved: a.approved, published: a.published })));
+    
+    // Return ads that are pending approval (approved is null AND published is true)
+    // This excludes drafts (published: false) from the pending queue
+    const pending = allAds.filter(ad => ad.approved === null && ad.published === true);
+    console.log('Debug - Pending ads found (excluding drafts):', pending.length);
+    
+    return this.enrichAdsListWithAuthorNicknames(pending);
+  }
+
+  async getMyAds(userId: string): Promise<Advertisement[]> {
+    const allAds = await this.adRepository.findAll();
+    
+    // Return only ads by the current user
+    const myAds = allAds.filter(ad => ad.authorId === userId);
+    
+    return this.enrichAdsListWithAuthorNicknames(myAds);
   }
 
   async getAdById(id: string): Promise<Advertisement | null> {
-    return this.adRepository.findById(id);
+    const ad = await this.adRepository.findById(id);
+    if (!ad) return null;
+    
+    return this.enrichAdWithAuthorNickname(ad);
   }
 
-  async createAd(advertiserId: string, adData: CreateAdRequest): Promise<Advertisement> {
-    // Check if advertiser already has an ad
-    const existingAds = await this.adRepository.findByAdvertiser(advertiserId);
-    if (existingAds.length > 0) {
-      throw new Error('Advertiser can only submit one advertisement');
+  async createAd(authorId: string, adData: CreateAdvertisementRequest): Promise<Advertisement> {
+    const ad = await this.adRepository.create({
+      ...adData,
+      authorId,
+      approved: null, // null = pending approval
+      approvedAt: undefined,
+    });
+
+    return this.enrichAdWithAuthorNickname(ad);
+  }
+
+  async updateAd(authorId: string, adData: UpdateAdvertisementRequest): Promise<Advertisement> {
+    // Get existing ad
+    const existingAd = await this.adRepository.findById(adData.id);
+    if (!existingAd) {
+      throw new Error('Advertisement not found');
     }
 
-    return this.adRepository.create({
-      ...adData,
-      advertiserId,
-      approved: false, // Ads need approval by default
+    // Check ownership (non-admin users can only update their own ads)
+    if (existingAd.authorId !== authorId) {
+      throw new Error('You can only update your own advertisements');
+    }
+
+    const updatedAd = await this.adRepository.update(adData.id, {
+      title: adData.title,
+      description: adData.description,
+      category: adData.category,
+      price: adData.price,
+      contactEmail: adData.contactEmail,
+      published: adData.published,
+      // Reset approval when ad is updated
+      approved: adData.published ? null : existingAd.approved,
+      approvedAt: adData.published ? undefined : existingAd.approvedAt,
     });
+
+    return this.enrichAdWithAuthorNickname(updatedAd);
   }
 
-  async getAdsByAdvertiser(advertiserId: string): Promise<Advertisement[]> {
-    return this.adRepository.findByAdvertiser(advertiserId);
+  async deleteAd(authorId: string, adId: string): Promise<boolean> {
+    // Get existing ad
+    const existingAd = await this.adRepository.findById(adId);
+    if (!existingAd) {
+      return false;
+    }
+
+    // Check ownership (non-admin users can only delete their own ads)
+    if (existingAd.authorId !== authorId) {
+      throw new Error('You can only delete your own advertisements');
+    }
+
+    return this.adRepository.delete(adId);
+  }
+
+  async approveAd(adId: string, approved: boolean): Promise<Advertisement> {
+    const existingAd = await this.adRepository.findById(adId);
+    if (!existingAd) {
+      throw new Error('Advertisement not found');
+    }
+
+    const updatedAd = await this.adRepository.update(adId, {
+      approved,
+      approvedAt: new Date(),
+    });
+
+    return this.enrichAdWithAuthorNickname(updatedAd);
+  }
+
+  private async enrichAdWithAuthorNickname(ad: Advertisement): Promise<Advertisement> {
+    try {
+      const author = await this.userRepository.findById(ad.authorId);
+      return {
+        ...ad,
+        authorNickname: author?.nickname || 'Usuário Desconhecido'
+      };
+    } catch (error) {
+      console.error('Error enriching ad with author nickname:', error);
+      return {
+        ...ad,
+        authorNickname: 'Usuário Desconhecido'
+      };
+    }
+  }
+
+  private async enrichAdsListWithAuthorNicknames(ads: Advertisement[]): Promise<Advertisement[]> {
+    return Promise.all(ads.map(ad => this.enrichAdWithAuthorNickname(ad)));
   }
 }

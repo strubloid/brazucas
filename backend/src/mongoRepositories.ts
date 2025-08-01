@@ -165,8 +165,8 @@ export class MongoAdRepository implements IAdRepository {
     return await this.collection.findOne({ _id: id as any }) as Advertisement | null;
   }
 
-  async findByAdvertiser(advertiserId: string): Promise<Advertisement[]> {
-    return await this.collection.find({ advertiserId }).sort({ createdAt: -1 }).toArray() as Advertisement[];
+  async findByAdvertiser(authorId: string): Promise<Advertisement[]> {
+    return await this.collection.find({ authorId }).sort({ createdAt: -1 }).toArray() as Advertisement[];
   }
 
   async create(adData: Omit<Advertisement, 'id' | 'createdAt' | 'updatedAt'>): Promise<Advertisement> {

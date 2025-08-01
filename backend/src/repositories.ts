@@ -21,7 +21,7 @@ export interface INewsRepository {
 export interface IAdRepository {
   findAll(): Promise<Advertisement[]>;
   findById(id: string): Promise<Advertisement | null>;
-  findByAdvertiser(advertiserId: string): Promise<Advertisement[]>;
+  findByAdvertiser(authorId: string): Promise<Advertisement[]>;
   create(ad: Omit<Advertisement, 'id' | 'createdAt' | 'updatedAt'>): Promise<Advertisement>;
   update(id: string, updates: Partial<Advertisement>): Promise<Advertisement>;
   delete(id: string): Promise<boolean>;
@@ -144,8 +144,8 @@ export class InMemoryAdRepository implements IAdRepository {
     return this.ads.find(ad => ad.id === id) || null;
   }
 
-  async findByAdvertiser(advertiserId: string): Promise<Advertisement[]> {
-    return this.ads.filter(ad => ad.advertiserId === advertiserId);
+  async findByAdvertiser(authorId: string): Promise<Advertisement[]> {
+    return this.ads.filter(ad => ad.authorId === authorId);
   }
 
   async create(adData: Omit<Advertisement, 'id' | 'createdAt' | 'updatedAt'>): Promise<Advertisement> {

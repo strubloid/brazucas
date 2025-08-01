@@ -3,7 +3,9 @@ import { useAnimateOnMount } from '../hooks/useAnimateOnMount';
 import { useAsync } from '../hooks/useAsync';
 import { useAuth } from '../context/AuthContext';
 import { NewsService } from '../services/newsService';
+import { AdService } from '../services/adService';
 import { NewsPost, CreateNewsRequest, UpdateNewsRequest } from '../types/news';
+import { Advertisement, CreateAdvertisementRequest, UpdateAdvertisementRequest } from '../types/ads';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -22,14 +24,17 @@ import './Dashboard.scss';
 const Dashboard: React.FC = () => {
   const dashboardRef = useAnimateOnMount('fadeIn');
   const { user } = useAuth();  
-  const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'create' | 'approve-posts' | 'approve-ads'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'create' | 'create-ad' | 'approve-posts' | 'approve-ads'>('overview');
   const [editingNews, setEditingNews] = useState<NewsPost | null>(null);
+  const [editingAd, setEditingAd] = useState<Advertisement | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string>('');
   const [submitSuccess, setSubmitSuccess] = useState<string>('');
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const [selectedPost, setSelectedPost] = useState<NewsPost | null>(null);
+  const [selectedAd, setSelectedAd] = useState<Advertisement | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showAdDetailsModal, setShowAdDetailsModal] = useState(false);
 
   const { data: news, loading, refetch } = useAsync<NewsPost[]>(
     () => {
@@ -43,6 +48,22 @@ const Dashboard: React.FC = () => {
   // Fetch pending news for admin
   const { data: pendingNews, loading: pendingLoading, refetch: refetchPending } = useAsync<NewsPost[]>(
     () => user?.role === 'admin' ? NewsService.getPendingNews() : Promise.resolve([]),
+    [user?.role]
+  );
+
+  // Fetch advertisements based on user role
+  const { data: ads, loading: adsLoading, refetch: refetchAds } = useAsync<Advertisement[]>(
+    () => {
+      if (!user) return Promise.resolve([]);
+      // Admins see all ads, regular users see only their own
+      return user.role === 'admin' ? AdService.getAllAds() : AdService.getMyAds();
+    },
+    [user?.role, user?.id]
+  );
+
+  // Fetch pending advertisements for admin
+  const { data: pendingAds, loading: pendingAdsLoading, refetch: refetchPendingAds } = useAsync<Advertisement[]>(
+    () => user?.role === 'admin' ? AdService.getPendingAds() : Promise.resolve([]),
     [user?.role]
   );
 
@@ -63,6 +84,15 @@ const Dashboard: React.FC = () => {
     content: '',
     excerpt: '',
     imageUrl: '',
+    published: false,
+  });
+
+  const [adFormData, setAdFormData] = useState<CreateAdvertisementRequest>({
+    title: '',
+    description: '',
+    category: '',
+    price: '',
+    contactEmail: '',
     published: false,
   });
 
@@ -93,6 +123,20 @@ const Dashboard: React.FC = () => {
       published: false,
     });
     setEditingNews(null);
+    setSubmitError('');
+    setSubmitSuccess('');
+  };
+
+  const resetAdForm = (): void => {
+    setAdFormData({
+      title: '',
+      description: '',
+      category: '',
+      price: '',
+      contactEmail: '',
+      published: false,
+    });
+    setEditingAd(null);
     setSubmitError('');
     setSubmitSuccess('');
   };
@@ -180,6 +224,57 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleAdInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setAdFormData(prev => ({
+        ...prev,
+        [name]: checked,
+      }));
+    } else {
+      setAdFormData(prev => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleAdSubmit = async (e: React.FormEvent): Promise<void> => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitError('');
+    setSubmitSuccess('');
+
+    try {
+      if (editingAd) {
+        // Update existing advertisement
+        const updateData: UpdateAdvertisementRequest = {
+          id: editingAd.id,
+          ...adFormData,
+        };
+        await AdService.updateAd(updateData);
+        setSubmitSuccess('Anúncio atualizado com sucesso!');
+      } else {
+        // Create new advertisement
+        await AdService.createAd(adFormData);
+        setSubmitSuccess('Anúncio criado com sucesso!');
+      }
+      
+      refetchAds();
+      
+      // Wait a bit to show the success message, then reset and change tab
+      setTimeout(() => {
+        resetAdForm();
+        setActiveTab('overview');
+      }, 2000);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Erro ao salvar anúncio');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleApproval = async (newsId: string, approved: boolean) => {
     try {
       setProcessingIds(prev => new Set(prev).add(newsId));
@@ -203,6 +298,41 @@ const Dashboard: React.FC = () => {
         return newSet;
       });
     }
+  };
+
+  const handleAdApproval = async (adId: string, approved: boolean) => {
+    try {
+      setProcessingIds(prev => new Set(prev).add(adId));
+      
+      await AdService.approveAd({ id: adId, approved });
+      
+      // Refresh pending ads list
+      refetchPendingAds();
+      
+      // Show success message
+      const action = approved ? 'aprovado' : 'rejeitado';
+      setSubmitSuccess(`Anúncio ${action} com sucesso!`);
+      setTimeout(() => setSubmitSuccess(''), 3000);
+      
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Erro ao processar aprovação de anúncio');
+    } finally {
+      setProcessingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(adId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleViewAdDetails = (ad: Advertisement) => {
+    setSelectedAd(ad);
+    setShowAdDetailsModal(true);
+  };
+
+  const closeAdDetailsModal = () => {
+    setSelectedAd(null);
+    setShowAdDetailsModal(false);
   };
 
   const formatDate = (dateString: string) => {
@@ -304,6 +434,17 @@ const Dashboard: React.FC = () => {
               <span>Nova Notícia</span>
             </button>
 
+            <button
+              className={`nav-item ${activeTab === 'create-ad' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('create-ad');
+                resetAdForm();
+              }}
+            >
+              <FontAwesomeIcon icon={faPlus} className="nav-icon" />
+              <span>Novo Anúncio</span>
+            </button>
+
             {user?.role === 'admin' && (
               <>
                 <div className="nav-divider">
@@ -327,7 +468,9 @@ const Dashboard: React.FC = () => {
                 >
                   <FontAwesomeIcon icon={faAd} className="nav-icon" />
                   <span>Aprovar Anúncios</span>
-                  <span className="badge">5</span>
+                  {pendingAds && pendingAds.length > 0 && (
+                    <span className="badge">{pendingAds.length}</span>
+                  )}
                 </button>
               </>
             )}
@@ -341,6 +484,7 @@ const Dashboard: React.FC = () => {
               {activeTab === 'overview' && 'Dashboard'}
               {activeTab === 'news' && 'Gerenciar Notícias'}
               {activeTab === 'create' && (editingNews ? 'Editar Notícia' : 'Criar Nova Notícia')}
+              {activeTab === 'create-ad' && (editingAd ? 'Editar Anúncio' : 'Criar Novo Anúncio')}
               {activeTab === 'approve-posts' && 'Aprovar Posts de Usuários'}
               {activeTab === 'approve-ads' && 'Aprovar Anúncios'}
             </h1>
@@ -591,6 +735,148 @@ const Dashboard: React.FC = () => {
               </div>
             )}
 
+            {/* Create/Edit Advertisement Tab */}
+            {activeTab === 'create-ad' && (
+              <div className="dashboard__create">
+                <form onSubmit={handleAdSubmit} className="dashboard__form">
+                  {submitError && (
+                    <div className="dashboard__message dashboard__message--error">
+                      {submitError}
+                    </div>
+                  )}
+                  
+                  {submitSuccess && (
+                    <div className="dashboard__message dashboard__message--success">
+                      {submitSuccess}
+                    </div>
+                  )}
+
+                  <div className="dashboard__field">
+                    <label htmlFor="ad-title" className="dashboard__label">Título do Serviço</label>
+                    <input
+                      type="text"
+                      id="ad-title"
+                      name="title"
+                      value={adFormData.title}
+                      onChange={handleAdInputChange}
+                      className="dashboard__input"
+                      placeholder="Ex: Serviços de limpeza doméstica"
+                      maxLength={100}
+                      required
+                    />
+                  </div>
+
+                  <div className="dashboard__field">
+                    <label htmlFor="ad-category" className="dashboard__label">Categoria</label>
+                    <select
+                      id="ad-category"
+                      name="category"
+                      value={adFormData.category}
+                      onChange={handleAdInputChange}
+                      className="dashboard__input"
+                      required
+                    >
+                      <option value="">Selecione uma categoria</option>
+                      <option value="Serviços Domésticos">Serviços Domésticos</option>
+                      <option value="Limpeza">Limpeza</option>
+                      <option value="Jardinagem">Jardinagem</option>
+                      <option value="Manutenção">Manutenção</option>
+                      <option value="Culinária">Culinária</option>
+                      <option value="Tutoria/Ensino">Tutoria/Ensino</option>
+                      <option value="Cuidado de Crianças">Cuidado de Crianças</option>
+                      <option value="Cuidado de Idosos">Cuidado de Idosos</option>
+                      <option value="Pet Care">Pet Care</option>
+                      <option value="Transporte">Transporte</option>
+                      <option value="Outros">Outros</option>
+                    </select>
+                  </div>
+
+                  <div className="dashboard__field">
+                    <label htmlFor="ad-description" className="dashboard__label">Descrição do Serviço</label>
+                    <textarea
+                      id="ad-description"
+                      name="description"
+                      value={adFormData.description}
+                      onChange={handleAdInputChange}
+                      className="dashboard__textarea"
+                      placeholder="Descreva detalhadamente seu serviço, experiência e diferenciais..."
+                      rows={6}
+                      maxLength={500}
+                      required
+                    />
+                    <div className="char-count">
+                      {adFormData.description.length}/500 caracteres
+                    </div>
+                  </div>
+
+                  <div className="dashboard__field">
+                    <label htmlFor="ad-price" className="dashboard__label">Preço</label>
+                    <input
+                      type="text"
+                      id="ad-price"
+                      name="price"
+                      value={adFormData.price}
+                      onChange={handleAdInputChange}
+                      className="dashboard__input"
+                      placeholder="Ex: €20/hora, €50/dia, A combinar"
+                      maxLength={20}
+                      required
+                    />
+                  </div>
+
+                  <div className="dashboard__field">
+                    <label htmlFor="ad-contactEmail" className="dashboard__label">Email de Contato</label>
+                    <input
+                      type="email"
+                      id="ad-contactEmail"
+                      name="contactEmail"
+                      value={adFormData.contactEmail}
+                      onChange={handleAdInputChange}
+                      className="dashboard__input"
+                      placeholder="seu.email@exemplo.com"
+                      required
+                    />
+                  </div>
+
+                  <div className="dashboard__field dashboard__field--checkbox">
+                    <label htmlFor="ad-published" className="dashboard__checkbox-label">
+                      <input
+                        type="checkbox"
+                        id="ad-published"
+                        name="published"
+                        checked={adFormData.published}
+                        onChange={handleAdInputChange}
+                        className="dashboard__checkbox"
+                      />
+                      Enviar para aprovação
+                    </label>
+                  </div>
+
+                  <div className="dashboard__form-actions">
+                    <button
+                      type="button"
+                      onClick={resetAdForm}
+                      className="dashboard__button dashboard__button--secondary"
+                      disabled={isSubmitting}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="dashboard__button dashboard__button--primary"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <LoadingSpinner size="small" text="" />
+                      ) : (
+                        editingAd ? 'Atualizar Anúncio' : 'Criar Anúncio'
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
             {/* Approve Posts Tab - Admin Only */}
             {activeTab === 'approve-posts' && user?.role === 'admin' && (
               <div className="approval-section">
@@ -665,40 +951,61 @@ const Dashboard: React.FC = () => {
                   <p>Revise e aprove anúncios enviados por usuários</p>
                 </div>
                 
-                <div className="approval-grid">
-                  {/* Mock pending ads - replace with real data */}
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="approval-card ad-card">
-                      <div className="approval-card-header">
-                        <h3>Anúncio #{i}</h3>
-                        <span className="pending-badge">Pendente</span>
-                      </div>
-                      <div className="approval-card-content">
-                        <p className="ad-title">Serviços de limpeza doméstica</p>
-                        <p className="ad-author">Por: anunciante{i}@email.com</p>
-                        <p className="ad-category">Categoria: Serviços</p>
-                        <p className="ad-price">€50/hora</p>
-                        <div className="ad-meta">
-                          <span>Enviado há 1 dia</span>
+                {pendingAdsLoading ? (
+                  <LoadingSpinner text="Carregando anúncios pendentes..." />
+                ) : (
+                  <div className="approval-grid">
+                    {pendingAds && pendingAds.length > 0 ? (
+                      pendingAds.map((ad) => (
+                        <div key={ad.id} className="approval-card ad-card">
+                          <div className="approval-card-header">
+                            <h3>{ad.title}</h3>
+                            <span className="pending-badge">Pendente</span>
+                          </div>
+                          <div className="approval-card-content">
+                            <p className="ad-author">Por: {ad.authorNickname}</p>
+                            <p className="ad-category">Categoria: {ad.category}</p>
+                            <p className="ad-description">{truncateContent(ad.description)}</p>
+                            <p className="ad-price">Preço: {ad.price}</p>
+                            <p className="ad-contact">Contato: {ad.contactEmail}</p>
+                            <div className="ad-meta">
+                              <span>Enviado em {formatDate(ad.createdAt)}</span>
+                            </div>
+                          </div>
+                          <div className="approval-actions">
+                            <button 
+                              className="btn-approve"
+                              onClick={() => handleAdApproval(ad.id, true)}
+                              disabled={processingIds.has(ad.id)}
+                            >
+                              <FontAwesomeIcon icon={faCheckCircle} />
+                              {processingIds.has(ad.id) ? 'Processando...' : 'Aprovar'}
+                            </button>
+                            <button 
+                              className="btn-reject"
+                              onClick={() => handleAdApproval(ad.id, false)}
+                              disabled={processingIds.has(ad.id)}
+                            >
+                              <FontAwesomeIcon icon={faTrash} />
+                              {processingIds.has(ad.id) ? 'Processando...' : 'Rejeitar'}
+                            </button>
+                            <button 
+                              className="btn-view"
+                              onClick={() => handleViewAdDetails(ad)}
+                            >
+                              <FontAwesomeIcon icon={faEye} />
+                              Ver Detalhes
+                            </button>
+                          </div>
                         </div>
+                      ))
+                    ) : (
+                      <div className="no-pending-content">
+                        <p>Nenhum anúncio pendente de aprovação.</p>
                       </div>
-                      <div className="approval-actions">
-                        <button className="btn-approve">
-                          <FontAwesomeIcon icon={faCheckCircle} />
-                          Aprovar
-                        </button>
-                        <button className="btn-reject">
-                          <FontAwesomeIcon icon={faTrash} />
-                          Rejeitar
-                        </button>
-                        <button className="btn-view">
-                          <FontAwesomeIcon icon={faEye} />
-                          Ver Detalhes
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
