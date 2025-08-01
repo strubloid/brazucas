@@ -119,6 +119,11 @@ export class NewsService implements INewsService {
     return this.newsRepository.findAll();
   }
 
+  async getPublishedNews(): Promise<NewsPost[]> {
+    const allNews = await this.newsRepository.findAll();
+    return allNews.filter(news => news.published);
+  }
+
   async getNewsById(id: string): Promise<NewsPost | null> {
     return this.newsRepository.findById(id);
   }

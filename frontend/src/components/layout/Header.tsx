@@ -135,7 +135,7 @@ const Header: React.FC = () => {
                   Notícias
                 </Link>
               </li>
-              {isAuthenticated && user?.role === UserRole.ADMIN && (
+              {isAuthenticated && (
                 <li>
                   <Link to="/dashboard" style={styles.navLink}>
                     Dashboard
@@ -199,7 +199,7 @@ const Header: React.FC = () => {
                   Notícias
                 </Link>
               </li>
-              {isAuthenticated && user?.role === UserRole.ADMIN && (
+              {isAuthenticated && (
                 <li>
                   <Link to="/dashboard" style={styles.navLink} onClick={() => setIsMenuOpen(false)}>
                     Dashboard

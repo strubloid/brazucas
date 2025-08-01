@@ -45,6 +45,7 @@ export const handler = async (event: HandlerEvent, context: HandlerContext) => {
 
 async function handleGetNews(event: HandlerEvent, newsService: NewsService) {
   const newsId = event.queryStringParameters?.id;
+  const publishedOnly = event.queryStringParameters?.published === 'true';
   
   if (newsId) {
     // Get specific news post
@@ -61,8 +62,10 @@ async function handleGetNews(event: HandlerEvent, newsService: NewsService) {
       data: news,
     });
   } else {
-    // Get all news posts
-    const news = await newsService.getAllNews();
+    // Get all news posts or only published ones
+    const news = publishedOnly 
+      ? await newsService.getPublishedNews()
+      : await newsService.getAllNews();
     return createResponse(200, {
       success: true,
       data: news,
@@ -93,16 +96,16 @@ async function handleUpdateNews(event: HandlerEvent, newsService: NewsService) {
   
   // Check if user can update this news post
   // Admins can update any post, regular users can only update their own posts
-  console.log('Update permission check:');
-  console.log('user.userId:', user.userId);
-  console.log('user.role:', user.role);
+  // console.log('Update permission check:');
+  // console.log('user.userId:', user.userId);
+  // console.log('user.role:', user.role);
   
   // TEMPORARY: Allow all authenticated users to edit any post for debugging
   if (false && user.role !== 'admin') {
     const existingNews = await newsService.getNewsById(validatedData.id);
-    console.log('existingNews:', existingNews);
-    console.log('existingNews.authorId:', existingNews?.authorId);
-    console.log('Match:', existingNews?.authorId === user.userId);
+    // console.log('existingNews:', existingNews);
+    // console.log('existingNews.authorId:', existingNews?.authorId);
+    // console.log('Match:', existingNews?.authorId === user.userId);
     
     if (!existingNews) {
       console.log('Permission denied - news not found');
@@ -112,7 +115,8 @@ async function handleUpdateNews(event: HandlerEvent, newsService: NewsService) {
       });
     }
     
-    if (existingNews.authorId !== user.userId) {
+    // Now existingNews is guaranteed to be non-null
+    if (existingNews!.authorId !== user.userId) {
       console.log('Permission denied - authorId mismatch');
       return createResponse(403, {
         success: false,

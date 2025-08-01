@@ -12,6 +12,16 @@ export class NewsService {
     throw new Error(response.error || 'Failed to fetch news');
   }
 
+  static async getPublishedNews(): Promise<NewsPost[]> {
+    const response = await apiClient.get<NewsPost[]>('/news?published=true');
+    
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error || 'Failed to fetch published news');
+  }
+
   static async getNewsById(id: string): Promise<NewsPost> {
     const response = await apiClient.get<NewsPost>(`/news?id=${id}`);
     
