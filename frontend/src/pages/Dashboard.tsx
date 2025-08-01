@@ -28,6 +28,8 @@ const Dashboard: React.FC = () => {
   const [submitError, setSubmitError] = useState<string>('');
   const [submitSuccess, setSubmitSuccess] = useState<string>('');
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [selectedPost, setSelectedPost] = useState<NewsPost | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const { data: news, loading, refetch } = useAsync<NewsPost[]>(
     () => NewsService.getAllNews(),
@@ -212,6 +214,16 @@ const Dashboard: React.FC = () => {
   const truncateContent = (content: string, maxLength: number = 80) => {
     if (content.length <= maxLength) return content;
     return content.substring(0, maxLength) + '...';
+  };
+
+  const handleViewDetails = (post: NewsPost) => {
+    setSelectedPost(post);
+    setShowDetailsModal(true);
+  };
+
+  const closeDetailsModal = () => {
+    setSelectedPost(null);
+    setShowDetailsModal(false);
   };
 
   return (
@@ -589,7 +601,10 @@ const Dashboard: React.FC = () => {
                               <FontAwesomeIcon icon={faTrash} />
                               {processingIds.has(post.id) ? 'Processando...' : 'Rejeitar'}
                             </button>
-                            <button className="btn-view">
+                            <button 
+                              className="btn-view"
+                              onClick={() => handleViewDetails(post)}
+                            >
                               <FontAwesomeIcon icon={faEye} />
                               Ver Detalhes
                             </button>
@@ -656,6 +671,94 @@ const Dashboard: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {/* Post Details Modal */}
+      {showDetailsModal && selectedPost && (
+        <div className="modal-overlay" onClick={closeDetailsModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{selectedPost.title}</h2>
+              <button className="modal-close" onClick={closeDetailsModal}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="post-details">
+                <div className="post-meta-details">
+                  <p><strong>Autor:</strong> {selectedPost.authorNickname || selectedPost.authorId}</p>
+                  <p><strong>Data de Envio:</strong> {formatDate(selectedPost.createdAt)}</p>
+                  {selectedPost.updatedAt !== selectedPost.createdAt && (
+                    <p><strong>Última Atualização:</strong> {formatDate(selectedPost.updatedAt)}</p>
+                  )}
+                  <p><strong>Status:</strong> 
+                    <span className={`status-badge ${selectedPost.approved === null ? 'pending' : selectedPost.approved ? 'approved' : 'rejected'}`}>
+                      {selectedPost.approved === null ? 'Pendente' : selectedPost.approved ? 'Aprovado' : 'Rejeitado'}
+                    </span>
+                  </p>
+                </div>
+                
+                {selectedPost.excerpt && (
+                  <div className="post-section">
+                    <h3>Resumo:</h3>
+                    <p>{selectedPost.excerpt}</p>
+                  </div>
+                )}
+                
+                <div className="post-section">
+                  <h3>Conteúdo Completo:</h3>
+                  <div className="post-content">
+                    {selectedPost.content.split('\n').map((paragraph, index) => (
+                      <p key={index}>{paragraph}</p>
+                    ))}
+                  </div>
+                </div>
+                
+                {selectedPost.imageUrl && (
+                  <div className="post-section">
+                    <h3>Imagem:</h3>
+                    <img 
+                      src={selectedPost.imageUrl} 
+                      alt={selectedPost.title}
+                      className="post-image"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+              
+              <div className="modal-actions">
+                <button 
+                  className="btn-approve"
+                  onClick={() => {
+                    handleApproval(selectedPost.id, true);
+                    closeDetailsModal();
+                  }}
+                  disabled={processingIds.has(selectedPost.id)}
+                >
+                  <FontAwesomeIcon icon={faCheckCircle} />
+                  Aprovar Post
+                </button>
+                <button 
+                  className="btn-reject"
+                  onClick={() => {
+                    handleApproval(selectedPost.id, false);
+                    closeDetailsModal();
+                  }}
+                  disabled={processingIds.has(selectedPost.id)}
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                  Rejeitar Post
+                </button>
+                <button className="btn-secondary" onClick={closeDetailsModal}>
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
