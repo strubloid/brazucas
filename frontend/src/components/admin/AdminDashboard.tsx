@@ -10,6 +10,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = () => {
   const [pendingNews, setPendingNews] = useState<NewsPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const { user } = useAuth();
 
@@ -48,6 +49,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = () => {
   const handleApproval = async (newsId: string, approved: boolean) => {
     try {
       setProcessingIds(prev => new Set(prev).add(newsId));
+      setError(null);
       
       await NewsService.approveNews(newsId, approved);
       
@@ -55,7 +57,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = () => {
       setPendingNews(prev => prev.filter(news => news.id !== newsId));
       
       // Show success message
-      console.log(`News post ${approved ? 'approved' : 'rejected'} successfully`);
+      const action = approved ? 'approved' : 'rejected';
+      setSuccessMessage(`News post ${action} successfully!`);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(null), 3000);
+      
     } catch (err) {
       console.error('Error processing approval:', err);
       setError(err instanceof Error ? err.message : 'Failed to process approval');
@@ -98,6 +105,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = () => {
         <p>Manage pending news posts</p>
       </div>
 
+      {successMessage && (
+        <div className="success-message">
+          <p>{successMessage}</p>
+        </div>
+      )}
+
       {error && (
         <div className="error-message">
           <p>{error}</p>
@@ -112,7 +125,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = () => {
         
         {pendingNews.length === 0 ? (
           <div className="no-pending">
-            <p>No pending news posts to review.</p>
+            <p>No pending news posts to review. All posts have been processed!</p>
             <button onClick={loadPendingNews} className="refresh-button">
               Refresh
             </button>
@@ -147,6 +160,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = () => {
                     <span className="author">Author ID: {news.authorId}</span>
                     <span className="status">
                       Status: {news.published ? 'Published' : 'Draft'}
+                    </span>
+                    <span className="approval-status">
+                      Approval: <span className={`status-badge ${news.approved === null ? 'pending' : news.approved ? 'approved' : 'denied'}`}>
+                        {news.approved === null ? 'Pending' : news.approved ? 'Approved' : 'Denied'}
+                      </span>
                     </span>
                   </div>
                 </div>

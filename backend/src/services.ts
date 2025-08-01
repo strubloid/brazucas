@@ -125,7 +125,7 @@ export class NewsService implements INewsService {
   async getPublishedNews(): Promise<NewsPost[]> {
     const allNews = await this.newsRepository.findAll();
     // Only return published AND approved news for public viewing
-    return allNews.filter(news => news.published && news.approved);
+    return allNews.filter(news => news.published && news.approved === true);
   }
 
   async getNewsById(id: string): Promise<NewsPost | null> {
@@ -137,14 +137,14 @@ export class NewsService implements INewsService {
       ...newsData,
       authorId,
       published: newsData.published ?? false,
-      approved: false, // All new posts require approval
+      approved: null, // All new posts start as pending approval
     });
   }
 
   async getPendingNews(): Promise<NewsPost[]> {
     const allNews = await this.newsRepository.findAll();
-    // Return published but not yet approved posts
-    return allNews.filter(news => news.published && !news.approved);
+    // Return posts that are pending approval (approved is null)
+    return allNews.filter(news => news.approved === null);
   }
 
   async approveNews(newsId: string, approved: boolean): Promise<NewsPost> {

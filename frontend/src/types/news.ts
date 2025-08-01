@@ -8,7 +8,7 @@ export interface NewsPost {
   createdAt: string;
   updatedAt: string;
   published: boolean;
-  approved: boolean;
+  approved: boolean | null; // null = pending, true = approved, false = denied
 }
 
 export interface CreateNewsRequest {

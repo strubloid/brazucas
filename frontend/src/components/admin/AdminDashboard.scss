@@ -40,6 +40,21 @@
     color: #7f8c8d;
   }
 
+  .success-message {
+    background: #d4edda;
+    border: 1px solid #27ae60;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    color: #155724;
+    animation: fadeIn 0.3s ease-in;
+
+    p {
+      margin: 0;
+      font-weight: 500;
+    }
+  }
+
   .error-message {
     background: #fdf2f2;
     border: 1px solid #e74c3c;
@@ -179,6 +194,37 @@
             background: #f8f9fa;
             border-radius: 4px;
           }
+
+          .approval-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+
+            .status-badge {
+              font-weight: 500;
+              padding: 0.25rem 0.5rem;
+              border-radius: 4px;
+              font-size: 0.8rem;
+
+              &.pending {
+                background: #fff3cd;
+                color: #856404;
+                border: 1px solid #ffeaa7;
+              }
+
+              &.approved {
+                background: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+              }
+
+              &.denied {
+                background: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+              }
+            }
+          }
         }
       }
 
@@ -258,5 +304,17 @@
         }
       }
     }
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
