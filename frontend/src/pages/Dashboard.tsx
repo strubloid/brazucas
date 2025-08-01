@@ -32,8 +32,12 @@ const Dashboard: React.FC = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const { data: news, loading, refetch } = useAsync<NewsPost[]>(
-    () => NewsService.getAllNews(),
-    []
+    () => {
+      if (!user) return Promise.resolve([]);
+      // Admins see all news, regular users see only their own
+      return user.role === 'admin' ? NewsService.getAllNews() : NewsService.getMyNews();
+    },
+    [user?.role, user?.id]
   );
 
   // Fetch pending news for admin

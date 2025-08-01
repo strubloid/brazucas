@@ -28,6 +28,7 @@ export interface INewsService {
   getAllNews(): Promise<NewsPost[]>;
   getPublishedNews(): Promise<NewsPost[]>;
   getPendingNews(): Promise<NewsPost[]>;
+  getMyNews(userId: string): Promise<NewsPost[]>;
   getNewsById(id: string): Promise<NewsPost | null>;
   createNews(authorId: string, newsData: CreateNewsRequest): Promise<NewsPost>;
   updateNews(authorId: string, newsData: UpdateNewsRequest): Promise<NewsPost>;
@@ -179,6 +180,15 @@ export class NewsService implements INewsService {
     console.log('Debug - Pending news found (excluding drafts):', pending.length);
     
     return this.enrichNewsListWithAuthorNicknames(pending);
+  }
+
+  async getMyNews(userId: string): Promise<NewsPost[]> {
+    const allNews = await this.newsRepository.findAll();
+    
+    // Return only posts by the current user
+    const myNews = allNews.filter(news => news.authorId === userId);
+    
+    return this.enrichNewsListWithAuthorNicknames(myNews);
   }
 
   async approveNews(newsId: string, approved: boolean): Promise<NewsPost> {
