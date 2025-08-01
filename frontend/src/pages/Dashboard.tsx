@@ -13,8 +13,6 @@ import {
   faCheckCircle, 
   faAd,
   faUsers,
-  faChartBar,
-  faPen,
   faTrash,
   faClock,
   faEye
