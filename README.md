@@ -305,4 +305,4 @@ For support and questions:
 
 ---
 
-Made with ❤️ for the Brazilian community in Cork, Ireland 🇧🇷🇮🇪
+Made with ❤️ for the Brazilian community in Cork, Ireland

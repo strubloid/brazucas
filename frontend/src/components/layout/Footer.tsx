@@ -1,5 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFacebookF, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
+import { faNewspaper, faUsers, faBriefcase, faEnvelope, faMapMarkerAlt, faClock } from '@fortawesome/free-solid-svg-icons';
 
 const Footer: React.FC = () => {
   const styles = {
@@ -64,7 +67,16 @@ const Footer: React.FC = () => {
     socialLink: {
       fontSize: '1.5rem',
       textDecoration: 'none',
-      transition: 'transform 0.2s',
+      transition: 'transform 0.2s, color 0.2s',
+      color: '#bdc3c7',
+      padding: '0.5rem',
+      borderRadius: '50%',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '3rem',
+      height: '3rem',
+      backgroundColor: '#34495e',
     },
     bottom: {
       borderTop: '1px solid #34495e',
@@ -83,7 +95,7 @@ const Footer: React.FC = () => {
       <div style={styles.container}>
         <div style={styles.content}>
           <div style={styles.section}>
-            <h3 style={styles.title}>🇧🇷 Brazucas em Cork</h3>
+            <h3 style={styles.title}>Brazucas em Cork</h3>
             <p style={styles.description}>
               Conectando a comunidade brasileira em Cork, Irlanda. 
               Encontre eventos, notícias e oportunidades para se sentir em casa.
@@ -95,17 +107,20 @@ const Footer: React.FC = () => {
             <ul style={styles.linksList}>
               <li>
                 <Link to="/news" style={styles.link}>
-                  📰 Notícias
+                  <FontAwesomeIcon icon={faNewspaper} style={{ marginRight: '0.5rem' }} />
+                  Notícias
                 </Link>
               </li>
               <li>
                 <Link to="/register" style={styles.link}>
-                  👥 Cadastre-se
+                  <FontAwesomeIcon icon={faUsers} style={{ marginRight: '0.5rem' }} />
+                  Cadastre-se
                 </Link>
               </li>
               <li>
                 <Link to="/submit-ad" style={styles.link}>
-                  💼 Anunciar Negócio
+                  <FontAwesomeIcon icon={faBriefcase} style={{ marginRight: '0.5rem' }} />
+                  Anunciar Negócio
                 </Link>
               </li>
             </ul>
@@ -121,7 +136,7 @@ const Footer: React.FC = () => {
                 target="_blank" 
                 rel="noopener noreferrer"
               >
-                📘
+                <FontAwesomeIcon icon={faFacebookF} />
               </a>
               
               <a 
@@ -131,7 +146,7 @@ const Footer: React.FC = () => {
                 target="_blank" 
                 rel="noopener noreferrer"
               >
-                �
+                <FontAwesomeIcon icon={faWhatsapp} />
               </a>
             </div>
           </div>
@@ -139,9 +154,12 @@ const Footer: React.FC = () => {
           <div style={styles.section}>
             <h4 style={styles.subtitle}>Contato</h4>
             <p style={styles.description}>
-              📧 brazucascork@gmail.com<br />
-              📍 Cork, Irlanda<br />
-              🕒 Atendimento: Seg-Sex 10h-17h (UTC+1)
+              <FontAwesomeIcon icon={faEnvelope} style={{ marginRight: '0.5rem' }} />
+              brazucascork@gmail.com<br />
+              <FontAwesomeIcon icon={faMapMarkerAlt} style={{ marginRight: '0.5rem' }} />
+              Cork, Irlanda<br />
+              <FontAwesomeIcon icon={faClock} style={{ marginRight: '0.5rem' }} />
+              Atendimento: Seg-Sex 10h-17h (UTC+1)
             </p>
           </div>
         </div>

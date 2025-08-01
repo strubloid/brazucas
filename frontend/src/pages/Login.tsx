@@ -169,7 +169,7 @@ const Login: React.FC = () => {
         </Link>
         
         <div style={styles.header}>
-          <h1 style={styles.title}>🇧🇷 Entrar</h1>
+          <h1 style={styles.title}>Entrar</h1>
           <p style={styles.subtitle}>Acesse sua conta Brazucas em Cork</p>
         </div>
 
