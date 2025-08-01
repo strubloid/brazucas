@@ -5,6 +5,7 @@ export interface NewsPost {
   excerpt: string;
   imageUrl?: string;
   authorId: string;
+  authorNickname?: string; // Optional for backward compatibility
   createdAt: string;
   updatedAt: string;
   published: boolean;

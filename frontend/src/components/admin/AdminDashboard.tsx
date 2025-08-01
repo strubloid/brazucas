@@ -18,7 +18,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('Fetching pending news...');
       const news = await NewsService.getPendingNews();
+      console.log('Received pending news:', news);
       setPendingNews(news);
     } catch (err) {
       console.error('Error loading pending news:', err);
@@ -103,6 +105,52 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = () => {
       <div className="admin-header">
         <h1>Admin Dashboard</h1>
         <p>Manage pending news posts</p>
+        <button 
+          onClick={() => {
+            console.log('Loading pending news...');
+            loadPendingNews();
+          }}
+          style={{
+            background: '#3498db',
+            color: 'white',
+            border: 'none',
+            padding: '0.5rem 1rem',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginTop: '0.5rem',
+            marginRight: '0.5rem'
+          }}
+        >
+          Refresh Data
+        </button>
+        <button 
+          onClick={async () => {
+            try {
+              console.log('Creating test news post...');
+              await NewsService.createNews({
+                title: 'Test Pending News',
+                content: 'This is a test news post to verify the approval system.',
+                excerpt: 'Test excerpt for approval system',
+                published: true
+              });
+              console.log('Test news created, refreshing...');
+              loadPendingNews();
+            } catch (err) {
+              console.error('Error creating test news:', err);
+            }
+          }}
+          style={{
+            background: '#27ae60',
+            color: 'white',
+            border: 'none',
+            padding: '0.5rem 1rem',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginTop: '0.5rem'
+          }}
+        >
+          Create Test News
+        </button>
       </div>
 
       {successMessage && (
@@ -122,6 +170,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = () => {
 
       <div className="pending-section">
         <h2>Pending News Posts ({pendingNews.length})</h2>
+        
+        {/* Debug section */}
+        <div style={{
+          background: '#f8f9fa',
+          padding: '1rem',
+          borderRadius: '4px',
+          marginBottom: '1rem',
+          fontSize: '0.9rem'
+        }}>
+          <strong>Debug Info:</strong>
+          <p>Loading: {loading.toString()}</p>
+          <p>Error: {error || 'None'}</p>
+          <p>Pending news count: {pendingNews.length}</p>
+          <p>Raw data: {JSON.stringify(pendingNews, null, 2)}</p>
+        </div>
         
         {pendingNews.length === 0 ? (
           <div className="no-pending">

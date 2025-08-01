@@ -116,20 +116,47 @@ export class UserService implements IUserService {
 }
 
 export class NewsService implements INewsService {
-  constructor(private newsRepository: INewsRepository) {}
+  constructor(
+    private newsRepository: INewsRepository,
+    private userRepository: IUserRepository
+  ) {}
+
+  private async enrichWithAuthorNickname(newsPost: NewsPost): Promise<NewsPost> {
+    try {
+      const author = await this.userRepository.findById(newsPost.authorId);
+      return {
+        ...newsPost,
+        authorNickname: author?.nickname || 'Usuário Desconhecido'
+      };
+    } catch (error) {
+      console.warn('Failed to fetch author nickname for post:', newsPost.id, error);
+      return {
+        ...newsPost,
+        authorNickname: 'Usuário Desconhecido'
+      };
+    }
+  }
+
+  private async enrichNewsListWithAuthorNicknames(newsList: NewsPost[]): Promise<NewsPost[]> {
+    return Promise.all(newsList.map(news => this.enrichWithAuthorNickname(news)));
+  }
 
   async getAllNews(): Promise<NewsPost[]> {
-    return this.newsRepository.findAll();
+    const newsList = await this.newsRepository.findAll();
+    return this.enrichNewsListWithAuthorNicknames(newsList);
   }
 
   async getPublishedNews(): Promise<NewsPost[]> {
     const allNews = await this.newsRepository.findAll();
     // Only return published AND approved news for public viewing
-    return allNews.filter(news => news.published && news.approved === true);
+    const filteredNews = allNews.filter(news => news.published && news.approved === true);
+    return this.enrichNewsListWithAuthorNicknames(filteredNews);
   }
 
   async getNewsById(id: string): Promise<NewsPost | null> {
-    return this.newsRepository.findById(id);
+    const newsPost = await this.newsRepository.findById(id);
+    if (!newsPost) return null;
+    return this.enrichWithAuthorNickname(newsPost);
   }
 
   async createNews(authorId: string, newsData: CreateNewsRequest): Promise<NewsPost> {
@@ -143,8 +170,14 @@ export class NewsService implements INewsService {
 
   async getPendingNews(): Promise<NewsPost[]> {
     const allNews = await this.newsRepository.findAll();
+    console.log('Debug - All news posts:', allNews.length);
+    console.log('Debug - News approval statuses:', allNews.map(n => ({ id: n.id, title: n.title, approved: n.approved })));
+    
     // Return posts that are pending approval (approved is null)
-    return allNews.filter(news => news.approved === null);
+    const pending = allNews.filter(news => news.approved === null);
+    console.log('Debug - Pending news found:', pending.length);
+    
+    return this.enrichNewsListWithAuthorNicknames(pending);
   }
 
   async approveNews(newsId: string, approved: boolean): Promise<NewsPost> {

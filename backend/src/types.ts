@@ -38,6 +38,7 @@ export interface NewsPost {
   excerpt: string;
   imageUrl?: string;
   authorId: string;
+  authorNickname?: string; // Optional for backward compatibility
   createdAt: Date;
   updatedAt: Date;
   published: boolean;

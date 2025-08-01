@@ -27,10 +27,17 @@ const Dashboard: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string>('');
   const [submitSuccess, setSubmitSuccess] = useState<string>('');
+  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
 
   const { data: news, loading, refetch } = useAsync<NewsPost[]>(
     () => NewsService.getAllNews(),
     []
+  );
+
+  // Fetch pending news for admin
+  const { data: pendingNews, loading: pendingLoading, refetch: refetchPending } = useAsync<NewsPost[]>(
+    () => user?.role === 'admin' ? NewsService.getPendingNews() : Promise.resolve([]),
+    [user?.role]
   );
 
   // Debug logging
@@ -167,6 +174,46 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleApproval = async (newsId: string, approved: boolean) => {
+    try {
+      setProcessingIds(prev => new Set(prev).add(newsId));
+      
+      await NewsService.approveNews(newsId, approved);
+      
+      // Refresh pending news list
+      refetchPending();
+      
+      // Show success message
+      const action = approved ? 'aprovado' : 'rejeitado';
+      setSubmitSuccess(`Post ${action} com sucesso!`);
+      setTimeout(() => setSubmitSuccess(''), 3000);
+      
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Erro ao processar aprovação');
+    } finally {
+      setProcessingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(newsId);
+        return newSet;
+      });
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const truncateContent = (content: string, maxLength: number = 80) => {
+    if (content.length <= maxLength) return content;
+    return content.substring(0, maxLength) + '...';
+  };
+
   return (
     <div ref={dashboardRef} className="modern-dashboard">
       <div className="dashboard-container">
@@ -224,7 +271,9 @@ const Dashboard: React.FC = () => {
                 >
                   <FontAwesomeIcon icon={faCheckCircle} className="nav-icon" />
                   <span>Aprovar Posts</span>
-                  <span className="badge">3</span>
+                  {pendingNews && pendingNews.length > 0 && (
+                    <span className="badge">{pendingNews.length}</span>
+                  )}
                 </button>
                 
                 <button
@@ -294,7 +343,7 @@ const Dashboard: React.FC = () => {
                         <FontAwesomeIcon icon={faCheckCircle} />
                       </div>
                       <div className="stat-content">
-                        <h3 className="stat-number">3</h3>
+                        <h3 className="stat-number">{pendingNews?.length || 0}</h3>
                         <p className="stat-label">Posts Pendentes</p>
                       </div>
                     </div>
@@ -505,38 +554,58 @@ const Dashboard: React.FC = () => {
                   <p>Revise e aprove posts enviados por usuários</p>
                 </div>
                 
-                <div className="approval-grid">
-                  {/* Mock pending posts - replace with real data */}
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="approval-card">
-                      <div className="approval-card-header">
-                        <h3>Post de Usuário #{i}</h3>
-                        <span className="pending-badge">Pendente</span>
-                      </div>
-                      <div className="approval-card-content">
-                        <p className="post-author">Por: user{i}@email.com</p>
-                        <p className="post-excerpt">Este é um post enviado por um usuário da comunidade...</p>
-                        <div className="post-meta">
-                          <span>Enviado há 2 horas</span>
+                {pendingLoading ? (
+                  <LoadingSpinner text="Carregando posts pendentes..." />
+                ) : (
+                  <div className="approval-grid">
+                    {pendingNews && pendingNews.length > 0 ? (
+                      pendingNews.map((post) => (
+                        <div key={post.id} className="approval-card">
+                          <div className="approval-card-header">
+                            <h3>{post.title}</h3>
+                            <span className="pending-badge">Pendente</span>
+                          </div>
+                          <div className="approval-card-content">
+                            <p className="post-author">Por: {post.authorNickname}</p>
+                            <p className="post-excerpt">{truncateContent(post.excerpt || post.content)}</p>
+                            <div className="post-meta">
+                              <span>Enviado em {formatDate(post.createdAt)}</span>
+                            </div>
+                          </div>
+                          <div className="approval-actions">
+                            <button 
+                              className="btn-approve"
+                              onClick={() => handleApproval(post.id, true)}
+                              disabled={processingIds.has(post.id)}
+                            >
+                              <FontAwesomeIcon icon={faCheckCircle} />
+                              {processingIds.has(post.id) ? 'Processando...' : 'Aprovar'}
+                            </button>
+                            <button 
+                              className="btn-reject"
+                              onClick={() => handleApproval(post.id, false)}
+                              disabled={processingIds.has(post.id)}
+                            >
+                              <FontAwesomeIcon icon={faTrash} />
+                              {processingIds.has(post.id) ? 'Processando...' : 'Rejeitar'}
+                            </button>
+                            <button className="btn-view">
+                              <FontAwesomeIcon icon={faEye} />
+                              Ver Detalhes
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="approval-actions">
-                        <button className="btn-approve">
-                          <FontAwesomeIcon icon={faCheckCircle} />
-                          Aprovar
-                        </button>
-                        <button className="btn-reject">
-                          <FontAwesomeIcon icon={faTrash} />
-                          Rejeitar
-                        </button>
-                        <button className="btn-view">
-                          <FontAwesomeIcon icon={faEye} />
-                          Ver Detalhes
+                      ))
+                    ) : (
+                      <div className="no-pending-posts">
+                        <p>Não há posts pendentes de aprovação.</p>
+                        <button onClick={refetchPending} className="btn-refresh">
+                          Atualizar
                         </button>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

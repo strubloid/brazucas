@@ -1,6 +1,6 @@
 import { HandlerEvent, HandlerContext } from '@netlify/functions';
 import { NewsService } from './services';
-import { MongoNewsRepository } from './mongoRepositories';
+import { MongoNewsRepository, MongoUserRepository } from './mongoRepositories';
 import { dbConnection } from './database';
 import { 
   createResponse, 
@@ -22,7 +22,8 @@ export const handler = async (event: HandlerEvent, context: HandlerContext) => {
     // Connect to database and create repository
     const db = await dbConnection.connect();
     const newsRepository = new MongoNewsRepository(db);
-    const newsService = new NewsService(newsRepository);
+    const userRepository = new MongoUserRepository(db);
+    const newsService = new NewsService(newsRepository, userRepository);
 
     switch (event.httpMethod) {
       case 'GET':
