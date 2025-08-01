@@ -87,3 +87,5 @@ cookies.txt
 
 # ignoring the build directory
 frontend/build
+# Local Netlify folder
+.netlify

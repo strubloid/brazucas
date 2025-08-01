@@ -1,0 +1,18 @@
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+// Import all component styles
+@import 'components/LoadingSpinner';
+@import 'components/Header';
+@import 'components/Footer';
+@import 'components/Layout';
+@import 'pages/Home';
+@import 'pages/Login';
+@import 'pages/Register';
+@import 'pages/News';
+@import 'pages/NewsDetail';
+@import 'pages/Dashboard';
+@import 'pages/AdSubmission';

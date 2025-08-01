@@ -1,0 +1,24 @@
+{
+  "name": "brazucas-em-cork",
+  "version": "1.0.0",
+  "description": "Community web platform for Brazucas em Cork",
+  "scripts": {
+    "dev": "concurrently \"cd frontend && npm start\" \"cd backend && netlify dev\"",
+    "build": "cd frontend && npm run build",
+    "test": "npm run test:frontend && npm run test:backend",
+    "test:frontend": "cd frontend && npm test -- --coverage --watchAll=false",
+    "test:backend": "cd backend && npm test",
+    "lint": "npm run lint:frontend && npm run lint:backend",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:backend": "cd backend && npm run lint",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "netlify-cli": "^17.10.1"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
+}
