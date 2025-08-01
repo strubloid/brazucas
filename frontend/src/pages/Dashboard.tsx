@@ -24,6 +24,10 @@ import './Dashboard.scss';
 const Dashboard: React.FC = () => {
   const dashboardRef = useAnimateOnMount('fadeIn');
   const { user } = useAuth();
+  
+  // Debug: log user object to see what's available
+  console.log('Dashboard user object:', user);
+  
   const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'create' | 'approve-posts' | 'approve-ads'>('overview');
   const [editingNews, setEditingNews] = useState<NewsPost | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,6 +46,24 @@ const Dashboard: React.FC = () => {
     imageUrl: '',
     published: false,
   });
+
+  // Check if user is authenticated AFTER all hooks are called
+  if (!user) {
+    return (
+      <div className="modern-dashboard">
+        <div className="access-denied-container">
+          <h2>Acesso Negado</h2>
+          <p>Você precisa fazer login para acessar o dashboard.</p>
+          <button 
+            className="login-button"
+            onClick={() => window.location.href = '/login'}
+          >
+            Ir para Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const resetForm = (): void => {
     setFormData({
@@ -127,7 +149,12 @@ const Dashboard: React.FC = () => {
         <aside className="dashboard-sidebar">
           <div className="sidebar-header">
             <h2 className="sidebar-title">Admin Panel</h2>
-            <p className="sidebar-subtitle">Olá, {user?.email}</p>
+            <p className="sidebar-subtitle">
+              Olá, {user.email}
+            </p>
+            <small style={{ color: '#9ca3af', fontSize: '0.75rem' }}>
+              Role: {user.role}
+            </small>
           </div>
           
           <nav className="sidebar-nav">
