@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { UserRole } from './types';
 
 export const createUserSchema = z.object({
   email: z.string().email('Invalid email format'),
@@ -9,7 +10,7 @@ export const createUserSchema = z.object({
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
       'Password must contain at least one uppercase letter, one lowercase letter, and one number'
     ),
-  role: z.enum(['normal', 'admin', 'advertiser']),
+  role: z.nativeEnum(UserRole),
 });
 
 export const loginSchema = z.object({

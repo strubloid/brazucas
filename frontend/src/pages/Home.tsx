@@ -163,7 +163,7 @@ const Home: React.FC = () => {
       {/* Hero Section */}
       <section style={styles.hero}>
         <h1 style={styles.heroTitle}>
-          🇧🇷 Brazucas em Cork
+          Brazucas em Cork
         </h1>
         <p style={styles.heroSubtitle}>
           Sua comunidade brasileira no coração da Irlanda

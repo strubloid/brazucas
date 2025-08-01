@@ -116,7 +116,7 @@ const Header: React.FC = () => {
       <header style={styles.header}>
         <div style={styles.container}>
           <Link to="/" style={styles.logo}>
-            🇧🇷 Brazucas em Cork
+            Brazucas em Cork
           </Link>
 
           {/* Desktop Navigation */}

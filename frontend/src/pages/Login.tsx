@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { AuthService } from '../services/authService';
+import { useAuth } from '../context/AuthContext';
 
 interface LoginForm {
   email: string;
@@ -8,6 +10,7 @@ interface LoginForm {
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState<LoginForm>({
     email: '',
     password: '',
@@ -147,15 +150,18 @@ const Login: React.FC = () => {
 
     setIsLoading(true);
 
-    // Simulate login process for now
     try {
-      // Mock authentication - replace with real API call later
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call login through auth context
+      await login({
+        email: formData.email,
+        password: formData.password,
+      });
       
-      // For now, just navigate to home
-      navigate('/');
+      // Navigate to dashboard on successful login
+      navigate('/dashboard');
     } catch (error) {
-      setError('Erro ao fazer login. Tente novamente.');
+      console.error('Login error:', error);
+      setError(error instanceof Error ? error.message : 'Erro ao fazer login. Verifique suas credenciais.');
     } finally {
       setIsLoading(false);
     }
@@ -169,7 +175,7 @@ const Login: React.FC = () => {
         </Link>
         
         <div style={styles.header}>
-          <h1 style={styles.title}>🇧🇷 Entrar</h1>
+          <h1 style={styles.title}>Entrar</h1>
           <p style={styles.subtitle}>Acesse sua conta Brazucas em Cork</p>
         </div>
 
