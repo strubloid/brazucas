@@ -171,11 +171,12 @@ export class NewsService implements INewsService {
   async getPendingNews(): Promise<NewsPost[]> {
     const allNews = await this.newsRepository.findAll();
     console.log('Debug - All news posts:', allNews.length);
-    console.log('Debug - News approval statuses:', allNews.map(n => ({ id: n.id, title: n.title, approved: n.approved })));
+    console.log('Debug - News approval statuses:', allNews.map(n => ({ id: n.id, title: n.title, approved: n.approved, published: n.published })));
     
-    // Return posts that are pending approval (approved is null)
-    const pending = allNews.filter(news => news.approved === null);
-    console.log('Debug - Pending news found:', pending.length);
+    // Return posts that are pending approval (approved is null AND published is true)
+    // This excludes drafts (published: false) from the pending queue
+    const pending = allNews.filter(news => news.approved === null && news.published === true);
+    console.log('Debug - Pending news found (excluding drafts):', pending.length);
     
     return this.enrichNewsListWithAuthorNicknames(pending);
   }
@@ -186,7 +187,12 @@ export class NewsService implements INewsService {
       throw new Error('News post not found');
     }
 
-    return this.newsRepository.update(newsId, { approved });
+    const updatedNews = await this.newsRepository.update(newsId, { 
+      approved, 
+      approvedAt: new Date() 
+    });
+
+    return this.enrichWithAuthorNickname(updatedNews);
   }
 
   async updateNews(authorId: string, newsData: UpdateNewsRequest): Promise<NewsPost> {

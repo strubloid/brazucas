@@ -656,6 +656,21 @@
               background: #fef3c7;
               color: #92400e;
             }
+
+            &--approved {
+              background: #dbeafe;
+              color: #1e40af;
+            }
+
+            &--pending {
+              background: #fef3c7;
+              color: #92400e;
+            }
+
+            &--rejected {
+              background: #fee2e2;
+              color: #dc2626;
+            }
           }
 
           .dashboard__news-date {

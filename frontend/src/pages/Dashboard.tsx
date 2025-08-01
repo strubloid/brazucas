@@ -226,6 +226,35 @@ const Dashboard: React.FC = () => {
     setShowDetailsModal(false);
   };
 
+  const getPostStatus = (post: NewsPost) => {
+    if (post.published && post.approved === true) {
+      return { text: 'Publicada', class: 'published' };
+    } else if (post.approved === true && !post.published) {
+      return { text: 'Aprovado', class: 'approved' };
+    } else if (post.approved === false) {
+      return { text: 'Rejeitado', class: 'rejected' };
+    } else if (post.approved === null && post.published) {
+      // User tried to publish but needs approval
+      return { text: 'Aguardando Aprovação', class: 'pending' };
+    } else {
+      // approved === null and published === false (or undefined)
+      return { text: 'Rascunho', class: 'draft' };
+    }
+  };
+
+  const getStatusDate = (post: NewsPost) => {
+    if (post.published && post.approved === true) {
+      return `Publicado em ${new Date(post.updatedAt).toLocaleDateString('pt-BR')}`;
+    } else if (post.approved !== null && post.approvedAt) {
+      const action = post.approved ? 'Aprovado' : 'Rejeitado';
+      return `${action} em ${new Date(post.approvedAt).toLocaleDateString('pt-BR')}`;
+    } else if (post.approved === null && post.published) {
+      return `Enviado para aprovação em ${new Date(post.createdAt).toLocaleDateString('pt-BR')}`;
+    } else {
+      return `Criado em ${new Date(post.createdAt).toLocaleDateString('pt-BR')}`;
+    }
+  };
+
   return (
     <div ref={dashboardRef} className="modern-dashboard">
       <div className="dashboard-container">
@@ -398,11 +427,11 @@ const Dashboard: React.FC = () => {
                           <h3 className="dashboard__news-title">{newsPost.title}</h3>
                           <p className="dashboard__news-excerpt">{newsPost.excerpt}</p>
                           <div className="dashboard__news-meta">
-                            <span className={`dashboard__news-status dashboard__news-status--${newsPost.published ? 'published' : 'draft'}`}>
-                              {newsPost.published ? 'Publicada' : 'Rascunho'}
+                            <span className={`dashboard__news-status dashboard__news-status--${getPostStatus(newsPost).class}`}>
+                              {getPostStatus(newsPost).text}
                             </span>
                             <span className="dashboard__news-date">
-                              {new Date(newsPost.createdAt).toLocaleDateString('pt-BR')}
+                              {getStatusDate(newsPost)}
                             </span>
                           </div>
                         </div>
@@ -691,10 +720,13 @@ const Dashboard: React.FC = () => {
                     <p><strong>Última Atualização:</strong> {formatDate(selectedPost.updatedAt)}</p>
                   )}
                   <p><strong>Status:</strong> 
-                    <span className={`status-badge ${selectedPost.approved === null ? 'pending' : selectedPost.approved ? 'approved' : 'rejected'}`}>
-                      {selectedPost.approved === null ? 'Pendente' : selectedPost.approved ? 'Aprovado' : 'Rejeitado'}
+                    <span className={`status-badge ${getPostStatus(selectedPost).class}`}>
+                      {getPostStatus(selectedPost).text}
                     </span>
                   </p>
+                  {selectedPost.approved !== null && selectedPost.approvedAt && (
+                    <p><strong>{selectedPost.approved ? 'Aprovado' : 'Rejeitado'} em:</strong> {formatDate(selectedPost.approvedAt)}</p>
+                  )}
                 </div>
                 
                 {selectedPost.excerpt && (

@@ -10,6 +10,7 @@ export interface NewsPost {
   updatedAt: string;
   published: boolean;
   approved: boolean | null; // null = pending, true = approved, false = denied
+  approvedAt?: string; // When the approval/rejection happened
 }
 
 export interface CreateNewsRequest {
