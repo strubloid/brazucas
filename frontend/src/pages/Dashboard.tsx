@@ -201,6 +201,7 @@ const Dashboard: React.FC = () => {
           <div className="main-content">
             {/* Overview Tab */}
             {activeTab === 'overview' && (
+              <>
               <div className="overview-grid">
                 <div className="stat-card">
                   <div className="stat-icon">
@@ -266,6 +267,7 @@ const Dashboard: React.FC = () => {
                   </>
                 )}
               </div>
+              </>
             )}
 
             {/* News Management Tab */}
