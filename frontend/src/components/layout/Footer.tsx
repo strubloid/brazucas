@@ -125,7 +125,7 @@ const Footer: React.FC = () => {
               </a>
               
               <a 
-                href="https://whatsapp.com" 
+                href="https://chat.whatsapp.com/HZciDfnj0j457ZoQK8cXjw" 
                 style={styles.socialLink} 
                 aria-label="WhatsApp" 
                 target="_blank" 
