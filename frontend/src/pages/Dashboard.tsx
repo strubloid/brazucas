@@ -96,6 +96,21 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handlePublishNews = async (id: string): Promise<void> => {
+    if (!window.confirm('Tem certeza que deseja publicar esta notícia?')) return;
+
+    try {
+      await NewsService.updateNews({
+        id,
+        published: true
+      });
+      setSubmitSuccess('Notícia publicada com sucesso!');
+      refetch();
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Erro ao publicar notícia');
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     const { name, value, type } = e.target;
     setFormData(prev => ({
@@ -126,9 +141,13 @@ const Dashboard: React.FC = () => {
         setSubmitSuccess('Notícia criada com sucesso!');
       }
       
-      resetForm();
       refetch();
-      setActiveTab('news');
+      
+      // Wait a bit to show the success message, then reset and change tab
+      setTimeout(() => {
+        resetForm();
+        setActiveTab('news');
+      }, 2000);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Erro ao salvar notícia');
     } finally {
@@ -316,20 +335,30 @@ const Dashboard: React.FC = () => {
                         </div>
                         <div className="dashboard__news-actions">
                           {(user.role === 'admin' || newsPost.authorId === user.id) && (
-                            <button
-                              onClick={() => handleEditNews(newsPost)}
-                              className="dashboard__news-button dashboard__news-button--edit"
-                            >
-                              Editar
-                            </button>
-                          )}
-                          {user.role === 'admin' && (
-                            <button
-                              onClick={() => handleDeleteNews(newsPost.id)}
-                              className="dashboard__news-button dashboard__news-button--delete"
-                            >
-                              Excluir
-                            </button>
+                            <>
+                              <button
+                                onClick={() => handleEditNews(newsPost)}
+                                className="dashboard__news-button dashboard__news-button--edit"
+                              >
+                                Editar
+                              </button>
+                              
+                              {!newsPost.published && (
+                                <button
+                                  onClick={() => handlePublishNews(newsPost.id)}
+                                  className="dashboard__news-button dashboard__news-button--publish"
+                                >
+                                  Publicar
+                                </button>
+                              )}
+                              
+                              <button
+                                onClick={() => handleDeleteNews(newsPost.id)}
+                                className="dashboard__news-button dashboard__news-button--delete"
+                              >
+                                Excluir
+                              </button>
+                            </>
                           )}
                         </div>
                       </div>

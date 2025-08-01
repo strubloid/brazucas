@@ -1,6 +1,7 @@
 import { HandlerEvent, HandlerContext } from '@netlify/functions';
 import { NewsService } from './services';
-import { InMemoryNewsRepository } from './repositories';
+import { MongoNewsRepository } from './mongoRepositories';
+import { dbConnection } from './database';
 import { 
   createResponse, 
   handleError, 
@@ -11,24 +12,26 @@ import {
 } from './utils';
 import { createNewsSchema, updateNewsSchema } from './validation';
 
-const newsRepository = new InMemoryNewsRepository();
-const newsService = new NewsService(newsRepository);
-
 export const handler = async (event: HandlerEvent, context: HandlerContext) => {
   try {
     // Handle CORS preflight
     const corsResponse = handleCors(event);
     if (corsResponse) return corsResponse;
 
+    // Connect to database and create repository
+    const db = await dbConnection.connect();
+    const newsRepository = new MongoNewsRepository(db);
+    const newsService = new NewsService(newsRepository);
+
     switch (event.httpMethod) {
       case 'GET':
-        return await handleGetNews(event);
+        return await handleGetNews(event, newsService);
       case 'POST':
-        return await handleCreateNews(event);
+        return await handleCreateNews(event, newsService);
       case 'PUT':
-        return await handleUpdateNews(event);
+        return await handleUpdateNews(event, newsService);
       case 'DELETE':
-        return await handleDeleteNews(event);
+        return await handleDeleteNews(event, newsService);
       default:
         return createResponse(405, {
           success: false,
@@ -40,7 +43,7 @@ export const handler = async (event: HandlerEvent, context: HandlerContext) => {
   }
 };
 
-async function handleGetNews(event: HandlerEvent) {
+async function handleGetNews(event: HandlerEvent, newsService: NewsService) {
   const newsId = event.queryStringParameters?.id;
   
   if (newsId) {
@@ -52,7 +55,7 @@ async function handleGetNews(event: HandlerEvent) {
         error: 'News post not found',
       });
     }
-    
+
     return createResponse(200, {
       success: true,
       data: news,
@@ -65,9 +68,7 @@ async function handleGetNews(event: HandlerEvent) {
       data: news,
     });
   }
-}
-
-async function handleCreateNews(event: HandlerEvent) {
+}async function handleCreateNews(event: HandlerEvent, newsService: NewsService) {
   // Require authentication (any logged-in user can create news)
   const user = requireAuth(event);
   
@@ -83,7 +84,7 @@ async function handleCreateNews(event: HandlerEvent) {
   });
 }
 
-async function handleUpdateNews(event: HandlerEvent) {
+async function handleUpdateNews(event: HandlerEvent, newsService: NewsService) {
   // Require authentication
   const user = requireAuth(event);
   
@@ -111,16 +112,32 @@ async function handleUpdateNews(event: HandlerEvent) {
   });
 }
 
-async function handleDeleteNews(event: HandlerEvent) {
-  // Require admin role for deletion
+async function handleDeleteNews(event: HandlerEvent, newsService: NewsService) {
+  // Require authentication
   const user = requireAuth(event);
-  requireRole(user, ['admin']);
   
   const newsId = event.queryStringParameters?.id;
   if (!newsId) {
     return createResponse(400, {
       success: false,
       error: 'News ID is required',
+    });
+  }
+
+  // Check if news exists and user has permission
+  const existingNews = await newsService.getNewsById(newsId);
+  if (!existingNews) {
+    return createResponse(404, {
+      success: false,
+      error: 'News post not found',
+    });
+  }
+
+  // Allow admin or the author to delete
+  if (user.role !== 'admin' && existingNews.authorId !== user.userId) {
+    return createResponse(403, {
+      success: false,
+      error: 'You can only delete your own posts',
     });
   }
   
