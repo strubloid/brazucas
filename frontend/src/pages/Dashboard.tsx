@@ -21,21 +21,38 @@ import './Dashboard.scss';
 
 const Dashboard: React.FC = () => {
   const dashboardRef = useAnimateOnMount('fadeIn');
-  const { user } = useAuth();
-  
-  // Debug: log user object to see what's available
-  console.log('Dashboard user object:', user);
-  
+  const { user } = useAuth();  
   const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'create' | 'approve-posts' | 'approve-ads'>('overview');
   const [editingNews, setEditingNews] = useState<NewsPost | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string>('');
   const [submitSuccess, setSubmitSuccess] = useState<string>('');
+  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [selectedPost, setSelectedPost] = useState<NewsPost | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const { data: news, loading, refetch } = useAsync<NewsPost[]>(
     () => NewsService.getAllNews(),
     []
   );
+
+  // Fetch pending news for admin
+  const { data: pendingNews, loading: pendingLoading, refetch: refetchPending } = useAsync<NewsPost[]>(
+    () => user?.role === 'admin' ? NewsService.getPendingNews() : Promise.resolve([]),
+    [user?.role]
+  );
+
+  // Debug logging
+  React.useEffect(() => {
+    if (user && news) {
+      console.log('Debug - User:', user);
+      console.log('Debug - News:', news);
+      news.forEach(newsPost => {
+        console.log(`News "${newsPost.title}": authorId=${newsPost.authorId}, user.id=${user.id}, match=${newsPost.authorId === user.id}`);
+        console.log(`News ID format: "${newsPost.id}" (length: ${newsPost.id.length})`);
+      });
+    }
+  }, [user, news]);
 
   const [formData, setFormData] = useState<CreateNewsRequest>({
     title: '',
@@ -100,6 +117,21 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handlePublishNews = async (id: string): Promise<void> => {
+    if (!window.confirm('Tem certeza que deseja publicar esta notícia?')) return;
+
+    try {
+      await NewsService.updateNews({
+        id,
+        published: true
+      });
+      setSubmitSuccess('Notícia publicada com sucesso!');
+      refetch();
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Erro ao publicar notícia');
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     const { name, value, type } = e.target;
     setFormData(prev => ({
@@ -130,13 +162,96 @@ const Dashboard: React.FC = () => {
         setSubmitSuccess('Notícia criada com sucesso!');
       }
       
-      resetForm();
       refetch();
-      setActiveTab('news');
+      
+      // Wait a bit to show the success message, then reset and change tab
+      setTimeout(() => {
+        resetForm();
+        setActiveTab('news');
+      }, 2000);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Erro ao salvar notícia');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleApproval = async (newsId: string, approved: boolean) => {
+    try {
+      setProcessingIds(prev => new Set(prev).add(newsId));
+      
+      await NewsService.approveNews(newsId, approved);
+      
+      // Refresh pending news list
+      refetchPending();
+      
+      // Show success message
+      const action = approved ? 'aprovado' : 'rejeitado';
+      setSubmitSuccess(`Post ${action} com sucesso!`);
+      setTimeout(() => setSubmitSuccess(''), 3000);
+      
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Erro ao processar aprovação');
+    } finally {
+      setProcessingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(newsId);
+        return newSet;
+      });
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const truncateContent = (content: string, maxLength: number = 80) => {
+    if (content.length <= maxLength) return content;
+    return content.substring(0, maxLength) + '...';
+  };
+
+  const handleViewDetails = (post: NewsPost) => {
+    setSelectedPost(post);
+    setShowDetailsModal(true);
+  };
+
+  const closeDetailsModal = () => {
+    setSelectedPost(null);
+    setShowDetailsModal(false);
+  };
+
+  const getPostStatus = (post: NewsPost) => {
+    if (post.published && post.approved === true) {
+      return { text: 'Publicada', class: 'published' };
+    } else if (post.approved === true && !post.published) {
+      return { text: 'Aprovado', class: 'approved' };
+    } else if (post.approved === false) {
+      return { text: 'Rejeitado', class: 'rejected' };
+    } else if (post.approved === null && post.published) {
+      // User tried to publish but needs approval
+      return { text: 'Aguardando Aprovação', class: 'pending' };
+    } else {
+      // approved === null and published === false (or undefined)
+      return { text: 'Rascunho', class: 'draft' };
+    }
+  };
+
+  const getStatusDate = (post: NewsPost) => {
+    if (post.published && post.approved === true) {
+      return `Publicado em ${new Date(post.updatedAt).toLocaleDateString('pt-BR')}`;
+    } else if (post.approved !== null && post.approvedAt) {
+      const action = post.approved ? 'Aprovado' : 'Rejeitado';
+      return `${action} em ${new Date(post.approvedAt).toLocaleDateString('pt-BR')}`;
+    } else if (post.approved === null && post.published) {
+      return `Enviado para aprovação em ${new Date(post.createdAt).toLocaleDateString('pt-BR')}`;
+    } else {
+      return `Criado em ${new Date(post.createdAt).toLocaleDateString('pt-BR')}`;
     }
   };
 
@@ -146,7 +261,9 @@ const Dashboard: React.FC = () => {
         {/* Sidebar Navigation */}
         <aside className="dashboard-sidebar">
           <div className="sidebar-header">
-            <h2 className="sidebar-title">Admin Panel</h2>
+            <h2 className="sidebar-title">
+              {user.role === 'admin' ? 'Admin Panel' : 'Dashboard'}
+            </h2>
             <p className="sidebar-subtitle">
               Olá, {user.nickname}
             </p>
@@ -195,7 +312,9 @@ const Dashboard: React.FC = () => {
                 >
                   <FontAwesomeIcon icon={faCheckCircle} className="nav-icon" />
                   <span>Aprovar Posts</span>
-                  <span className="badge">3</span>
+                  {pendingNews && pendingNews.length > 0 && (
+                    <span className="badge">{pendingNews.length}</span>
+                  )}
                 </button>
                 
                 <button
@@ -265,7 +384,7 @@ const Dashboard: React.FC = () => {
                         <FontAwesomeIcon icon={faCheckCircle} />
                       </div>
                       <div className="stat-content">
-                        <h3 className="stat-number">3</h3>
+                        <h3 className="stat-number">{pendingNews?.length || 0}</h3>
                         <p className="stat-label">Posts Pendentes</p>
                       </div>
                     </div>
@@ -308,27 +427,42 @@ const Dashboard: React.FC = () => {
                           <h3 className="dashboard__news-title">{newsPost.title}</h3>
                           <p className="dashboard__news-excerpt">{newsPost.excerpt}</p>
                           <div className="dashboard__news-meta">
-                            <span className={`dashboard__news-status dashboard__news-status--${newsPost.published ? 'published' : 'draft'}`}>
-                              {newsPost.published ? 'Publicada' : 'Rascunho'}
+                            <span className={`dashboard__news-status dashboard__news-status--${getPostStatus(newsPost).class}`}>
+                              {getPostStatus(newsPost).text}
                             </span>
                             <span className="dashboard__news-date">
-                              {new Date(newsPost.createdAt).toLocaleDateString('pt-BR')}
+                              {getStatusDate(newsPost)}
                             </span>
                           </div>
                         </div>
                         <div className="dashboard__news-actions">
-                          <button
-                            onClick={() => handleEditNews(newsPost)}
-                            className="dashboard__news-button dashboard__news-button--edit"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => handleDeleteNews(newsPost.id)}
-                            className="dashboard__news-button dashboard__news-button--delete"
-                          >
-                            Excluir
-                          </button>
+                          {/* Debug: Show buttons for all posts temporarily */}
+                          {true && (
+                            <>
+                              <button
+                                onClick={() => handleEditNews(newsPost)}
+                                className="dashboard__news-button dashboard__news-button--edit"
+                              >
+                                Editar
+                              </button>
+                              
+                              {!newsPost.published && (
+                                <button
+                                  onClick={() => handlePublishNews(newsPost.id)}
+                                  className="dashboard__news-button dashboard__news-button--publish"
+                                >
+                                  Publicar
+                                </button>
+                              )}
+                              
+                              <button
+                                onClick={() => handleDeleteNews(newsPost.id)}
+                                className="dashboard__news-button dashboard__news-button--delete"
+                              >
+                                Excluir
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -461,38 +595,61 @@ const Dashboard: React.FC = () => {
                   <p>Revise e aprove posts enviados por usuários</p>
                 </div>
                 
-                <div className="approval-grid">
-                  {/* Mock pending posts - replace with real data */}
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="approval-card">
-                      <div className="approval-card-header">
-                        <h3>Post de Usuário #{i}</h3>
-                        <span className="pending-badge">Pendente</span>
-                      </div>
-                      <div className="approval-card-content">
-                        <p className="post-author">Por: user{i}@email.com</p>
-                        <p className="post-excerpt">Este é um post enviado por um usuário da comunidade...</p>
-                        <div className="post-meta">
-                          <span>Enviado há 2 horas</span>
+                {pendingLoading ? (
+                  <LoadingSpinner text="Carregando posts pendentes..." />
+                ) : (
+                  <div className="approval-grid">
+                    {pendingNews && pendingNews.length > 0 ? (
+                      pendingNews.map((post) => (
+                        <div key={post.id} className="approval-card">
+                          <div className="approval-card-header">
+                            <h3>{post.title}</h3>
+                            <span className="pending-badge">Pendente</span>
+                          </div>
+                          <div className="approval-card-content">
+                            <p className="post-author">Por: {post.authorNickname}</p>
+                            <p className="post-excerpt">{truncateContent(post.excerpt || post.content)}</p>
+                            <div className="post-meta">
+                              <span>Enviado em {formatDate(post.createdAt)}</span>
+                            </div>
+                          </div>
+                          <div className="approval-actions">
+                            <button 
+                              className="btn-approve"
+                              onClick={() => handleApproval(post.id, true)}
+                              disabled={processingIds.has(post.id)}
+                            >
+                              <FontAwesomeIcon icon={faCheckCircle} />
+                              {processingIds.has(post.id) ? 'Processando...' : 'Aprovar'}
+                            </button>
+                            <button 
+                              className="btn-reject"
+                              onClick={() => handleApproval(post.id, false)}
+                              disabled={processingIds.has(post.id)}
+                            >
+                              <FontAwesomeIcon icon={faTrash} />
+                              {processingIds.has(post.id) ? 'Processando...' : 'Rejeitar'}
+                            </button>
+                            <button 
+                              className="btn-view"
+                              onClick={() => handleViewDetails(post)}
+                            >
+                              <FontAwesomeIcon icon={faEye} />
+                              Ver Detalhes
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="approval-actions">
-                        <button className="btn-approve">
-                          <FontAwesomeIcon icon={faCheckCircle} />
-                          Aprovar
-                        </button>
-                        <button className="btn-reject">
-                          <FontAwesomeIcon icon={faTrash} />
-                          Rejeitar
-                        </button>
-                        <button className="btn-view">
-                          <FontAwesomeIcon icon={faEye} />
-                          Ver Detalhes
+                      ))
+                    ) : (
+                      <div className="no-pending-posts">
+                        <p>Não há posts pendentes de aprovação.</p>
+                        <button onClick={refetchPending} className="btn-refresh">
+                          Atualizar
                         </button>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -543,6 +700,97 @@ const Dashboard: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {/* Post Details Modal */}
+      {showDetailsModal && selectedPost && (
+        <div className="modal-overlay" onClick={closeDetailsModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{selectedPost.title}</h2>
+              <button className="modal-close" onClick={closeDetailsModal}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="post-details">
+                <div className="post-meta-details">
+                  <p><strong>Autor:</strong> {selectedPost.authorNickname || selectedPost.authorId}</p>
+                  <p><strong>Data de Envio:</strong> {formatDate(selectedPost.createdAt)}</p>
+                  {selectedPost.updatedAt !== selectedPost.createdAt && (
+                    <p><strong>Última Atualização:</strong> {formatDate(selectedPost.updatedAt)}</p>
+                  )}
+                  <p><strong>Status:</strong> 
+                    <span className={`status-badge ${getPostStatus(selectedPost).class}`}>
+                      {getPostStatus(selectedPost).text}
+                    </span>
+                  </p>
+                  {selectedPost.approved !== null && selectedPost.approvedAt && (
+                    <p><strong>{selectedPost.approved ? 'Aprovado' : 'Rejeitado'} em:</strong> {formatDate(selectedPost.approvedAt)}</p>
+                  )}
+                </div>
+                
+                {selectedPost.excerpt && (
+                  <div className="post-section">
+                    <h3>Resumo:</h3>
+                    <p>{selectedPost.excerpt}</p>
+                  </div>
+                )}
+                
+                <div className="post-section">
+                  <h3>Conteúdo Completo:</h3>
+                  <div className="post-content">
+                    {selectedPost.content.split('\n').map((paragraph, index) => (
+                      <p key={index}>{paragraph}</p>
+                    ))}
+                  </div>
+                </div>
+                
+                {selectedPost.imageUrl && (
+                  <div className="post-section">
+                    <h3>Imagem:</h3>
+                    <img 
+                      src={selectedPost.imageUrl} 
+                      alt={selectedPost.title}
+                      className="post-image"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+              
+              <div className="modal-actions">
+                <button 
+                  className="btn-approve"
+                  onClick={() => {
+                    handleApproval(selectedPost.id, true);
+                    closeDetailsModal();
+                  }}
+                  disabled={processingIds.has(selectedPost.id)}
+                >
+                  <FontAwesomeIcon icon={faCheckCircle} />
+                  Aprovar Post
+                </button>
+                <button 
+                  className="btn-reject"
+                  onClick={() => {
+                    handleApproval(selectedPost.id, false);
+                    closeDetailsModal();
+                  }}
+                  disabled={processingIds.has(selectedPost.id)}
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                  Rejeitar Post
+                </button>
+                <button className="btn-secondary" onClick={closeDetailsModal}>
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

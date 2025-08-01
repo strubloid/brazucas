@@ -38,9 +38,12 @@ export interface NewsPost {
   excerpt: string;
   imageUrl?: string;
   authorId: string;
+  authorNickname?: string; // Optional for backward compatibility
   createdAt: Date;
   updatedAt: Date;
   published: boolean;
+  approved: boolean | null; // null = pending, true = approved, false = denied
+  approvedAt?: Date; // When the approval/rejection happened
 }
 
 export interface CreateNewsRequest {
@@ -53,6 +56,11 @@ export interface CreateNewsRequest {
 
 export interface UpdateNewsRequest extends Partial<CreateNewsRequest> {
   id: string;
+}
+
+export interface ApproveNewsRequest {
+  id: string;
+  approved: boolean;
 }
 
 export interface Advertisement {

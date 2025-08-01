@@ -26,10 +26,13 @@ export interface IUserService {
 
 export interface INewsService {
   getAllNews(): Promise<NewsPost[]>;
+  getPublishedNews(): Promise<NewsPost[]>;
+  getPendingNews(): Promise<NewsPost[]>;
   getNewsById(id: string): Promise<NewsPost | null>;
   createNews(authorId: string, newsData: CreateNewsRequest): Promise<NewsPost>;
   updateNews(authorId: string, newsData: UpdateNewsRequest): Promise<NewsPost>;
   deleteNews(authorId: string, newsId: string): Promise<boolean>;
+  approveNews(newsId: string, approved: boolean): Promise<NewsPost>;
 }
 
 export interface IAdService {
@@ -113,14 +116,47 @@ export class UserService implements IUserService {
 }
 
 export class NewsService implements INewsService {
-  constructor(private newsRepository: INewsRepository) {}
+  constructor(
+    private newsRepository: INewsRepository,
+    private userRepository: IUserRepository
+  ) {}
+
+  private async enrichWithAuthorNickname(newsPost: NewsPost): Promise<NewsPost> {
+    try {
+      const author = await this.userRepository.findById(newsPost.authorId);
+      return {
+        ...newsPost,
+        authorNickname: author?.nickname || 'Usuário Desconhecido'
+      };
+    } catch (error) {
+      console.warn('Failed to fetch author nickname for post:', newsPost.id, error);
+      return {
+        ...newsPost,
+        authorNickname: 'Usuário Desconhecido'
+      };
+    }
+  }
+
+  private async enrichNewsListWithAuthorNicknames(newsList: NewsPost[]): Promise<NewsPost[]> {
+    return Promise.all(newsList.map(news => this.enrichWithAuthorNickname(news)));
+  }
 
   async getAllNews(): Promise<NewsPost[]> {
-    return this.newsRepository.findAll();
+    const newsList = await this.newsRepository.findAll();
+    return this.enrichNewsListWithAuthorNicknames(newsList);
+  }
+
+  async getPublishedNews(): Promise<NewsPost[]> {
+    const allNews = await this.newsRepository.findAll();
+    // Only return published AND approved news for public viewing
+    const filteredNews = allNews.filter(news => news.published && news.approved === true);
+    return this.enrichNewsListWithAuthorNicknames(filteredNews);
   }
 
   async getNewsById(id: string): Promise<NewsPost | null> {
-    return this.newsRepository.findById(id);
+    const newsPost = await this.newsRepository.findById(id);
+    if (!newsPost) return null;
+    return this.enrichWithAuthorNickname(newsPost);
   }
 
   async createNews(authorId: string, newsData: CreateNewsRequest): Promise<NewsPost> {
@@ -128,7 +164,35 @@ export class NewsService implements INewsService {
       ...newsData,
       authorId,
       published: newsData.published ?? false,
+      approved: null, // All new posts start as pending approval
     });
+  }
+
+  async getPendingNews(): Promise<NewsPost[]> {
+    const allNews = await this.newsRepository.findAll();
+    console.log('Debug - All news posts:', allNews.length);
+    console.log('Debug - News approval statuses:', allNews.map(n => ({ id: n.id, title: n.title, approved: n.approved, published: n.published })));
+    
+    // Return posts that are pending approval (approved is null AND published is true)
+    // This excludes drafts (published: false) from the pending queue
+    const pending = allNews.filter(news => news.approved === null && news.published === true);
+    console.log('Debug - Pending news found (excluding drafts):', pending.length);
+    
+    return this.enrichNewsListWithAuthorNicknames(pending);
+  }
+
+  async approveNews(newsId: string, approved: boolean): Promise<NewsPost> {
+    const existingNews = await this.newsRepository.findById(newsId);
+    if (!existingNews) {
+      throw new Error('News post not found');
+    }
+
+    const updatedNews = await this.newsRepository.update(newsId, { 
+      approved, 
+      approvedAt: new Date() 
+    });
+
+    return this.enrichWithAuthorNickname(updatedNews);
   }
 
   async updateNews(authorId: string, newsData: UpdateNewsRequest): Promise<NewsPost> {

@@ -1,7 +1,20 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useAsync } from '../hooks/useAsync';
+import { NewsService } from '../services/newsService';
+import { NewsPost } from '../types/news';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const Home: React.FC = () => {
+  // Fetch latest published news for homepage
+  const { data: news, loading: newsLoading } = useAsync<NewsPost[]>(
+    () => NewsService.getPublishedNews(),
+    []
+  );
+
+  // Get the latest 3 published news for homepage
+  const latestNews = news?.slice(0, 3) || [];
+
   const styles = {
     container: {
       minHeight: '100vh',
@@ -182,58 +195,101 @@ const Home: React.FC = () => {
       <section style={styles.section}>
         <h2 style={styles.sectionTitle}>Últimas Notícias</h2>
         
-        <div style={styles.newsGrid}>
-          <article style={styles.newsCard}>
-            <div style={{...styles.newsImage, background: '#009639'}}>
-              📰
-            </div>
-            <div style={styles.newsContent}>
-              <h3 style={styles.newsTitle}>
-                Comunidade Brasileira em Cork Cresce
-              </h3>
-              <p style={styles.newsExcerpt}>
-                A comunidade brasileira em Cork continua crescendo com novos eventos e iniciativas que conectam brasileiros na Irlanda.
-              </p>
-              <Link to="/news" style={styles.newsLink}>
-                Leia mais →
-              </Link>
-            </div>
-          </article>
+        {newsLoading ? (
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <LoadingSpinner text="Carregando notícias..." />
+          </div>
+        ) : latestNews.length > 0 ? (
+          <div style={styles.newsGrid}>
+            {latestNews.map((post) => (
+              <article key={post.id} style={styles.newsCard}>
+                {post.imageUrl ? (
+                  <div style={styles.newsImage}>
+                    <img 
+                      src={post.imageUrl} 
+                      alt={post.title}
+                      style={{ 
+                        height: '100%', 
+                        width: '100%', 
+                        objectFit: 'cover',
+                        display: 'block'
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div style={{...styles.newsImage, background: '#009639'}}>
+                    📰
+                  </div>
+                )}
+                <div style={styles.newsContent}>
+                  <h3 style={styles.newsTitle}>
+                    {post.title}
+                  </h3>
+                  <p style={styles.newsExcerpt}>
+                    {post.excerpt}
+                  </p>
+                  <Link to={`/news/${post.id}`} style={styles.newsLink}>
+                    Leia mais →
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          // Boilerplate content when no published news exists
+          <div style={styles.newsGrid}>
+            <article style={styles.newsCard}>
+              <div style={{...styles.newsImage, background: '#009639'}}>
+                📰
+              </div>
+              <div style={styles.newsContent}>
+                <h3 style={styles.newsTitle}>
+                  Comunidade Brasileira em Cork Cresce
+                </h3>
+                <p style={styles.newsExcerpt}>
+                  A comunidade brasileira em Cork continua crescendo com novos eventos e iniciativas que conectam brasileiros na Irlanda.
+                </p>
+                <Link to="/news" style={styles.newsLink}>
+                  Leia mais →
+                </Link>
+              </div>
+            </article>
 
-          <article style={styles.newsCard}>
-            <div style={{...styles.newsImage, background: '#FEDF00', color: '#333'}}>
-              🎉
-            </div>
-            <div style={styles.newsContent}>
-              <h3 style={styles.newsTitle}>
-                Próximo Evento da Comunidade
-              </h3>
-              <p style={styles.newsExcerpt}>
-                Junte-se a nós para nosso próximo encontro mensal da comunidade brasileira em Cork. Networking e diversão garantidos!
-              </p>
-              <Link to="/news" style={styles.newsLink}>
-                Leia mais →
-              </Link>
-            </div>
-          </article>
+            <article style={styles.newsCard}>
+              <div style={{...styles.newsImage, background: '#FEDF00', color: '#333'}}>
+                🎉
+              </div>
+              <div style={styles.newsContent}>
+                <h3 style={styles.newsTitle}>
+                  Próximo Evento da Comunidade
+                </h3>
+                <p style={styles.newsExcerpt}>
+                  Junte-se a nós para nosso próximo encontro mensal da comunidade brasileira em Cork. Networking e diversão garantidos!
+                </p>
+                <Link to="/news" style={styles.newsLink}>
+                  Leia mais →
+                </Link>
+              </div>
+            </article>
 
-          <article style={styles.newsCard}>
-            <div style={{...styles.newsImage, background: '#0066CC'}}>
-              ℹ️
-            </div>
-            <div style={styles.newsContent}>
-              <h3 style={styles.newsTitle}>
-                Guia para Brasileiros em Cork
-              </h3>
-              <p style={styles.newsExcerpt}>
-                Informações essenciais para brasileiros recém-chegados em Cork: documentação, trabalho, moradia e muito mais.
-              </p>
-              <Link to="/news" style={styles.newsLink}>
-                Leia mais →
-              </Link>
-            </div>
-          </article>
-        </div>
+            <article style={styles.newsCard}>
+              <div style={{...styles.newsImage, background: '#0066CC'}}>
+                ℹ️
+              </div>
+              <div style={styles.newsContent}>
+                <h3 style={styles.newsTitle}>
+                  Guia para Brasileiros em Cork
+                </h3>
+                <p style={styles.newsExcerpt}>
+                  Informações essenciais para brasileiros recém-chegados em Cork: documentação, trabalho, moradia e muito mais.
+                </p>
+                <Link to="/news" style={styles.newsLink}>
+                  Leia mais →
+                </Link>
+              </div>
+            </article>
+          </div>
+        )}
       </section>
 
       {/* Community Section */}

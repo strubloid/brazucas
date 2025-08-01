@@ -135,10 +135,17 @@ const Header: React.FC = () => {
                   Notícias
                 </Link>
               </li>
-              {isAuthenticated && user?.role === UserRole.ADMIN && (
+              {isAuthenticated && (
                 <li>
                   <Link to="/dashboard" style={styles.navLink}>
                     Dashboard
+                  </Link>
+                </li>
+              )}
+              {isAuthenticated && user?.role === 'admin' && (
+                <li>
+                  <Link to="/admin/dashboard" style={styles.navLink}>
+                    Admin
                   </Link>
                 </li>
               )}
@@ -199,10 +206,17 @@ const Header: React.FC = () => {
                   Notícias
                 </Link>
               </li>
-              {isAuthenticated && user?.role === UserRole.ADMIN && (
+              {isAuthenticated && (
                 <li>
                   <Link to="/dashboard" style={styles.navLink} onClick={() => setIsMenuOpen(false)}>
                     Dashboard
+                  </Link>
+                </li>
+              )}
+              {isAuthenticated && user?.role === 'admin' && (
+                <li>
+                  <Link to="/admin/dashboard" style={styles.navLink} onClick={() => setIsMenuOpen(false)}>
+                    Admin
                   </Link>
                 </li>
               )}

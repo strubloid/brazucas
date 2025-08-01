@@ -12,7 +12,7 @@ const News: React.FC = () => {
   const gridRef = useAnimateOnMount('slideIn', 200);
 
   const { data: news, loading, error, refetch } = useAsync<NewsPost[]>(
-    () => NewsService.getAllNews(),
+    () => NewsService.getPublishedNews(),
     []
   );
 

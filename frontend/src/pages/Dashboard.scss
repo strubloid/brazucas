@@ -263,8 +263,8 @@
 
         .approval-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-          gap: 1.5rem;
+          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          gap: 1rem;
 
           @media (max-width: 768px) {
             grid-template-columns: 1fr;
@@ -272,10 +272,14 @@
 
           .approval-card {
             background: white;
-            border-radius: 0.75rem;
+            border-radius: 0.5rem;
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
             overflow: hidden;
             transition: all 0.2s ease;
+            max-height: 280px; 
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
 
             &:hover {
               transform: translateY(-2px);
@@ -283,40 +287,57 @@
             }
 
             .approval-card-header {
-              padding: 1.5rem 1.5rem 1rem 1.5rem;
+              padding: 1rem 1rem 0.5rem 1rem;
               display: flex;
               justify-content: space-between;
               align-items: flex-start;
 
               h3 {
-                font-size: 1.125rem;
+                font-size: 1rem;
                 font-weight: 600;
                 color: #111827;
                 margin: 0;
+                line-height: 1.3;
               }
 
               .pending-badge {
                 background: #fef3c7;
                 color: #92400e;
-                font-size: 0.75rem;
+                font-size: 0.7rem;
                 font-weight: 600;
-                padding: 0.25rem 0.75rem;
+                padding: 0.2rem 0.6rem;
                 border-radius: 9999px;
+                white-space: nowrap;
               }
             }
 
             .approval-card-content {
-              padding: 0 1.5rem 1rem 1.5rem;
+              padding: 0 1rem 0.5rem 1rem;
+              flex: 1; // Take available space
+              overflow: hidden; // Hide overflow content
 
               p {
-                margin: 0 0 0.5rem 0;
-                font-size: 0.875rem;
+                margin: 0 0 0.3rem 0;
+                font-size: 0.8rem;
                 color: #6b7280;
+                line-height: 1.3;
 
                 &.post-author,
                 &.ad-author {
                   font-weight: 600;
                   color: #374151;
+                  font-size: 0.75rem;
+                }
+
+                &.post-excerpt {
+                  max-height: 40px; // Smaller excerpt height
+                  overflow: hidden;
+                  line-height: 1.3;
+                  display: -webkit-box;
+                  -webkit-line-clamp: 2; // Show max 2 lines
+                  line-clamp: 2; // Standard property
+                  -webkit-box-orient: vertical;
+                  text-overflow: ellipsis;
                 }
 
                 &.ad-title {
@@ -335,22 +356,22 @@
 
               .post-meta,
               .ad-meta {
-                margin-top: 1rem;
-                padding-top: 0.75rem;
+                margin-top: 0.5rem;
+                padding-top: 0.5rem;
                 border-top: 1px solid #f3f4f6;
 
                 span {
-                  font-size: 0.75rem;
+                  font-size: 0.7rem;
                   color: #9ca3af;
                 }
               }
             }
 
             .approval-actions {
-              padding: 1rem 1.5rem;
+              padding: 0.75rem 1rem;
               background: #f9fafb;
               display: flex;
-              gap: 0.75rem;
+              gap: 0.5rem;
 
               @media (max-width: 480px) {
                 flex-direction: column;
@@ -358,17 +379,17 @@
 
               button {
                 flex: 1;
-                padding: 0.5rem 1rem;
-                border-radius: 0.375rem;
+                padding: 0.4rem 0.75rem;
+                border-radius: 0.25rem;
                 border: 1px solid;
-                font-size: 0.875rem;
+                font-size: 0.75rem;
                 font-weight: 600;
                 cursor: pointer;
                 transition: all 0.2s ease;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 0.5rem;
+                gap: 0.35rem;
 
                 &.btn-approve {
                   background: #10b981;
@@ -403,6 +424,34 @@
                   }
                 }
               }
+            }
+          }
+        }
+
+        .no-pending-posts {
+          text-align: center;
+          padding: 3rem;
+          background: #f8f9fa;
+          border-radius: 0.75rem;
+          
+          p {
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+          }
+
+          .btn-refresh {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+
+            &:hover {
+              background: #2563eb;
             }
           }
         }
@@ -607,6 +656,21 @@
               background: #fef3c7;
               color: #92400e;
             }
+
+            &--approved {
+              background: #dbeafe;
+              color: #1e40af;
+            }
+
+            &--pending {
+              background: #fef3c7;
+              color: #92400e;
+            }
+
+            &--rejected {
+              background: #fee2e2;
+              color: #dc2626;
+            }
           }
 
           .dashboard__news-date {
@@ -646,6 +710,17 @@
             }
           }
 
+          &--publish {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+
+            &:hover {
+              background: #059669;
+              border-color: #059669;
+            }
+          }
+
           &--delete {
             background: #ef4444;
             border-color: #ef4444;
@@ -667,6 +742,224 @@
       background: white;
       border-radius: 0.75rem;
       box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+// Modal styles for post details
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+
+  .modal-content {
+    background: white;
+    border-radius: 0.75rem;
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #111827;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 2rem;
+        color: #6b7280;
+        cursor: pointer;
+        padding: 0;
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.25rem;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: #f3f4f6;
+          color: #374151;
+        }
+      }
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+      max-height: calc(90vh - 140px);
+      overflow-y: auto;
+
+      .post-details {
+        .post-meta-details {
+          background: #f9fafb;
+          padding: 1rem;
+          border-radius: 0.5rem;
+          margin-bottom: 1.5rem;
+
+          p {
+            margin: 0.5rem 0;
+            font-size: 0.875rem;
+            
+            strong {
+              color: #374151;
+              font-weight: 600;
+            }
+
+            .status-badge {
+              display: inline-block;
+              padding: 0.25rem 0.75rem;
+              border-radius: 9999px;
+              font-size: 0.75rem;
+              font-weight: 600;
+              margin-left: 0.5rem;
+
+              &.pending {
+                background: #fef3c7;
+                color: #92400e;
+              }
+
+              &.approved {
+                background: #d1fae5;
+                color: #065f46;
+              }
+
+              &.rejected {
+                background: #fee2e2;
+                color: #dc2626;
+              }
+            }
+          }
+        }
+
+        .post-section {
+          margin-bottom: 1.5rem;
+
+          h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin: 0 0 0.75rem 0;
+          }
+
+          p {
+            color: #374151;
+            line-height: 1.6;
+            margin: 0.5rem 0;
+          }
+
+          .post-content {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid #3b82f6;
+
+            p {
+              margin: 0.75rem 0;
+              
+              &:first-child {
+                margin-top: 0;
+              }
+              
+              &:last-child {
+                margin-bottom: 0;
+              }
+            }
+          }
+
+          .post-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          }
+        }
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+
+        @media (max-width: 480px) {
+          flex-direction: column;
+        }
+
+        button {
+          padding: 0.75rem 1.5rem;
+          border-radius: 0.375rem;
+          border: 1px solid;
+          font-size: 0.875rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+
+          &.btn-approve {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+
+            &:hover {
+              background: #059669;
+              border-color: #059669;
+            }
+          }
+
+          &.btn-reject {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+
+            &:hover {
+              background: #dc2626;
+              border-color: #dc2626;
+            }
+          }
+
+          &.btn-secondary {
+            background: white;
+            border-color: #d1d5db;
+            color: #374151;
+
+            &:hover {
+              background: #f9fafb;
+              border-color: #9ca3af;
+            }
+          }
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+      }
     }
   }
 }

@@ -1,6 +1,7 @@
 import { HandlerContext, HandlerEvent } from '@netlify/functions';
 import { ApiResponse, JWTPayload } from './types';
 import { AuthService } from './auth';
+import { ZodError } from 'zod';
 
 export interface AuthenticatedEvent extends HandlerEvent {
   user?: JWTPayload;
@@ -20,7 +21,7 @@ export function createResponse<T>(
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     },
     body: JSON.stringify(body),
   };
@@ -32,6 +33,20 @@ export function handleError(error: unknown): {
   body: string;
 } {
   console.error('Function error:', error);
+  
+  // Handle Zod validation errors
+  if (error instanceof ZodError) {
+    const validationErrors = error.errors.map(err => ({
+      field: err.path.join('.'),
+      message: err.message
+    }));
+    
+    return createResponse(400, {
+      success: false,
+      error: 'Validation failed',
+      data: validationErrors,
+    });
+  }
   
   const message = error instanceof Error ? error.message : 'Internal server error';
   const statusCode = getStatusCodeFromError(error);
@@ -91,7 +106,7 @@ export function handleCors(event: HandlerEvent): {
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
       },
       body: '',
     };

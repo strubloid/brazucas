@@ -11,6 +11,7 @@ import News from './pages/News';
 import NewsDetail from './pages/NewsDetail';
 import Dashboard from './pages/Dashboard';
 import AdSubmission from './pages/AdSubmission';
+import { AdminDashboard } from './components/admin/AdminDashboard';
 // import ProtectedRoute from './components/auth/ProtectedRoute';
 // import { UserRole } from './types/auth';
 import './styles/App.scss';
@@ -26,6 +27,7 @@ const App: React.FC = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/admin/register" element={<AdminRegister />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/news" element={<News />} />
               <Route path="/news/:id" element={<NewsDetail />} />
               

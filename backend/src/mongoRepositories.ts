@@ -1,4 +1,4 @@
-import { MongoClient, Db, Collection } from 'mongodb';
+import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
 import { User, NewsPost, Advertisement } from './types';
 import { IUserRepository, INewsRepository, IAdRepository } from './repositories';
 
@@ -12,11 +12,23 @@ export class MongoUserRepository implements IUserRepository {
   }
 
   async findById(id: string): Promise<User | null> {
-    return await this.collection.findOne({ _id: id as any }) as User | null;
+    const result = await this.collection.findOne({ _id: new ObjectId(id) }) as any;
+    if (!result) return null;
+    
+    return {
+      ...result,
+      id: result._id.toString(),
+    } as User;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return await this.collection.findOne({ email }) as User | null;
+    const result = await this.collection.findOne({ email }) as any;
+    if (!result) return null;
+    
+    return {
+      ...result,
+      id: result._id.toString(),
+    } as User;
   }
 
   async create(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
@@ -36,7 +48,7 @@ export class MongoUserRepository implements IUserRepository {
 
   async update(id: string, updates: Partial<User>): Promise<User> {
     const result = await this.collection.findOneAndUpdate(
-      { _id: id as any },
+      { _id: new ObjectId(id) },
       { 
         $set: { 
           ...updates, 
@@ -70,15 +82,29 @@ export class MongoNewsRepository implements INewsRepository {
   }
 
   async findAll(): Promise<NewsPost[]> {
-    return await this.collection.find({}).sort({ createdAt: -1 }).toArray() as NewsPost[];
+    const results = await this.collection.find({}).sort({ createdAt: -1 }).toArray() as any[];
+    return results.map(result => ({
+      ...result,
+      id: result._id.toString(),
+    })) as NewsPost[];
   }
 
   async findById(id: string): Promise<NewsPost | null> {
-    return await this.collection.findOne({ _id: id as any }) as NewsPost | null;
+    const result = await this.collection.findOne({ _id: new ObjectId(id) }) as any;
+    if (!result) return null;
+    
+    return {
+      ...result,
+      id: result._id.toString(),
+    } as NewsPost;
   }
 
   async findByAuthor(authorId: string): Promise<NewsPost[]> {
-    return await this.collection.find({ authorId }).sort({ createdAt: -1 }).toArray() as NewsPost[];
+    const results = await this.collection.find({ authorId }).sort({ createdAt: -1 }).toArray() as any[];
+    return results.map(result => ({
+      ...result,
+      id: result._id.toString(),
+    })) as NewsPost[];
   }
 
   async create(newsData: Omit<NewsPost, 'id' | 'createdAt' | 'updatedAt'>): Promise<NewsPost> {
@@ -98,7 +124,7 @@ export class MongoNewsRepository implements INewsRepository {
 
   async update(id: string, updates: Partial<NewsPost>): Promise<NewsPost> {
     const result = await this.collection.findOneAndUpdate(
-      { _id: id as any },
+      { _id: new ObjectId(id) },
       { 
         $set: { 
           ...updates, 
@@ -119,7 +145,7 @@ export class MongoNewsRepository implements INewsRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.collection.deleteOne({ _id: id as any });
+    const result = await this.collection.deleteOne({ _id: new ObjectId(id) });
     return result.deletedCount > 0;
   }
 }
