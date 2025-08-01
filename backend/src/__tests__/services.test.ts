@@ -1,5 +1,5 @@
-import { UserService } from '../services';
-import { InMemoryUserRepository } from '../repositories';
+import { UserService } from './services';
+import { InMemoryUserRepository } from './repositories';
 import { UserRole } from '../types';
 
 describe('UserService', () => {

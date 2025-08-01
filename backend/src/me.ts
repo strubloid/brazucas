@@ -1,7 +1,7 @@
 import { HandlerEvent, HandlerContext } from '@netlify/functions';
-import { UserService } from '../services';
-import { InMemoryUserRepository } from '../repositories';
-import { createResponse, handleError, requireAuth, handleCors } from '../utils';
+import { UserService } from './services';
+import { InMemoryUserRepository } from './repositories';
+import { createResponse, handleError, requireAuth, handleCors } from './utils';
 
 const userRepository = new InMemoryUserRepository();
 const userService = new UserService(userRepository);

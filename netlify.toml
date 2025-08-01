@@ -3,7 +3,13 @@
   publish = "frontend/build"
 
 [functions]
-  directory = "backend"
+  directory = "backend/src"
+  node_bundler = "esbuild"
+
+[dev]
+  targetPort = 3333
+  port = 4444
+  autoLaunch = false
 
 [[redirects]]
   from = "/api/*"

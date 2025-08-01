@@ -4,7 +4,7 @@ import {
   createNewsSchema, 
   createAdSchema,
   validateAdMedia 
-} from '../validation';
+} from './validation';
 
 describe('Validation Schemas', () => {
   describe('createUserSchema', () => {

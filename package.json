@@ -4,6 +4,7 @@
   "description": "Community web platform for Brazucas em Cork",
   "scripts": {
     "dev": "concurrently \"cd frontend && npm start\" \"cd backend && netlify dev\"",
+    "dev:windows": "concurrently \"cd frontend && set PORT=3002&& npm start\" \"cd backend && netlify dev\"",
     "build": "cd frontend && npm run build",
     "test": "npm run test:frontend && npm run test:backend",
     "test:frontend": "cd frontend && npm test -- --coverage --watchAll=false",

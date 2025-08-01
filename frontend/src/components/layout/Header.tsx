@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { UserRole } from '../../types/auth';
-import { useAnimateOnMount } from '../../hooks/useAnimateOnMount';
-import './Header.scss';
 
 const Header: React.FC = () => {
-  const { user, isAuthenticated, logout } = useAuth();
-  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const ref = useAnimateOnMount('slideIn', 200);
+  const navigate = useNavigate();
+
+  // Mock authentication state for now
+  const isAuthenticated = false;
+  const user = null;
 
   const handleLogout = (): void => {
-    logout();
+    // Mock logout
     navigate('/');
     setIsMenuOpen(false);
   };
@@ -21,79 +19,210 @@ const Header: React.FC = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const styles = {
+    header: {
+      background: '#fff',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      position: 'fixed' as const,
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 1000,
+    },
+    container: {
+      maxWidth: '1200px',
+      margin: '0 auto',
+      padding: '0 20px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      height: '70px',
+    },
+    logo: {
+      fontSize: '1.5rem',
+      fontWeight: 'bold',
+      color: '#009639',
+      textDecoration: 'none',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+    },
+    nav: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '2rem',
+    },
+    navList: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '2rem',
+      listStyle: 'none',
+      margin: 0,
+      padding: 0,
+    },
+    navLink: {
+      color: '#333',
+      textDecoration: 'none',
+      fontWeight: '500',
+      transition: 'color 0.2s',
+      padding: '8px 0',
+    },
+    navLinkCta: {
+      background: '#009639',
+      color: 'white',
+      padding: '8px 16px',
+      borderRadius: '8px',
+      textDecoration: 'none',
+      fontWeight: 'bold',
+      transition: 'background-color 0.2s',
+    },
+    menuToggle: {
+      display: 'none',
+      flexDirection: 'column' as const,
+      gap: '4px',
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      padding: '8px',
+    },
+    menuToggleLine: {
+      width: '24px',
+      height: '2px',
+      background: '#333',
+      transition: 'all 0.2s',
+    },
+    // Mobile styles (simplified - would normally use media queries)
+    mobileNav: {
+      position: 'absolute' as const,
+      top: '70px',
+      left: 0,
+      right: 0,
+      background: '#fff',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+      padding: '1rem',
+      display: isMenuOpen ? 'block' : 'none',
+    },
+    mobileNavList: {
+      display: 'flex',
+      flexDirection: 'column' as const,
+      gap: '1rem',
+      listStyle: 'none',
+      margin: 0,
+      padding: 0,
+    },
+  };
+
   return (
-    <header ref={ref} className="header">
-      <div className="header__container">
-        <Link to="/" className="header__logo">
-          <span className="header__logo-text">Brazucas em Cork</span>
-        </Link>
+    <>
+      <header style={styles.header}>
+        <div style={styles.container}>
+          <Link to="/" style={styles.logo}>
+            🇧🇷 Brazucas em Cork
+          </Link>
 
-        <nav className={`header__nav ${isMenuOpen ? 'header__nav--open' : ''}`}>
-          <ul className="header__nav-list">
-            <li className="header__nav-item">
-              <Link to="/" className="header__nav-link" onClick={() => setIsMenuOpen(false)}>
-                Home
-              </Link>
-            </li>
-            <li className="header__nav-item">
-              <Link to="/news" className="header__nav-link" onClick={() => setIsMenuOpen(false)}>
-                Notícias
-              </Link>
-            </li>
-
-            {isAuthenticated ? (
-              <>
-                {user?.role === UserRole.ADMIN && (
-                  <li className="header__nav-item">
-                    <Link to="/dashboard" className="header__nav-link" onClick={() => setIsMenuOpen(false)}>
-                      Dashboard
+          {/* Desktop Navigation */}
+          <nav style={styles.nav}>
+            <ul style={styles.navList}>
+              <li>
+                <Link to="/" style={styles.navLink}>
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link to="/news" style={styles.navLink}>
+                  Notícias
+                </Link>
+              </li>
+              {isAuthenticated ? (
+                <>
+                  <li>
+                    <span style={styles.navLink}>Olá, usuário!</span>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={handleLogout} 
+                      style={{...styles.navLink, background: 'none', border: 'none', cursor: 'pointer'}}
+                    >
+                      Sair
+                    </button>
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li>
+                    <Link to="/login" style={styles.navLink}>
+                      Entrar
                     </Link>
                   </li>
-                )}
-                {user?.role === UserRole.ADVERTISER && (
-                  <li className="header__nav-item">
-                    <Link to="/submit-ad" className="header__nav-link" onClick={() => setIsMenuOpen(false)}>
-                      Anunciar
+                  <li>
+                    <Link to="/register" style={styles.navLinkCta}>
+                      Cadastrar
                     </Link>
                   </li>
-                )}
-                <li className="header__nav-item">
-                  <span className="header__user-info">Olá, {user?.email}</span>
-                </li>
-                <li className="header__nav-item">
-                  <button onClick={handleLogout} className="header__nav-link header__nav-link--button">
-                    Sair
-                  </button>
-                </li>
-              </>
-            ) : (
-              <>
-                <li className="header__nav-item">
-                  <Link to="/login" className="header__nav-link" onClick={() => setIsMenuOpen(false)}>
-                    Entrar
-                  </Link>
-                </li>
-                <li className="header__nav-item">
-                  <Link to="/register" className="header__nav-link header__nav-link--cta" onClick={() => setIsMenuOpen(false)}>
-                    Cadastrar
-                  </Link>
-                </li>
-              </>
-            )}
-          </ul>
-        </nav>
+                </>
+              )}
+            </ul>
+          </nav>
 
-        <button 
-          className={`header__menu-toggle ${isMenuOpen ? 'header__menu-toggle--open' : ''}`}
-          onClick={toggleMenu}
-          aria-label="Toggle menu"
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      </div>
-    </header>
+          {/* Mobile Menu Toggle */}
+          <button 
+            style={styles.menuToggle}
+            onClick={toggleMenu}
+            aria-label="Toggle menu"
+          >
+            <span style={styles.menuToggleLine}></span>
+            <span style={styles.menuToggleLine}></span>
+            <span style={styles.menuToggleLine}></span>
+          </button>
+        </div>
+
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <nav style={styles.mobileNav}>
+            <ul style={styles.mobileNavList}>
+              <li>
+                <Link to="/" style={styles.navLink} onClick={() => setIsMenuOpen(false)}>
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link to="/news" style={styles.navLink} onClick={() => setIsMenuOpen(false)}>
+                  Notícias
+                </Link>
+              </li>
+              {isAuthenticated ? (
+                <>
+                  <li>
+                    <button 
+                      onClick={handleLogout} 
+                      style={{...styles.navLink, background: 'none', border: 'none', cursor: 'pointer'}}
+                    >
+                      Sair
+                    </button>
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li>
+                    <Link to="/login" style={styles.navLink} onClick={() => setIsMenuOpen(false)}>
+                      Entrar
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/register" style={styles.navLinkCta} onClick={() => setIsMenuOpen(false)}>
+                      Cadastrar
+                    </Link>
+                  </li>
+                </>
+              )}
+            </ul>
+          </nav>
+        )}
+      </header>
+      
+      {/* Spacer to account for fixed header */}
+      <div style={{ height: '70px' }}></div>
+    </>
   );
 };
 

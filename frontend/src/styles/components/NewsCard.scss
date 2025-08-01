@@ -97,7 +97,7 @@
     transition: color var(--transition-normal);
     
     &:hover {
-      color: darken(var(--primary-color), 15%);
+      color: #1e7e34;
       text-decoration: underline;
     }
   }

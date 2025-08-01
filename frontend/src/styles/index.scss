@@ -16,7 +16,7 @@ body {
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
   color: #2d3748;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--background);
   min-height: 100vh;
 }
 
@@ -101,7 +101,7 @@ a {
   transition: color var(--transition-fast);
   
   &:hover {
-    color: darken(var(--primary-color), 10%);
+    color: #218838;
     text-decoration: underline;
   }
 }
@@ -137,7 +137,7 @@ a {
     color: white;
     
     &:hover:not(:disabled) {
-      background: darken(var(--primary-color), 10%);
+      background: #218838;
       transform: translateY(-1px);
       box-shadow: var(--shadow-medium);
     }
@@ -148,7 +148,7 @@ a {
     color: var(--text-primary);
     
     &:hover:not(:disabled) {
-      background: darken(var(--secondary-color), 10%);
+      background: #e0a800;
       transform: translateY(-1px);
       box-shadow: var(--shadow-medium);
     }
@@ -344,15 +344,3 @@ a {
 .animate-pulse {
   animation: pulse 2s infinite;
 }
-
-// Import component and page styles
-@import 'pages/Home';
-@import 'pages/Login';
-@import 'pages/Register';
-@import 'pages/News';
-@import 'pages/NewsDetail';
-@import 'pages/Dashboard';
-@import 'pages/AdSubmission';
-@import 'components/NewsCard';
-@import 'components/LoadingSpinner';
-@import 'components/ErrorBoundary';

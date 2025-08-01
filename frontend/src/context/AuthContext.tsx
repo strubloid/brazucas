@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { AuthContextType, User, LoginRequest, RegisterRequest, UserRole } from '../types/auth';
+import { AuthContextType, User, LoginRequest, RegisterRequest } from '../types/auth';
 import { AuthService } from '../services/authService';
 
 // Auth state management

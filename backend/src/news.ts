@@ -1,6 +1,6 @@
 import { HandlerEvent, HandlerContext } from '@netlify/functions';
-import { NewsService } from '../services';
-import { InMemoryNewsRepository } from '../repositories';
+import { NewsService } from './services';
+import { InMemoryNewsRepository } from './repositories';
 import { 
   createResponse, 
   handleError, 
@@ -8,8 +8,8 @@ import {
   requireRole, 
   parseRequestBody, 
   handleCors 
-} from '../utils';
-import { createNewsSchema, updateNewsSchema } from '../validation';
+} from './utils';
+import { createNewsSchema, updateNewsSchema } from './validation';
 
 const newsRepository = new InMemoryNewsRepository();
 const newsService = new NewsService(newsRepository);

@@ -1,6 +1,6 @@
 import { HandlerEvent, HandlerContext } from '@netlify/functions';
-import { AdService } from '../services';
-import { InMemoryAdRepository } from '../repositories';
+import { AdService } from './services';
+import { InMemoryAdRepository } from './repositories';
 import { 
   createResponse, 
   handleError, 
@@ -8,8 +8,8 @@ import {
   requireRole, 
   parseRequestBody, 
   handleCors 
-} from '../utils';
-import { createAdSchema, validateAdMedia } from '../validation';
+} from './utils';
+import { createAdSchema, validateAdMedia } from './validation';
 
 const adRepository = new InMemoryAdRepository();
 const adService = new AdService(adRepository);
