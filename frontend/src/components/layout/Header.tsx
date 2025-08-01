@@ -7,7 +7,6 @@ const Header: React.FC = () => {
 
   // Mock authentication state for now
   const isAuthenticated = false;
-  const user = null;
 
   const handleLogout = (): void => {
     // Mock logout
