@@ -41,7 +41,7 @@ export const createNewsSchema = z.object({
 });
 
 export const updateNewsSchema = z.object({
-  id: z.string().uuid('Invalid news ID'),
+  id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid news ID'),
   title: z
     .string()
     .min(1, 'Title is required')

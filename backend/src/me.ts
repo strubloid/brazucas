@@ -24,9 +24,11 @@ export const handler = async (event: HandlerEvent, context: HandlerContext) => {
 
     // Require authentication
     const user = requireAuth(event);
+    console.log('ME endpoint - JWT user:', user);
     
     // Get user details
     const userData = await userService.getUserById(user.userId);
+    console.log('ME endpoint - getUserById result:', userData);
     
     if (!userData) {
       return createResponse(404, {

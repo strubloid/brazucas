@@ -95,6 +95,11 @@ async function handleUpdateNews(event: HandlerEvent, newsService: NewsService) {
   // Admins can update any post, regular users can only update their own posts
   if (user.role !== 'admin') {
     const existingNews = await newsService.getNewsById(validatedData.id);
+    console.log('Update permission check:');
+    console.log('user.userId:', user.userId);
+    console.log('existingNews.authorId:', existingNews?.authorId);
+    console.log('Match:', existingNews?.authorId === user.userId);
+    
     if (!existingNews || existingNews.authorId !== user.userId) {
       return createResponse(403, {
         success: false,

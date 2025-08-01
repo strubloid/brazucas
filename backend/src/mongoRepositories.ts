@@ -1,4 +1,4 @@
-import { MongoClient, Db, Collection } from 'mongodb';
+import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
 import { User, NewsPost, Advertisement } from './types';
 import { IUserRepository, INewsRepository, IAdRepository } from './repositories';
 
@@ -12,7 +12,7 @@ export class MongoUserRepository implements IUserRepository {
   }
 
   async findById(id: string): Promise<User | null> {
-    const result = await this.collection.findOne({ _id: id as any }) as any;
+    const result = await this.collection.findOne({ _id: new ObjectId(id) }) as any;
     if (!result) return null;
     
     return {
@@ -48,7 +48,7 @@ export class MongoUserRepository implements IUserRepository {
 
   async update(id: string, updates: Partial<User>): Promise<User> {
     const result = await this.collection.findOneAndUpdate(
-      { _id: id as any },
+      { _id: new ObjectId(id) },
       { 
         $set: { 
           ...updates, 
@@ -90,7 +90,7 @@ export class MongoNewsRepository implements INewsRepository {
   }
 
   async findById(id: string): Promise<NewsPost | null> {
-    const result = await this.collection.findOne({ _id: id as any }) as any;
+    const result = await this.collection.findOne({ _id: new ObjectId(id) }) as any;
     if (!result) return null;
     
     return {
@@ -124,7 +124,7 @@ export class MongoNewsRepository implements INewsRepository {
 
   async update(id: string, updates: Partial<NewsPost>): Promise<NewsPost> {
     const result = await this.collection.findOneAndUpdate(
-      { _id: id as any },
+      { _id: new ObjectId(id) },
       { 
         $set: { 
           ...updates, 
@@ -145,7 +145,7 @@ export class MongoNewsRepository implements INewsRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.collection.deleteOne({ _id: id as any });
+    const result = await this.collection.deleteOne({ _id: new ObjectId(id) });
     return result.deletedCount > 0;
   }
 }

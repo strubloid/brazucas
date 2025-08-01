@@ -25,6 +25,12 @@ export class AuthService {
   }
 
   static async getCurrentUser(): Promise<User> {
+    // Ensure the token is set in apiClient before making the request
+    const token = this.getToken();
+    if (token) {
+      apiClient.setAuthToken(token);
+    }
+    
     const response = await apiClient.get<User>('/me');
     
     if (response.success && response.data) {
@@ -40,5 +46,12 @@ export class AuthService {
 
   static getToken(): string | null {
     return localStorage.getItem('authToken');
+  }
+
+  static initializeApiClient(): void {
+    const token = this.getToken();
+    if (token) {
+      apiClient.setAuthToken(token);
+    }
   }
 }

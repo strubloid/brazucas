@@ -40,6 +40,7 @@ const Dashboard: React.FC = () => {
       console.log('Debug - News:', news);
       news.forEach(newsPost => {
         console.log(`News "${newsPost.title}": authorId=${newsPost.authorId}, user.id=${user.id}, match=${newsPost.authorId === user.id}`);
+        console.log(`News ID format: "${newsPost.id}" (length: ${newsPost.id.length})`);
       });
     }
   }, [user, news]);
