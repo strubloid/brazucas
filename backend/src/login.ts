@@ -1,11 +1,9 @@
 import { HandlerEvent, HandlerContext } from '@netlify/functions';
 import { UserService } from './services';
-import { InMemoryUserRepository } from './repositories';
+import { MongoUserRepository } from './mongoRepositories';
+import { dbConnection } from './database';
 import { createResponse, handleError, parseRequestBody, handleCors } from './utils';
 import { loginSchema } from './validation';
-
-const userRepository = new InMemoryUserRepository();
-const userService = new UserService(userRepository);
 
 export const handler = async (event: HandlerEvent, context: HandlerContext) => {
   try {
@@ -19,6 +17,11 @@ export const handler = async (event: HandlerEvent, context: HandlerContext) => {
         error: 'Method not allowed',
       });
     }
+
+    // Connect to MongoDB
+    const db = await dbConnection.connect();
+    const userRepository = new MongoUserRepository(db);
+    const userService = new UserService(userRepository);
 
     const body = parseRequestBody(event);
     
