@@ -59,7 +59,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({
             {isPending ? (
               <>
                 <span className="status-badge pending">POST PENDENTE</span>
-                <span className="status-badge draft">AGUARDANDO APROVAÇÃO</span>
+                <span className="status-badge draft"> AGUARDANDO APROVAÇÃO</span>
               </>
             ) : (
               <span className={`status-badge ${post.published ? 'published' : 'draft'}`}>

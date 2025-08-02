@@ -25,7 +25,8 @@ import {
   faUsers,
   faTrash,
   faClock,
-  faEye
+  faEye,
+  faEdit
 } from '@fortawesome/free-solid-svg-icons';
 import './Dashboard.scss';
 import './PokemonCarousel.scss';
@@ -334,6 +335,21 @@ const Dashboard: React.FC = () => {
     setEditingAd(null);
     setSubmitError('');
     setSubmitSuccess('');
+  };
+
+  const handleCancelNews = (): void => {
+    resetForm();
+    setActiveTab(previousTab);
+  };
+
+  const handleCancelAd = (): void => {
+    resetAdForm();
+    setActiveTab(previousTab);
+  };
+
+  const handleTabChange = (newTab: typeof activeTab): void => {
+    setPreviousTab(activeTab);
+    setActiveTab(newTab);
   };
 
   const handleEditNews = (newsPost: NewsPost): void => {
@@ -982,7 +998,7 @@ const Dashboard: React.FC = () => {
           <nav className="sidebar-nav">
             <button
               className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('overview')}
+              onClick={() => handleTabChange('overview')}
             >
               <FontAwesomeIcon icon={faHome} className="nav-icon" />
               <span>Visão Geral</span>
@@ -990,21 +1006,22 @@ const Dashboard: React.FC = () => {
             
             <button
               className={`nav-item ${activeTab === 'news' ? 'active' : ''}`}
-              onClick={() => setActiveTab('news')}
+              onClick={() => handleTabChange('news')}
             >
               <FontAwesomeIcon icon={faNewspaper} className="nav-icon" />
               <span>Notícias</span>
             </button>
             
             <button
-              className={`nav-item ${activeTab === 'create' ? 'active' : ''}`}
+              className={`nav-item ${activeTab === 'create' ? 'active' : ''} ${editingNews ? 'edit-mode' : ''}`}
               onClick={() => {
-                setActiveTab('create');
-                resetForm();
+                handleTabChange('create');
+                if (!editingNews) resetForm();
               }}
+              style={editingNews ? { backgroundColor: '#f5e88a', color: '#8b6f1a' } : {}}
             >
-              <FontAwesomeIcon icon={faPlus} className="nav-icon" />
-              <span>Nova Notícia</span>
+              <FontAwesomeIcon icon={editingNews ? faEdit : faPlus} className="nav-icon" />
+              <span>{editingNews ? 'Editar Notícia' : 'Nova Notícia'}</span>
             </button>
 
             {/* Anunciante Section - Only for advertisers and admins */}
@@ -1016,21 +1033,22 @@ const Dashboard: React.FC = () => {
 
                 <button
                   className={`nav-item ${activeTab === 'ads' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('ads')}
+                  onClick={() => handleTabChange('ads')}
                 >
                   <FontAwesomeIcon icon={faAd} className="nav-icon" />
                   <span>Anúncios</span>
                 </button>
 
                 <button
-                  className={`nav-item ${activeTab === 'create-ad' ? 'active' : ''}`}
+                  className={`nav-item ${activeTab === 'create-ad' ? 'active' : ''} ${editingAd ? 'edit-mode' : ''}`}
                   onClick={() => {
-                    setActiveTab('create-ad');
-                    resetAdForm();
+                    handleTabChange('create-ad');
+                    if (!editingAd) resetAdForm();
                   }}
+                  style={editingAd ? { backgroundColor: '#f5e88a', color: '#8b6f1a' } : {}}
                 >
-                  <FontAwesomeIcon icon={faPlus} className="nav-icon" />
-                  <span>Novo Anúncio</span>
+                  <FontAwesomeIcon icon={editingAd ? faEdit : faPlus} className="nav-icon" />
+                  <span>{editingAd ? 'Editar Anúncio' : 'Novo Anúncio'}</span>
                 </button>
               </>
             )}
@@ -1043,7 +1061,7 @@ const Dashboard: React.FC = () => {
                 
                 <button
                   className={`nav-item ${activeTab === 'approve-posts' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('approve-posts')}
+                  onClick={() => handleTabChange('approve-posts')}
                 >
                   <FontAwesomeIcon icon={faCheckCircle} className="nav-icon" />
                   <span>Aprovar Posts</span>
@@ -1054,7 +1072,7 @@ const Dashboard: React.FC = () => {
                 
                 <button
                   className={`nav-item ${activeTab === 'approve-ads' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('approve-ads')}
+                  onClick={() => handleTabChange('approve-ads')}
                 >
                   <FontAwesomeIcon icon={faAd} className="nav-icon" />
                   <span>Aprovar Anúncios</span>
@@ -1492,7 +1510,7 @@ const Dashboard: React.FC = () => {
                   <div className="dashboard__form-actions">
                     <button
                       type="button"
-                      onClick={resetForm}
+                      onClick={handleCancelNews}
                       className="dashboard__button dashboard__button--secondary"
                       disabled={isSubmitting}
                     >
@@ -1634,7 +1652,7 @@ const Dashboard: React.FC = () => {
                   <div className="dashboard__form-actions">
                     <button
                       type="button"
-                      onClick={resetAdForm}
+                      onClick={handleCancelAd}
                       className="dashboard__button dashboard__button--secondary"
                       disabled={isSubmitting}
                     >
