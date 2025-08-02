@@ -2,6 +2,7 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faNewspaper, faEdit, faTrash, faEye, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { NewsPost } from '../../types/news';
+import { StatusManager } from '../../types/status';
 
 export interface NewsCardProps {
   post: NewsPost;
@@ -132,10 +133,16 @@ export const NewsCard: React.FC<NewsCardProps> = ({
   const dateClass = viewType === '3x' ? 'card-date-3x' : 'card-date';
   const actionsClass = viewType === '3x' ? 'card-actions-3x' : 'card-actions';
 
+  // Get proper status using the new status system
+  const newsStatus = StatusManager.getNewsStatus({ 
+    published: post.published, 
+    approved: post.approved 
+  });
+
   return (
     <div
       key={post.id || `news-${viewType}-${index}`}
-      className={`${cardClass} ${isPending ? 'pending' : post.published ? 'published' : 'draft'} ${!post.published ? 'clickable' : ''}`}
+      className={`${cardClass} ${isPending ? 'pending' : newsStatus} ${!post.published ? 'clickable' : ''}`}
       ref={cardRef}
       data-tilt
       data-tilt-max="15"
@@ -154,8 +161,8 @@ export const NewsCard: React.FC<NewsCardProps> = ({
                   <span className="status-badge draft">AGUARDANDO APROVAÇÃO</span>
                 </>
               ) : (
-                <span className={`status-badge ${post.published ? 'published' : 'draft'}`}>
-                  {post.published ? 'PUBLICADO' : 'RASCUNHO'}
+                <span className={`status-badge ${newsStatus}`}>
+                  {StatusManager.getStatusLabel(newsStatus)}
                 </span>
               )}
             </div>

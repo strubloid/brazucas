@@ -1,6 +1,7 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAd, faEdit, faTrash, faEye, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { StatusManager } from '../../types/status';
 
 export interface AdCardProps {
   ad: any;
@@ -160,10 +161,16 @@ export const AdCard: React.FC<AdCardProps> = ({
 
   const isPublished = ad.status === 'approved' || ad.status === 'published';
   
+  // Get proper status using the new status system
+  const adStatus = StatusManager.getAdStatus({ 
+    published: ad.published || false, 
+    approved: ad.approved 
+  });
+  
   return (
     <div
       key={ad.id || `ad-${viewType}-${index}`}
-      className={`${cardClass} ad ${isPending ? 'pending' : ad.status || 'draft'} ${!isPublished ? 'clickable' : ''}`}
+      className={`${cardClass} ad ${isPending ? 'pending' : adStatus} ${!isPublished ? 'clickable' : ''}`}
       ref={cardRef}
       data-tilt
       data-tilt-max="15"
@@ -182,8 +189,8 @@ export const AdCard: React.FC<AdCardProps> = ({
                   <span className="status-badge draft"> AGUARDANDO APROVAÇÃO</span>
                 </>
               ) : (
-                <span className={`status-badge ${ad.status}`}>
-                  {ad.status === 'published' ? 'PUBLICADO' : 'RASCUNHO'}
+                <span className={`status-badge ${adStatus}`}>
+                  {StatusManager.getStatusLabel(adStatus)}
                 </span>
               )}
             </div>

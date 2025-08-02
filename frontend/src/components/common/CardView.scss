@@ -263,11 +263,11 @@
 
     // MTG-style top section with rounded corners
     .card-header {
-      background: linear-gradient(135deg, #ffd700, #ffecb3);
+      background: var(--header-bg, linear-gradient(135deg, #ffd700, #ffecb3));
       border-radius: 17px 17px 0 0;
       padding: 0.8rem 1rem;
       position: relative;
-      border-bottom: 3px solid #d4a574;
+      border-bottom: 3px solid var(--header-border, #d4a574);
       
       &::after {
         content: '';
@@ -276,7 +276,7 @@
         left: 0;
         right: 0;
         height: 3px;
-        background: linear-gradient(90deg, #8b4513, #d4a574, #8b4513);
+        background: var(--header-accent, linear-gradient(90deg, #8b4513, #d4a574, #8b4513));
       }
 
       .card-header-content {
@@ -293,20 +293,25 @@
           letter-spacing: 0.5px;
           color: white;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          backdrop-filter: blur(5px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
 
           &.published {
-            background: #28a745;
-            border: 2px solid #155724;
+            background: rgba(40, 167, 69, 0.15);
+            color: #28a745;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
           }
 
           &.draft {
-            background: #6c757d;
-            border: 2px solid #343a40;
+            background: rgba(108, 117, 125, 0.15);
+            color: #6c757d;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
           }
 
           &.pending {
-            background: #fd7e14;
-            border: 2px solid #dc3545;
+            background: rgba(253, 126, 20, 0.15);
+            color: #fd7e14;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
           }
         }
 
@@ -593,6 +598,26 @@
           .status-badge {
             padding: 0.3rem 0.6rem;
             font-size: 0.6rem;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+
+            &.published {
+              background: rgba(40, 167, 69, 0.15);
+              color: #28a745;
+              text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            }
+
+            &.draft {
+              background: rgba(108, 117, 125, 0.15);
+              color: #6c757d;
+              text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            }
+
+            &.pending {
+              background: rgba(253, 126, 20, 0.15);
+              color: #fd7e14;
+              text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            }
           }
           
           .publish-button {
@@ -737,7 +762,7 @@
     align-items: center;
     padding: 0.35rem 0.56rem; // 70% scaling
     border-radius: 10px 10px 0 0; // 70% of original
-    background: linear-gradient(90deg, #8b4513, #d4a574, #8b4513);
+    background: var(--header-bg, linear-gradient(90deg, #8b4513, #d4a574, #8b4513));
 
     .card-header-content {
       display: flex;
@@ -758,20 +783,25 @@
           letter-spacing: 0.35px; // 70% of 0.5px
           color: white;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+          backdrop-filter: blur(5px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
 
           &.published {
-            background: #28a745;
-            border: 2px solid #155724;
+            background: rgba(40, 167, 69, 0.15);
+            color: #28a745;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
           }
 
           &.draft {
-            background: #6c757d;
-            border: 2px solid #343a40;
+            background: rgba(108, 117, 125, 0.15);
+            color: #6c757d;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
           }
 
           &.pending {
-            background: #fd7e14;
-            border: 2px solid #dc3545;
+            background: rgba(253, 126, 20, 0.15);
+            color: #fd7e14;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
           }
         }
       }
@@ -945,3 +975,49 @@
   }
 }
 
+
+
+// Dynamic status-based header styling
+.pokemon-card, .pokemon-card-3x {
+  // Published/Approved status
+  &.published, &.approved {
+    --header-bg: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1));
+    --header-border: #22c55e;
+    --header-accent: linear-gradient(90deg, #16a34a, #22c55e, #16a34a);
+  }
+  
+  // Draft status
+  &.draft {
+    --header-bg: linear-gradient(135deg, rgba(107, 114, 128, 0.2), rgba(107, 114, 128, 0.1));
+    --header-border: #6b7280;
+    --header-accent: linear-gradient(90deg, #4b5563, #6b7280, #4b5563);
+  }
+  
+  // Pending status
+  &.pending {
+    --header-bg: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+    --header-border: #f59e0b;
+    --header-accent: linear-gradient(90deg, #d97706, #f59e0b, #d97706);
+  }
+  
+  // Rejected status
+  &.rejected {
+    --header-bg: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+    --header-border: #ef4444;
+    --header-accent: linear-gradient(90deg, #dc2626, #ef4444, #dc2626);
+  }
+  
+  // Expired status (for ads)
+  &.expired {
+    --header-bg: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.1));
+    --header-border: #a855f7;
+    --header-accent: linear-gradient(90deg, #9333ea, #a855f7, #9333ea);
+  }
+  
+  // Archived status
+  &.archived {
+    --header-bg: linear-gradient(135deg, rgba(75, 85, 99, 0.2), rgba(75, 85, 99, 0.1));
+    --header-border: #4b5563;
+    --header-accent: linear-gradient(90deg, #374151, #4b5563, #374151);
+  }
+}
