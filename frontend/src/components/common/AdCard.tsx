@@ -36,6 +36,17 @@ export const AdCard: React.FC<AdCardProps> = ({
     return null;
   }
 
+  // Calculate actual status for consistent button logic
+  const adStatus = StatusManager.getAdStatus({ 
+    published: ad.published || false, 
+    approved: ad.approved 
+  });
+  
+  // Status-based logic variables for consistent behavior
+  const isActuallyPending = adStatus === 'pending' || adStatus === 'draft';
+  const isPublished = adStatus === 'published';
+  const isDraft = adStatus === 'draft';
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -65,12 +76,6 @@ export const AdCard: React.FC<AdCardProps> = ({
   };
 
   if (viewType === 'list') {
-    // Get proper status using the new status system
-    const adStatus = StatusManager.getAdStatus({ 
-      published: ad.published || false, 
-      approved: ad.approved 
-    });
-    
     return (
       <div className={`news-list-item ad ${adStatus} ${isPending ? 'pending' : ''}`}>
         <div className="list-item-header">
@@ -116,40 +121,53 @@ export const AdCard: React.FC<AdCardProps> = ({
             Data: {formatDate(ad.createdAt || ad.date)}
           </span>
           <div className="list-item-actions">
-            {isPending ? (
+            {isActuallyPending ? (
+              // Pending ads: show edit, approve/publish, and reject buttons
               <>
                 {onEdit && (
                   <button className="action-btn edit" onClick={() => onEdit(ad)}>
                     <FontAwesomeIcon icon={faEdit} /> EDITAR
                   </button>
                 )}
-                {onApprove && (
-                  <button className="action-btn approve" onClick={() => onApprove(ad)}>
+                {(onApprove || onPublish) && (
+                  <button className="action-btn approve" onClick={() => onApprove ? onApprove(ad) : onPublish ? onPublish(ad) : undefined}>
                     <FontAwesomeIcon icon={faCheck} /> PUBLICAR
                   </button>
                 )}
-                {onReject && (
-                  <button className="action-btn reject" onClick={() => onReject(ad)}>
+                {(onReject || onDelete) && (
+                  <button className="action-btn reject" onClick={() => onReject ? onReject(ad) : onDelete ? onDelete(ad) : undefined}>
                     <FontAwesomeIcon icon={faTimes} /> EXCLUIR
                   </button>
                 )}
               </>
             ) : (
               <>
-                {onEdit && (
-                  <button className="action-btn edit" onClick={() => onEdit(ad)}>
-                    <FontAwesomeIcon icon={faEdit} /> EDITAR
-                  </button>
-                )}
-                {onPublish && ad.status !== 'published' && (
-                  <button className="action-btn publish" onClick={() => onPublish(ad)}>
-                    <FontAwesomeIcon icon={faEye} /> PUBLICAR
-                  </button>
-                )}
-                {onDelete && (
-                  <button className="action-btn delete" onClick={() => onDelete(ad)}>
-                    <FontAwesomeIcon icon={faTrash} /> EXCLUIR
-                  </button>
+                {isPublished ? (
+                  // Published ads: only show delete button
+                  onDelete && (
+                    <button className="action-btn delete" onClick={() => onDelete(ad)}>
+                      <FontAwesomeIcon icon={faTrash} /> EXCLUIR
+                    </button>
+                  )
+                ) : (
+                  // Draft ads: show edit and publish buttons
+                  <>
+                    {onEdit && (
+                      <button className="action-btn edit" onClick={() => onEdit(ad)}>
+                        <FontAwesomeIcon icon={faEdit} /> EDITAR
+                      </button>
+                    )}
+                    {onPublish && (
+                      <button className="action-btn publish" onClick={() => onPublish(ad)}>
+                        <FontAwesomeIcon icon={faEye} /> PUBLICAR
+                      </button>
+                    )}
+                    {onDelete && (
+                      <button className="action-btn delete" onClick={() => onDelete(ad)}>
+                        <FontAwesomeIcon icon={faTrash} /> EXCLUIR
+                      </button>
+                    )}
+                  </>
                 )}
               </>
             )}
@@ -171,14 +189,6 @@ export const AdCard: React.FC<AdCardProps> = ({
   const actionsClass = viewType === '3x' ? 'card-actions-3x' : 'card-actions';
   const detailsClass = viewType === '3x' ? 'card-details-3x' : 'card-details';
 
-  const isPublished = ad.published || ad.status === 'approved' || ad.status === 'published';
-  
-  // Get proper status using the new status system
-  const adStatus = StatusManager.getAdStatus({ 
-    published: ad.published || false, 
-    approved: ad.approved 
-  });
-  
   return (
     <div
       key={ad.id || `ad-${viewType}-${index}`}
@@ -246,7 +256,8 @@ export const AdCard: React.FC<AdCardProps> = ({
                 </div>
                 <div className="card-bottom-section">
                   <div className={actionsClass}>
-                    {isPending ? (
+                    {isActuallyPending ? (
+                      // Pending ads: show edit, approve/publish, and reject buttons
                       <>
                         {onEdit && (
                           <button className="action-btn edit" onClick={() => onEdit(ad)}>
@@ -254,14 +265,14 @@ export const AdCard: React.FC<AdCardProps> = ({
                             <span>EDITAR</span>
                           </button>
                         )}
-                        {onApprove && (
-                          <button className="action-btn publish" onClick={() => onApprove(ad)}>
+                        {(onApprove || onPublish) && (
+                          <button className="action-btn publish" onClick={() => onApprove ? onApprove(ad) : onPublish ? onPublish(ad) : undefined}>
                             <FontAwesomeIcon icon={faCheck} />
                             <span>PUBLICAR</span>
                           </button>
                         )}
-                        {onReject && (
-                          <button className="action-btn delete" onClick={() => onReject(ad)}>
+                        {(onReject || onDelete) && (
+                          <button className="action-btn delete" onClick={() => onReject ? onReject(ad) : onDelete ? onDelete(ad) : undefined}>
                             <FontAwesomeIcon icon={faTimes} />
                             <span>EXCLUIR</span>
                           </button>
@@ -269,7 +280,7 @@ export const AdCard: React.FC<AdCardProps> = ({
                       </>
                     ) : (
                       <>
-                        {ad.status === 'published' ? (
+                        {isPublished ? (
                           // Published ads: only show delete button
                           onDelete && (
                             <button className="action-btn delete" onClick={() => onDelete(ad)}>
@@ -305,27 +316,28 @@ export const AdCard: React.FC<AdCardProps> = ({
                   {formatDate(ad.createdAt || ad.date)}
                 </span>
                 <div className={actionsClass}>
-                  {isPending ? (
+                  {isActuallyPending ? (
+                    // Pending ads: show edit, approve/publish, and reject buttons
                     <>
                       {onEdit && (
                         <button className="action-btn edit" onClick={() => onEdit(ad)}>
                           <FontAwesomeIcon icon={faEdit} />
                         </button>
                       )}
-                      {onApprove && (
-                        <button className="action-btn publish" onClick={() => onApprove(ad)}>
+                      {(onApprove || onPublish) && (
+                        <button className="action-btn publish" onClick={() => onApprove ? onApprove(ad) : onPublish ? onPublish(ad) : undefined}>
                           <FontAwesomeIcon icon={faCheck} />
                         </button>
                       )}
-                      {onReject && (
-                        <button className="action-btn delete" onClick={() => onReject(ad)}>
+                      {(onReject || onDelete) && (
+                        <button className="action-btn delete" onClick={() => onReject ? onReject(ad) : onDelete ? onDelete(ad) : undefined}>
                           <FontAwesomeIcon icon={faTimes} />
                         </button>
                       )}
                     </>
                   ) : (
                     <>
-                      {ad.status === 'published' ? (
+                      {isPublished ? (
                         // Published ads: only show delete button
                         onDelete && (
                           <button className="action-btn delete" onClick={() => onDelete(ad)}>

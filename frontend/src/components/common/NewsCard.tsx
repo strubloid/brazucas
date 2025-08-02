@@ -151,6 +151,11 @@ export const NewsCard: React.FC<NewsCardProps> = ({
     approved: post.approved 
   });
 
+  // Determine if this is actually pending based on data, not just isPending prop
+  const isActuallyPending = newsStatus === 'pending' || post.approved === null;
+  const isPublished = post.published && post.approved === true;
+  const isDraft = !post.published && post.approved !== true;
+
   return (
     <div
       key={post.id || `news-${viewType}-${index}`}
@@ -205,7 +210,8 @@ export const NewsCard: React.FC<NewsCardProps> = ({
                 </div>
                 <div className="card-bottom-section">
                   <div className={actionsClass}>
-                    {isPending ? (
+                    {isActuallyPending ? (
+                      // Pending posts: show edit, approve/publish, and reject buttons
                       <>
                         {onEdit && (
                           <button className="action-btn edit" onClick={() => onEdit(post)}>
@@ -213,14 +219,14 @@ export const NewsCard: React.FC<NewsCardProps> = ({
                             <span>EDITAR</span>
                           </button>
                         )}
-                        {onApprove && (
-                          <button className="action-btn publish" onClick={() => onApprove(post)}>
+                        {(onApprove || onPublish) && (
+                          <button className="action-btn publish" onClick={() => onApprove ? onApprove(post) : onPublish ? onPublish(post) : undefined}>
                             <FontAwesomeIcon icon={faCheck} />
                             <span>PUBLICAR</span>
                           </button>
                         )}
-                        {onReject && (
-                          <button className="action-btn delete" onClick={() => onReject(post)}>
+                        {(onReject || onDelete) && (
+                          <button className="action-btn delete" onClick={() => onReject ? onReject(post) : onDelete ? onDelete(post) : undefined}>
                             <FontAwesomeIcon icon={faTimes} />
                             <span>EXCLUIR</span>
                           </button>
@@ -228,7 +234,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({
                       </>
                     ) : (
                       <>
-                        {post.published ? (
+                        {isPublished ? (
                           // Published posts: only show delete button
                           onDelete && (
                             <button className="action-btn delete" onClick={() => onDelete(post)}>
@@ -264,27 +270,28 @@ export const NewsCard: React.FC<NewsCardProps> = ({
                   {formatDate(post.createdAt)}
                 </span>
                 <div className={actionsClass}>
-                  {isPending ? (
+                  {isActuallyPending ? (
+                    // Pending posts: show edit, approve/publish, and reject buttons
                     <>
                       {onEdit && (
                         <button className="action-btn edit" onClick={() => onEdit(post)}>
                           <FontAwesomeIcon icon={faEdit} />
                         </button>
                       )}
-                      {onApprove && (
-                        <button className="action-btn publish" onClick={() => onApprove(post)}>
+                      {(onApprove || onPublish) && (
+                        <button className="action-btn publish" onClick={() => onApprove ? onApprove(post) : onPublish ? onPublish(post) : undefined}>
                           <FontAwesomeIcon icon={faCheck} />
                         </button>
                       )}
-                      {onReject && (
-                        <button className="action-btn delete" onClick={() => onReject(post)}>
+                      {(onReject || onDelete) && (
+                        <button className="action-btn delete" onClick={() => onReject ? onReject(post) : onDelete ? onDelete(post) : undefined}>
                           <FontAwesomeIcon icon={faTimes} />
                         </button>
                       )}
                     </>
                   ) : (
                     <>
-                      {post.published ? (
+                      {isPublished ? (
                         // Published posts: only show delete button
                         onDelete && (
                           <button className="action-btn delete" onClick={() => onDelete(post)}>

@@ -288,13 +288,17 @@
           padding: 0.4rem 0.8rem;
           border-radius: 15px;
           font-size: 0.7rem;
-          font-weight: bold;
+          font-weight: 900; // Extra bold for better visibility
           text-transform: uppercase;
           letter-spacing: 0.5px;
           color: white;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
           backdrop-filter: blur(5px);
           border: 1px solid rgba(255, 255, 255, 0.2);
+          text-align: center; // Center the text
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
 
           &.published {
             background: rgba(40, 167, 69, 0.15);
@@ -312,6 +316,7 @@
             background: rgba(253, 126, 20, 0.15);
             color: #fd7e14;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            font-weight: 900; // Extra emphasis for pending status
           }
         }
 
@@ -342,7 +347,7 @@
       display: flex;
       flex-direction: column;
       position: relative;
-
+      max-height: 340px;
       .card-image {
         width: 100%;
         height: 240px;
@@ -393,7 +398,7 @@
           padding: 2px 8px;
           font-size: 1.1rem;
           font-weight: bold;
-          margin: 0 0 0.5rem 0;
+          margin: 0 0 0.7rem 0; // Increased from 0.5rem for better spacing
           color: #2d3748;
           line-height: 1.2;
           text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -779,7 +784,7 @@
           padding: 0.4rem 0.8rem; // Increased padding from 0.3rem 0.6rem
           border-radius: 10px; // 70% of 15px
           font-size: 0.6rem; // Slightly increased from 0.55rem for better readability
-          font-weight: bold;
+          font-weight: 900; // Extra bold for better visibility
           text-transform: uppercase;
           letter-spacing: 0.5px; // Increased from 0.35px
           color: white;
@@ -787,6 +792,10 @@
           backdrop-filter: blur(5px);
           border: 1px solid rgba(255, 255, 255, 0.2);
           white-space: nowrap; // Prevent text wrapping
+          text-align: center; // Center the text
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
 
           &.published {
             background: rgba(40, 167, 69, 0.15);
@@ -804,6 +813,7 @@
             background: rgba(253, 126, 20, 0.15);
             color: #fd7e14;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            font-weight: 900; // Extra emphasis for pending status
           }
         }
       }
@@ -863,7 +873,7 @@
       font-size: 0.91rem; // 70% of 1.3rem
       font-weight: bold;
       color: #2d3748;
-      margin: 0 0 0.56rem 0; // 70% of 0.8rem
+      margin: 0 0 0.8rem 0; // Increased from 0.56rem for better spacing
       line-height: 1.2;
       overflow: hidden;
       display: -webkit-box;
