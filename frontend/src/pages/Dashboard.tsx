@@ -1208,6 +1208,7 @@ const Dashboard: React.FC = () => {
                             currentIndex={currentCardIndex}
                             onPrevious={prevCard}
                             onNext={nextCard}
+                            cardsPerPage={1}
                             onDotClick={(index) => {
                               const currentCard = cardRefs.current[currentCardIndex];
                               const targetCard = cardRefs.current[index];
@@ -1315,6 +1316,7 @@ const Dashboard: React.FC = () => {
                             currentIndex={currentAdCardIndex}
                             onPrevious={prevAdCard}
                             onNext={nextAdCard}
+                            cardsPerPage={1}
                             onDotClick={(index) => {
                               const currentCard = adCardRefs.current[currentAdCardIndex];
                               const targetCard = adCardRefs.current[index];
@@ -1674,6 +1676,7 @@ const Dashboard: React.FC = () => {
                             currentIndex={currentPendingPostIndex}
                             onPrevious={prevPendingPost}
                             onNext={nextPendingPost}
+                            cardsPerPage={1}
                             onDotClick={(index) => {
                               const currentCard = pendingPostCardRefs.current[currentPendingPostIndex];
                               const targetCard = pendingPostCardRefs.current[index];
@@ -1787,6 +1790,7 @@ const Dashboard: React.FC = () => {
                             currentIndex={currentPendingAdIndex}
                             onPrevious={prevPendingAd}
                             onNext={nextPendingAd}
+                            cardsPerPage={1}
                             onDotClick={(index) => {
                               const currentCard = pendingAdCardRefs.current[currentPendingAdIndex];
                               const targetCard = pendingAdCardRefs.current[index];
