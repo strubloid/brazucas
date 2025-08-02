@@ -1,9 +1,9 @@
 .status-filter {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(248, 250, 252, 0.85); // Less bright, more transparent
   border-radius: 12px;
   padding: 1rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); // Softer shadow
+  border: 1px solid rgba(148, 163, 184, 0.2); // Softer border
   backdrop-filter: blur(10px);
   margin-bottom: 1.5rem;
 
@@ -19,23 +19,23 @@
       margin: 0;
       font-size: 1rem;
       font-weight: 600;
-      color: #1f2937;
+      color: #334155; // Softer text color
     }
 
     .select-all-btn {
-      background: none;
-      border: 1px solid #d1d5db;
+      background: rgba(248, 250, 252, 0.8); // Less bright
+      border: 1px solid rgba(148, 163, 184, 0.3); // Softer border
       border-radius: 6px;
       padding: 0.25rem 0.75rem;
       font-size: 0.875rem;
-      color: #6b7280;
+      color: #475569; // Softer text
       cursor: pointer;
       transition: all 0.2s ease;
 
       &:hover {
-        background: #f9fafb;
-        border-color: #9ca3af;
-        color: #374151;
+        background: rgba(226, 232, 240, 0.9); // Soft hover
+        border-color: rgba(100, 116, 139, 0.4);
+        color: #334155;
       }
     }
   }
@@ -51,11 +51,11 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 0.75rem;
-    border: 2px solid #e5e7eb;
+    border: 2px solid rgba(226, 232, 240, 0.6); // Softer border
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
-    background: white;
+    background: rgba(255, 255, 255, 0.7); // Less bright background
     min-width: 120px;
 
     &:hover {
@@ -124,6 +124,48 @@
   @media (max-width: 480px) {
     .status-option {
       min-width: 100%;
+    }
+  }
+}
+
+// Dashboard-specific styling
+.dashboard-status-filter {
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(148, 163, 184, 0.15); // Very subtle border
+  
+  .status-filter-header {
+    h4 {
+      font-size: 1.1rem;
+      color: #475569; // Softer color for dashboard
+    }
+
+    .select-all-btn {
+      background: rgba(241, 245, 249, 0.9);
+      border-color: rgba(148, 163, 184, 0.25);
+      color: #64748b;
+
+      &:hover {
+        background: rgba(226, 232, 240, 0.95);
+        color: #475569;
+      }
+    }
+  }
+
+  .status-option {
+    min-width: 140px;
+    background: rgba(255, 255, 255, 0.6); // More subtle
+    border-color: rgba(203, 213, 224, 0.4);
+    
+    &:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    &.selected {
+      background: rgba(255, 255, 255, 0.85);
     }
   }
 }

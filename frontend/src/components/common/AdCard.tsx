@@ -30,6 +30,12 @@ export const AdCard: React.FC<AdCardProps> = ({
   viewType = 'card',
   isPending = false
 }) => {
+  // Safety check - if ad is undefined, return null to prevent crashes
+  if (!ad || typeof ad !== 'object') {
+    console.warn('AdCard: Received invalid ad data:', ad);
+    return null;
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -59,8 +65,14 @@ export const AdCard: React.FC<AdCardProps> = ({
   };
 
   if (viewType === 'list') {
+    // Get proper status using the new status system
+    const adStatus = StatusManager.getAdStatus({ 
+      published: ad.published || false, 
+      approved: ad.approved 
+    });
+    
     return (
-      <div className={`news-list-item ad ${ad.status || 'draft'} ${isPending ? 'pending' : ''}`}>
+      <div className={`news-list-item ad ${adStatus} ${isPending ? 'pending' : ''}`}>
         <div className="list-item-header">
           <h3 className="list-item-title">{ad.title}</h3>
           <div className="status-badges">
@@ -70,8 +82,8 @@ export const AdCard: React.FC<AdCardProps> = ({
                 <span className="status-badge draft"> AGUARDANDO APROVAÇÃO</span>
               </>
             ) : (
-              <span className={`status-badge ${ad.status}`}>
-                {ad.status === 'published' ? 'PUBLICADO' : 'RASCUNHO'}
+              <span className={`status-badge ${adStatus}`}>
+                {StatusManager.getStatusLabel(adStatus)}
               </span>
             )}
           </div>
@@ -159,7 +171,7 @@ export const AdCard: React.FC<AdCardProps> = ({
   const actionsClass = viewType === '3x' ? 'card-actions-3x' : 'card-actions';
   const detailsClass = viewType === '3x' ? 'card-details-3x' : 'card-details';
 
-  const isPublished = ad.status === 'approved' || ad.status === 'published';
+  const isPublished = ad.published || ad.status === 'approved' || ad.status === 'published';
   
   // Get proper status using the new status system
   const adStatus = StatusManager.getAdStatus({ 

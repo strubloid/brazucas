@@ -31,6 +31,12 @@ export const NewsCard: React.FC<NewsCardProps> = ({
   viewType = 'card',
   isPending = false
 }) => {
+  // Safety check - if post is undefined, return null to prevent crashes
+  if (!post || typeof post !== 'object') {
+    console.warn('NewsCard: Received invalid post data:', post);
+    return null;
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -52,8 +58,14 @@ export const NewsCard: React.FC<NewsCardProps> = ({
   };
 
   if (viewType === 'list') {
+    // Get proper status using the new status system
+    const newsStatus = StatusManager.getNewsStatus({ 
+      published: post.published || false, 
+      approved: post.approved 
+    });
+
     return (
-      <div className={`news-list-item ${post.published ? 'published' : 'draft'} ${isPending ? 'pending' : ''}`}>
+      <div className={`news-list-item ${newsStatus} ${isPending ? 'pending' : ''}`}>
         <div className="list-item-header">
           <h3 className="list-item-title">{post.title}</h3>
           <div className="status-badges">
@@ -63,8 +75,8 @@ export const NewsCard: React.FC<NewsCardProps> = ({
                 <span className="status-badge draft"> AGUARDANDO APROVAÇÃO</span>
               </>
             ) : (
-              <span className={`status-badge ${post.published ? 'published' : 'draft'}`}>
-                {post.published ? 'PUBLICADO' : 'RASCUNHO'}
+              <span className={`status-badge ${newsStatus}`}>
+                {StatusManager.getStatusLabel(newsStatus)}
               </span>
             )}
           </div>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import anime from 'animejs';
 import { useAnimateOnMount } from '../hooks/useAnimateOnMount';
 import { useAsync } from '../hooks/useAsync';
@@ -15,6 +15,8 @@ import ThreeXView from '../components/common/ThreeXView';
 import ListView from '../components/common/ListView';
 import { NewsCard } from '../components/common/NewsCard';
 import { AdCard } from '../components/common/AdCard';
+import { StatusFilter } from '../components/common/StatusFilter';
+import { StatusManager, NewsStatus, AdStatus } from '../types/status';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faHome, 
@@ -49,6 +51,23 @@ const Dashboard: React.FC = () => {
   const [selectedAd, setSelectedAd] = useState<Advertisement | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showAdDetailsModal, setShowAdDetailsModal] = useState(false);
+  
+  // Status filtering states - Initialize with all statuses selected
+  const [selectedNewsStatuses, setSelectedNewsStatuses] = useState<string[]>([]);
+  const [selectedAdStatuses, setSelectedAdStatuses] = useState<string[]>([]);
+
+  // Initialize status filters after component mounts
+  useEffect(() => {
+    try {
+      setSelectedNewsStatuses(StatusManager.getNewsStatuses());
+      setSelectedAdStatuses(StatusManager.getAdStatuses());
+    } catch (error) {
+      console.error('Error initializing status filters:', error);
+      // Fallback to empty arrays if StatusManager fails
+      setSelectedNewsStatuses([]);
+      setSelectedAdStatuses([]);
+    }
+  }, []);
   
   // Carousel state for news
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -131,6 +150,53 @@ const Dashboard: React.FC = () => {
       });
     }
   }, [user, news]);
+
+  // Filter data based on selected statuses
+  const filteredNews = React.useMemo(() => {
+    if (!news || !Array.isArray(news) || selectedNewsStatuses.length === 0) return [];
+    
+    try {
+      return news.filter(newsPost => {
+        // Safety check - ensure newsPost exists and has required properties
+        if (!newsPost || typeof newsPost !== 'object') {
+          console.warn('Invalid news post in filter:', newsPost);
+          return false;
+        }
+        
+        const status = StatusManager.getNewsStatus({
+          published: newsPost.published || false,
+          approved: newsPost.approved
+        });
+        return selectedNewsStatuses.includes(status);
+      });
+    } catch (error) {
+      console.error('Error filtering news:', error);
+      return [];
+    }
+  }, [news, selectedNewsStatuses]);
+
+  const filteredAds = React.useMemo(() => {
+    if (!ads || !Array.isArray(ads) || selectedAdStatuses.length === 0) return [];
+    
+    try {
+      return ads.filter(ad => {
+        // Safety check - ensure ad exists and has required properties
+        if (!ad || typeof ad !== 'object') {
+          console.warn('Invalid ad in filter:', ad);
+          return false;
+        }
+        
+        const status = StatusManager.getAdStatus({
+          published: ad.published || false,
+          approved: ad.approved
+        });
+        return selectedAdStatuses.includes(status);
+      });
+    } catch (error) {
+      console.error('Error filtering ads:', error);
+      return [];
+    }
+  }, [ads, selectedAdStatuses]);
 
   // Debug ads logging
   React.useEffect(() => {
@@ -1213,19 +1279,25 @@ const Dashboard: React.FC = () => {
                   <LoadingSpinner text="Carregando notícias..." />
                 ) : (
                   <>
-                    {news && news.length > 0 ? (
+                    <StatusFilter
+                      type="news"
+                      selectedStatuses={selectedNewsStatuses}
+                      onStatusChange={setSelectedNewsStatuses}
+                      className="dashboard-status-filter"
+                    />
+                    {filteredNews && filteredNews.length > 0 ? (
                       <div className="pokemon-carousel-container">
                         <ViewModeControls
                           viewMode={newsViewMode}
                           onViewModeChange={setNewsViewMode}
-                          totalItems={news.length}
+                          totalItems={filteredNews.length}
                           currentPage={newsViewMode === 'list' ? undefined : newsViewMode === 'card' ? currentCardIndex + 1 : undefined}
-                          totalPages={newsViewMode === 'list' ? undefined : newsViewMode === 'card' ? news.length : undefined}
+                          totalPages={newsViewMode === 'list' ? undefined : newsViewMode === 'card' ? filteredNews.length : undefined}
                         />
                         
                         {newsViewMode === 'card' ? (
                           <CardView
-                            items={news}
+                            items={filteredNews}
                             currentIndex={currentCardIndex}
                             onPrevious={prevCard}
                             onNext={nextCard}
@@ -1276,7 +1348,7 @@ const Dashboard: React.FC = () => {
                           />
                         ) : newsViewMode === '3x' ? (
                           <ThreeXView
-                            items={news}
+                            items={filteredNews}
                             renderCard={(newsPost, index) => (
                               <NewsCard
                                 post={newsPost}
@@ -1290,7 +1362,7 @@ const Dashboard: React.FC = () => {
                           />
                         ) : (
                           <ListView
-                            items={news}
+                            items={filteredNews}
                             renderListItem={(newsPost, index) => (
                               <NewsCard
                                 post={newsPost}
@@ -1303,6 +1375,16 @@ const Dashboard: React.FC = () => {
                             )}
                           />
                         )}
+                      </div>
+                    ) : filteredNews.length === 0 && news && news.length > 0 ? (
+                      <div className="dashboard__empty">
+                        <p>Nenhuma notícia encontrada com os filtros selecionados.</p>
+                        <button 
+                          className="btn btn-secondary"
+                          onClick={() => setSelectedNewsStatuses(StatusManager.getNewsStatuses())}
+                        >
+                          Limpar Filtros
+                        </button>
                       </div>
                     ) : (
                       <div className="dashboard__empty">
@@ -1321,19 +1403,25 @@ const Dashboard: React.FC = () => {
                   <LoadingSpinner text="Carregando anúncios..." />
                 ) : (
                   <>
-                    {ads && ads.length > 0 ? (
+                    <StatusFilter
+                      type="ads"
+                      selectedStatuses={selectedAdStatuses}
+                      onStatusChange={setSelectedAdStatuses}
+                      className="dashboard-status-filter"
+                    />
+                    {filteredAds && filteredAds.length > 0 ? (
                       <div className="pokemon-carousel-container">
                         <ViewModeControls
                           viewMode={adsViewMode}
                           onViewModeChange={setAdsViewMode}
-                          totalItems={ads.length}
+                          totalItems={filteredAds.length}
                           currentPage={adsViewMode === 'list' ? undefined : adsViewMode === 'card' ? currentAdCardIndex + 1 : undefined}
-                          totalPages={adsViewMode === 'list' ? undefined : adsViewMode === 'card' ? ads.length : undefined}
+                          totalPages={adsViewMode === 'list' ? undefined : adsViewMode === 'card' ? filteredAds.length : undefined}
                         />
                         
                         {adsViewMode === 'card' ? (
                           <CardView
-                            items={ads}
+                            items={filteredAds}
                             currentIndex={currentAdCardIndex}
                             onPrevious={prevAdCard}
                             onNext={nextAdCard}
@@ -1384,7 +1472,7 @@ const Dashboard: React.FC = () => {
                           />
                         ) : adsViewMode === '3x' ? (
                           <ThreeXView
-                            items={ads}
+                            items={filteredAds}
                             renderCard={(ad, index) => (
                               <AdCard
                                 ad={ad}
@@ -1398,7 +1486,7 @@ const Dashboard: React.FC = () => {
                           />
                         ) : (
                           <ListView
-                            items={ads}
+                            items={filteredAds}
                             renderListItem={(ad, index) => (
                               <AdCard
                                 ad={ad}
@@ -1411,6 +1499,16 @@ const Dashboard: React.FC = () => {
                             )}
                           />
                         )}
+                      </div>
+                    ) : filteredAds.length === 0 && ads && ads.length > 0 ? (
+                      <div className="dashboard__empty">
+                        <p>Nenhum anúncio encontrado com os filtros selecionados.</p>
+                        <button 
+                          className="btn btn-secondary"
+                          onClick={() => setSelectedAdStatuses(StatusManager.getAdStatuses())}
+                        >
+                          Limpar Filtros
+                        </button>
                       </div>
                     ) : (
                       <div className="dashboard__empty">

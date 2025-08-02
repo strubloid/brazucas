@@ -760,9 +760,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 0.35rem 0.56rem; // 70% scaling
+    padding: 0.6rem 0.8rem; // Increased padding from 0.35rem 0.56rem
     border-radius: 10px 10px 0 0; // 70% of original
     background: var(--header-bg, linear-gradient(90deg, #8b4513, #d4a574, #8b4513));
+    min-height: 2.5rem; // Ensure minimum height
 
     .card-header-content {
       display: flex;
@@ -772,19 +773,20 @@
 
       .status-badges-3x {
         display: flex;
-        gap: 0.35rem; // 70% of 0.5rem
+        gap: 0.5rem; // Increased from 0.35rem for better spacing
 
         .status-badge {
-          padding: 0.3rem 0.6rem; // Slightly increased from 0.28rem 0.56rem
+          padding: 0.4rem 0.8rem; // Increased padding from 0.3rem 0.6rem
           border-radius: 10px; // 70% of 15px
-          font-size: 0.55rem; // Increased from 0.49rem for better readability
+          font-size: 0.6rem; // Slightly increased from 0.55rem for better readability
           font-weight: bold;
           text-transform: uppercase;
-          letter-spacing: 0.35px; // 70% of 0.5px
+          letter-spacing: 0.5px; // Increased from 0.35px
           color: white;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
           backdrop-filter: blur(5px);
           border: 1px solid rgba(255, 255, 255, 0.2);
+          white-space: nowrap; // Prevent text wrapping
 
           &.published {
             background: rgba(40, 167, 69, 0.15);
@@ -809,10 +811,11 @@
   }
 
   .card-content-3x {
-    flex: 1;
+    height: calc(100% - 140px); // Reserve space for header (~65px) and footer (~75px)
     display: flex;
     flex-direction: column;
     padding: 0.7rem; // 70% of 1rem
+    overflow: hidden; // Prevent overflow
 
     .card-image-3x {
       width: 100%;
@@ -889,6 +892,7 @@
     background: transparent;
     border-radius: 0 0 14px 14px;
     border-top: none;
+    flex-shrink: 0; // Prevent footer from shrinking
 
     .card-date-section {
       padding: 0.5rem 0.7rem;
@@ -904,21 +908,24 @@
     }
 
     .card-bottom-section {
-      padding: 0.7rem;
+      padding: 0.8rem; // Increased from 0.7rem
       background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
       border-top: 2px solid rgba(203, 213, 224, 0.6);
       border-radius: 0 0 12px 12px;
+      min-height: 4rem; // Ensure minimum height for buttons
 
       .card-actions-3x {
         display: flex;
-        gap: 0.5rem;
+        gap: 0.6rem; // Increased from 0.5rem
         justify-content: center; // Center buttons
+        align-items: center;
+        flex-wrap: wrap; // Allow wrapping if needed
 
         .action-btn {
-          padding: 0.6rem 1rem; // Increased for bigger, better-looking buttons
+          padding: 0.7rem 1.1rem; // Increased for better visibility
           border: none;
           border-radius: 8px; // Increased border radius
-          font-size: 0.65rem; // Increased font size
+          font-size: 0.7rem; // Increased font size from 0.65rem
           font-weight: bold;
           cursor: pointer;
           transition: all 0.3s ease;
@@ -926,18 +933,21 @@
           display: flex;
           align-items: center;
           justify-content: center;
-          min-width: 45px; // Increased minimum width
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+          min-width: 50px; // Increased minimum width from 45px
+          min-height: 36px; // Ensure minimum height
+          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2); // Enhanced shadow
+          position: relative; // Ensure proper positioning
+          z-index: 10; // Bring buttons to front
 
           span {
             margin-left: 4px;
-            font-size: 0.6rem;
+            font-size: 0.65rem; // Increased from 0.6rem
             white-space: nowrap;
           }
 
           &:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); // Enhanced hover shadow
           }
 
           &.edit {

@@ -105,16 +105,18 @@ export const STATUS_LABELS: Record<string, string> = {
 // Status utility class
 export class StatusManager {
   // Convert legacy status to new system
-  static getNewsStatus(post: { published: boolean; approved: boolean | null }): NewsStatus {
+  static getNewsStatus(post: { published?: boolean; approved?: boolean | null }): NewsStatus {
+    if (!post || typeof post !== 'object') return NewsStatus.DRAFT;
     if (post.approved === false) return NewsStatus.REJECTED;
-    if (post.approved === null) return NewsStatus.PENDING_APPROVAL;
+    if (post.approved === null || post.approved === undefined) return NewsStatus.PENDING_APPROVAL;
     if (post.published && post.approved === true) return NewsStatus.PUBLISHED;
     return NewsStatus.DRAFT;
   }
   
-  static getAdStatus(ad: { published: boolean; approved: boolean | null }): AdStatus {
+  static getAdStatus(ad: { published?: boolean; approved?: boolean | null }): AdStatus {
+    if (!ad || typeof ad !== 'object') return AdStatus.DRAFT;
     if (ad.approved === false) return AdStatus.REJECTED;
-    if (ad.approved === null) return AdStatus.PENDING_APPROVAL;
+    if (ad.approved === null || ad.approved === undefined) return AdStatus.PENDING_APPROVAL;
     if (ad.approved === true && ad.published) return AdStatus.PUBLISHED;
     if (ad.approved === true && !ad.published) return AdStatus.APPROVED;
     return AdStatus.DRAFT;
