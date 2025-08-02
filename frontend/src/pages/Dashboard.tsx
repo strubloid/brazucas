@@ -54,6 +54,16 @@ const Dashboard: React.FC = () => {
   const adCarouselRef = useRef<HTMLDivElement>(null);
   const adCardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
+  // Carousel state for pending posts approval
+  const [currentPendingPostIndex, setCurrentPendingPostIndex] = useState(0);
+  const pendingPostCarouselRef = useRef<HTMLDivElement>(null);
+  const pendingPostCardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Carousel state for pending ads approval
+  const [currentPendingAdIndex, setCurrentPendingAdIndex] = useState(0);
+  const pendingAdCarouselRef = useRef<HTMLDivElement>(null);
+  const pendingAdCardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
   const { data: news, loading, refetch } = useAsync<NewsPost[]>(
     () => {
       if (!user) return Promise.resolve([]);
@@ -181,6 +191,64 @@ const Dashboard: React.FC = () => {
       });
     }
   }, [ads, currentAdCardIndex]);
+
+  // Initialize pending posts card positions - Must be before early return
+  useEffect(() => {
+    if (pendingNews && pendingNews.length > 0 && pendingPostCardRefs.current.length > 0) {
+      pendingPostCardRefs.current.forEach((card, index) => {
+        if (card) {
+          if (index === currentPendingPostIndex) {
+            // Current card
+            anime.set(card, {
+              translateX: 0,
+              rotateY: 0,
+              opacity: 1,
+              scale: 1,
+              zIndex: 10
+            });
+          } else {
+            // Hidden cards
+            anime.set(card, {
+              translateX: index > currentPendingPostIndex ? 600 : -600,
+              rotateY: index > currentPendingPostIndex ? 90 : -90,
+              opacity: 0,
+              scale: 0.7,
+              zIndex: 1
+            });
+          }
+        }
+      });
+    }
+  }, [pendingNews, currentPendingPostIndex]);
+
+  // Initialize pending ads card positions - Must be before early return
+  useEffect(() => {
+    if (pendingAds && pendingAds.length > 0 && pendingAdCardRefs.current.length > 0) {
+      pendingAdCardRefs.current.forEach((card, index) => {
+        if (card) {
+          if (index === currentPendingAdIndex) {
+            // Current card
+            anime.set(card, {
+              translateX: 0,
+              rotateY: 0,
+              opacity: 1,
+              scale: 1,
+              zIndex: 10
+            });
+          } else {
+            // Hidden cards
+            anime.set(card, {
+              translateX: index > currentPendingAdIndex ? 600 : -600,
+              rotateY: index > currentPendingAdIndex ? 90 : -90,
+              opacity: 0,
+              scale: 0.7,
+              zIndex: 1
+            });
+          }
+        }
+      });
+    }
+  }, [pendingAds, currentPendingAdIndex]);
 
   // Check if user is authenticated AFTER all hooks are called
   if (!user) {
@@ -690,6 +758,148 @@ const Dashboard: React.FC = () => {
     }
     
     setCurrentAdCardIndex(prevIndex);
+  };
+
+  // Carousel functions for Pending Posts approval
+  const nextPendingPost = () => {
+    if (!pendingNews || pendingNews.length === 0) return;
+    
+    const currentCard = pendingPostCardRefs.current[currentPendingPostIndex];
+    const nextIndex = (currentPendingPostIndex + 1) % pendingNews.length;
+    const nextCard = pendingPostCardRefs.current[nextIndex];
+    
+    if (currentCard && nextCard) {
+      // Animate current card out (to the left)
+      anime({
+        targets: currentCard,
+        translateX: [-300, -600],
+        rotateY: [0, -90],
+        opacity: [1, 0],
+        scale: [1, 0.7],
+        duration: 400,
+        easing: 'easeInBack'
+      });
+      
+      // Animate next card in (from the right)
+      anime({
+        targets: nextCard,
+        translateX: [600, 0],
+        rotateY: [90, 0],
+        opacity: [0, 1],
+        scale: [0.7, 1],
+        duration: 600,
+        delay: 200,
+        easing: 'easeOutExpo'
+      });
+    }
+    
+    setCurrentPendingPostIndex(nextIndex);
+  };
+
+  const prevPendingPost = () => {
+    if (!pendingNews || pendingNews.length === 0) return;
+    
+    const currentCard = pendingPostCardRefs.current[currentPendingPostIndex];
+    const prevIndex = (currentPendingPostIndex - 1 + pendingNews.length) % pendingNews.length;
+    const prevCard = pendingPostCardRefs.current[prevIndex];
+    
+    if (currentCard && prevCard) {
+      // Animate current card out (to the right)
+      anime({
+        targets: currentCard,
+        translateX: [0, 600],
+        rotateY: [0, 90],
+        opacity: [1, 0],
+        scale: [1, 0.7],
+        duration: 400,
+        easing: 'easeInBack'
+      });
+      
+      // Animate previous card in (from the left)
+      anime({
+        targets: prevCard,
+        translateX: [-600, 0],
+        rotateY: [-90, 0],
+        opacity: [0, 1],
+        scale: [0.7, 1],
+        duration: 600,
+        delay: 200,
+        easing: 'easeOutExpo'
+      });
+    }
+    
+    setCurrentPendingPostIndex(prevIndex);
+  };
+
+  // Carousel functions for Pending Ads approval
+  const nextPendingAd = () => {
+    if (!pendingAds || pendingAds.length === 0) return;
+    
+    const currentCard = pendingAdCardRefs.current[currentPendingAdIndex];
+    const nextIndex = (currentPendingAdIndex + 1) % pendingAds.length;
+    const nextCard = pendingAdCardRefs.current[nextIndex];
+    
+    if (currentCard && nextCard) {
+      // Animate current card out (to the left)
+      anime({
+        targets: currentCard,
+        translateX: [-300, -600],
+        rotateY: [0, -90],
+        opacity: [1, 0],
+        scale: [1, 0.7],
+        duration: 400,
+        easing: 'easeInBack'
+      });
+      
+      // Animate next card in (from the right)
+      anime({
+        targets: nextCard,
+        translateX: [600, 0],
+        rotateY: [90, 0],
+        opacity: [0, 1],
+        scale: [0.7, 1],
+        duration: 600,
+        delay: 200,
+        easing: 'easeOutExpo'
+      });
+    }
+    
+    setCurrentPendingAdIndex(nextIndex);
+  };
+
+  const prevPendingAd = () => {
+    if (!pendingAds || pendingAds.length === 0) return;
+    
+    const currentCard = pendingAdCardRefs.current[currentPendingAdIndex];
+    const prevIndex = (currentPendingAdIndex - 1 + pendingAds.length) % pendingAds.length;
+    const prevCard = pendingAdCardRefs.current[prevIndex];
+    
+    if (currentCard && prevCard) {
+      // Animate current card out (to the right)
+      anime({
+        targets: currentCard,
+        translateX: [0, 600],
+        rotateY: [0, 90],
+        opacity: [1, 0],
+        scale: [1, 0.7],
+        duration: 400,
+        easing: 'easeInBack'
+      });
+      
+      // Animate previous card in (from the left)
+      anime({
+        targets: prevCard,
+        translateX: [-600, 0],
+        rotateY: [-90, 0],
+        opacity: [0, 1],
+        scale: [0.7, 1],
+        duration: 600,
+        delay: 200,
+        easing: 'easeOutExpo'
+      });
+    }
+    
+    setCurrentPendingAdIndex(prevIndex);
   };
 
   return (
@@ -1515,48 +1725,154 @@ const Dashboard: React.FC = () => {
                 {pendingLoading ? (
                   <LoadingSpinner text="Carregando posts pendentes..." />
                 ) : (
-                  <div className="approval-grid">
+                  <>
                     {pendingNews && pendingNews.length > 0 ? (
-                      pendingNews.map((post) => (
-                        <div key={post.id} className="approval-card">
-                          <div className="approval-card-header">
-                            <h3>{post.title}</h3>
-                            <span className="pending-badge">Pendente</span>
-                          </div>
-                          <div className="approval-card-content">
-                            <p className="post-author">Por: {post.authorNickname}</p>
-                            <p className="post-excerpt">{truncateContent(post.excerpt || post.content)}</p>
-                            <div className="post-meta">
-                              <span>Enviado em {formatDate(post.createdAt)}</span>
-                            </div>
-                          </div>
-                          <div className="approval-actions">
-                            <button 
-                              className="btn-approve"
-                              onClick={() => handleApproval(post.id, true)}
-                              disabled={processingIds.has(post.id)}
-                            >
-                              <FontAwesomeIcon icon={faCheckCircle} />
-                              {processingIds.has(post.id) ? 'Processando...' : 'Aprovar'}
-                            </button>
-                            <button 
-                              className="btn-reject"
-                              onClick={() => handleApproval(post.id, false)}
-                              disabled={processingIds.has(post.id)}
-                            >
-                              <FontAwesomeIcon icon={faTrash} />
-                              {processingIds.has(post.id) ? 'Processando...' : 'Rejeitar'}
-                            </button>
-                            <button 
-                              className="btn-view"
-                              onClick={() => handleViewDetails(post)}
-                            >
-                              <FontAwesomeIcon icon={faEye} />
-                              Ver Detalhes
-                            </button>
+                      <div className="pokemon-carousel-container">
+                        <div className="carousel-header">
+                          <h2>Posts para Aprovação</h2>
+                          <div className="carousel-info">
+                            <span>{currentPendingPostIndex + 1} de {pendingNews.length}</span>
                           </div>
                         </div>
-                      ))
+                        
+                        <div className="pokemon-carousel" ref={pendingPostCarouselRef}>
+                          {/* Navigation buttons */}
+                          <button 
+                            className="carousel-nav carousel-nav--prev"
+                            onClick={prevPendingPost}
+                            disabled={pendingNews.length <= 1}
+                          >
+                            <FontAwesomeIcon icon={faChevronLeft} />
+                          </button>
+                          
+                          <button 
+                            className="carousel-nav carousel-nav--next"
+                            onClick={nextPendingPost}
+                            disabled={pendingNews.length <= 1}
+                          >
+                            <FontAwesomeIcon icon={faChevronRight} />
+                          </button>
+
+                          {/* Pokemon Cards for Pending Posts */}
+                          <div className="cards-container">
+                            {pendingNews.map((post, index) => (
+                              <div
+                                key={post.id}
+                                ref={el => pendingPostCardRefs.current[index] = el}
+                                className="pokemon-card pending"
+                                style={{
+                                  position: 'absolute',
+                                  width: '400px',
+                                  height: '550px'
+                                }}
+                              >
+                                <div className="pokemon-card-inner">
+                                  <div className="pokemon-card-header">
+                                    <div className="card-type">Post Pendente</div>
+                                    <div className="card-status pending">
+                                      Aguardando Aprovação
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="pokemon-card-image">
+                                    {post.imageUrl ? (
+                                      <img src={post.imageUrl} alt={post.title} />
+                                    ) : (
+                                      <div className="placeholder-image">
+                                        <FontAwesomeIcon icon={faNewspaper} size="3x" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="pokemon-card-content">
+                                    <h3 className="pokemon-card-title">{post.title}</h3>
+                                    <p className="pokemon-card-excerpt">{truncateContent(post.excerpt || post.content, 100)}</p>
+                                    
+                                    <div className="pokemon-card-meta">
+                                      <div className="meta-item">
+                                        <span className="meta-label">Autor:</span>
+                                        <span className="meta-value">{post.authorNickname}</span>
+                                      </div>
+                                      <div className="meta-item">
+                                        <span className="meta-label">Enviado:</span>
+                                        <span className="meta-value">{formatDate(post.createdAt)}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="pokemon-card-actions">
+                                    <button
+                                      onClick={() => handleApproval(post.id, true)}
+                                      className="pokemon-action-btn pokemon-action-btn--publish"
+                                      disabled={processingIds.has(post.id)}
+                                    >
+                                      <FontAwesomeIcon icon={faCheckCircle} />
+                                      {processingIds.has(post.id) ? 'Processando...' : 'Aprovar'}
+                                    </button>
+                                    
+                                    <button
+                                      onClick={() => handleApproval(post.id, false)}
+                                      className="pokemon-action-btn pokemon-action-btn--delete"
+                                      disabled={processingIds.has(post.id)}
+                                    >
+                                      <FontAwesomeIcon icon={faTrash} />
+                                      {processingIds.has(post.id) ? 'Processando...' : 'Rejeitar'}
+                                    </button>
+                                    
+                                    <button
+                                      onClick={() => handleViewDetails(post)}
+                                      className="pokemon-action-btn pokemon-action-btn--edit"
+                                    >
+                                      <FontAwesomeIcon icon={faEye} />
+                                      Ver Detalhes
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        {/* Dots indicator for pending posts */}
+                        <div className="carousel-dots">
+                          {pendingNews.map((_, index) => (
+                            <button
+                              key={index}
+                              className={`carousel-dot ${index === currentPendingPostIndex ? 'active' : ''}`}
+                              onClick={() => {
+                                const currentCard = pendingPostCardRefs.current[currentPendingPostIndex];
+                                const targetCard = pendingPostCardRefs.current[index];
+                                
+                                if (currentCard && targetCard && index !== currentPendingPostIndex) {
+                                  // Animate current card out
+                                  anime({
+                                    targets: currentCard,
+                                    opacity: [1, 0],
+                                    scale: [1, 0.7],
+                                    rotateY: [0, index > currentPendingPostIndex ? 90 : -90],
+                                    duration: 300,
+                                    easing: 'easeInBack'
+                                  });
+                                  
+                                  // Animate target card in
+                                  anime({
+                                    targets: targetCard,
+                                    translateX: [index > currentPendingPostIndex ? 600 : -600, 0],
+                                    rotateY: [index > currentPendingPostIndex ? 90 : -90, 0],
+                                    opacity: [0, 1],
+                                    scale: [0.7, 1],
+                                    duration: 500,
+                                    delay: 150,
+                                    easing: 'easeOutExpo'
+                                  });
+                                  
+                                  setCurrentPendingPostIndex(index);
+                                }
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     ) : (
                       <div className="no-pending-posts">
                         <p>Não há posts pendentes de aprovação.</p>
@@ -1565,7 +1881,7 @@ const Dashboard: React.FC = () => {
                         </button>
                       </div>
                     )}
-                  </div>
+                  </>
                 )}
               </div>
             )}
@@ -1581,57 +1897,164 @@ const Dashboard: React.FC = () => {
                 {pendingAdsLoading ? (
                   <LoadingSpinner text="Carregando anúncios pendentes..." />
                 ) : (
-                  <div className="approval-grid">
+                  <>
                     {pendingAds && pendingAds.length > 0 ? (
-                      pendingAds.map((ad, index) => (
-                        <div key={ad.id || `pending-ad-${index}`} className="approval-card ad-card">
-                          <div className="approval-card-header">
-                            <h3>{ad.title}</h3>
-                            <span className="pending-badge">Pendente</span>
-                          </div>
-                          <div className="approval-card-content">
-                            <p className="ad-author">Por: {ad.authorNickname}</p>
-                            <p className="ad-category">Categoria: {ad.category}</p>
-                            <p className="ad-description">{truncateContent(ad.description)}</p>
-                            <p className="ad-price">Preço: {ad.price}</p>
-                            <p className="ad-contact">Contato: {ad.contactEmail}</p>
-                            <div className="ad-meta">
-                              <span>Enviado em {formatDate(ad.createdAt)}</span>
-                            </div>
-                          </div>
-                          <div className="approval-actions">
-                            <button 
-                              className="btn-approve"
-                              onClick={() => handleAdApproval(ad.id, true)}
-                              disabled={processingIds.has(ad.id)}
-                            >
-                              <FontAwesomeIcon icon={faCheckCircle} />
-                              {processingIds.has(ad.id) ? 'Processando...' : 'Aprovar'}
-                            </button>
-                            <button 
-                              className="btn-reject"
-                              onClick={() => handleAdApproval(ad.id, false)}
-                              disabled={processingIds.has(ad.id)}
-                            >
-                              <FontAwesomeIcon icon={faTrash} />
-                              {processingIds.has(ad.id) ? 'Processando...' : 'Rejeitar'}
-                            </button>
-                            <button 
-                              className="btn-view"
-                              onClick={() => handleViewAdDetails(ad)}
-                            >
-                              <FontAwesomeIcon icon={faEye} />
-                              Ver Detalhes
-                            </button>
+                      <div className="pokemon-carousel-container">
+                        <div className="carousel-header">
+                          <h2>Anúncios para Aprovação</h2>
+                          <div className="carousel-info">
+                            <span>{currentPendingAdIndex + 1} de {pendingAds.length}</span>
                           </div>
                         </div>
-                      ))
+                        
+                        <div className="pokemon-carousel" ref={pendingAdCarouselRef}>
+                          {/* Navigation buttons */}
+                          <button 
+                            className="carousel-nav carousel-nav--prev"
+                            onClick={prevPendingAd}
+                            disabled={pendingAds.length <= 1}
+                          >
+                            <FontAwesomeIcon icon={faChevronLeft} />
+                          </button>
+                          
+                          <button 
+                            className="carousel-nav carousel-nav--next"
+                            onClick={nextPendingAd}
+                            disabled={pendingAds.length <= 1}
+                          >
+                            <FontAwesomeIcon icon={faChevronRight} />
+                          </button>
+
+                          {/* Pokemon Cards for Pending Ads */}
+                          <div className="cards-container">
+                            {pendingAds.map((ad, index) => (
+                              <div
+                                key={ad.id || `pending-ad-${index}`}
+                                ref={el => pendingAdCardRefs.current[index] = el}
+                                className="pokemon-card pending"
+                                style={{
+                                  position: 'absolute',
+                                  width: '400px',
+                                  height: '550px'
+                                }}
+                              >
+                                <div className="pokemon-card-inner">
+                                  <div className="pokemon-card-header">
+                                    <div className="card-type">Anúncio Pendente</div>
+                                    <div className="card-status pending">
+                                      Aguardando Aprovação
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="pokemon-card-image">
+                                    <div className="placeholder-image">
+                                      <FontAwesomeIcon icon={faAd} size="3x" />
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="pokemon-card-content">
+                                    <h3 className="pokemon-card-title">{ad.title}</h3>
+                                    <p className="pokemon-card-excerpt">{truncateContent(ad.description, 100)}</p>
+                                    
+                                    <div className="pokemon-card-meta">
+                                      <div className="meta-item">
+                                        <span className="meta-label">Autor:</span>
+                                        <span className="meta-value">{ad.authorNickname}</span>
+                                      </div>
+                                      <div className="meta-item">
+                                        <span className="meta-label">Categoria:</span>
+                                        <span className="meta-value">{ad.category}</span>
+                                      </div>
+                                      <div className="meta-item">
+                                        <span className="meta-label">Preço:</span>
+                                        <span className="meta-value">{ad.price}</span>
+                                      </div>
+                                      <div className="meta-item">
+                                        <span className="meta-label">Enviado:</span>
+                                        <span className="meta-value">{formatDate(ad.createdAt)}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="pokemon-card-actions">
+                                    <button
+                                      onClick={() => handleAdApproval(ad.id, true)}
+                                      className="pokemon-action-btn pokemon-action-btn--publish"
+                                      disabled={processingIds.has(ad.id)}
+                                    >
+                                      <FontAwesomeIcon icon={faCheckCircle} />
+                                      {processingIds.has(ad.id) ? 'Processando...' : 'Aprovar'}
+                                    </button>
+                                    
+                                    <button
+                                      onClick={() => handleAdApproval(ad.id, false)}
+                                      className="pokemon-action-btn pokemon-action-btn--delete"
+                                      disabled={processingIds.has(ad.id)}
+                                    >
+                                      <FontAwesomeIcon icon={faTrash} />
+                                      {processingIds.has(ad.id) ? 'Processando...' : 'Rejeitar'}
+                                    </button>
+                                    
+                                    <button
+                                      onClick={() => handleViewAdDetails(ad)}
+                                      className="pokemon-action-btn pokemon-action-btn--edit"
+                                    >
+                                      <FontAwesomeIcon icon={faEye} />
+                                      Ver Detalhes
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        {/* Dots indicator for pending ads */}
+                        <div className="carousel-dots">
+                          {pendingAds.map((_, index) => (
+                            <button
+                              key={index}
+                              className={`carousel-dot ${index === currentPendingAdIndex ? 'active' : ''}`}
+                              onClick={() => {
+                                const currentCard = pendingAdCardRefs.current[currentPendingAdIndex];
+                                const targetCard = pendingAdCardRefs.current[index];
+                                
+                                if (currentCard && targetCard && index !== currentPendingAdIndex) {
+                                  // Animate current card out
+                                  anime({
+                                    targets: currentCard,
+                                    opacity: [1, 0],
+                                    scale: [1, 0.7],
+                                    rotateY: [0, index > currentPendingAdIndex ? 90 : -90],
+                                    duration: 300,
+                                    easing: 'easeInBack'
+                                  });
+                                  
+                                  // Animate target card in
+                                  anime({
+                                    targets: targetCard,
+                                    translateX: [index > currentPendingAdIndex ? 600 : -600, 0],
+                                    rotateY: [index > currentPendingAdIndex ? 90 : -90, 0],
+                                    opacity: [0, 1],
+                                    scale: [0.7, 1],
+                                    duration: 500,
+                                    delay: 150,
+                                    easing: 'easeOutExpo'
+                                  });
+                                  
+                                  setCurrentPendingAdIndex(index);
+                                }
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     ) : (
                       <div className="no-pending-content">
                         <p>Nenhum anúncio pendente de aprovação.</p>
                       </div>
                     )}
-                  </div>
+                  </>
                 )}
               </div>
             )}
