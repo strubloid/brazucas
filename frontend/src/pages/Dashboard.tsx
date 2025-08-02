@@ -26,7 +26,8 @@ import {
   faChevronLeft,
   faChevronRight,
   faSquare,
-  faList
+  faList,
+  faThLarge
 } from '@fortawesome/free-solid-svg-icons';
 import './Dashboard.scss';
 import './PokemonCarousel.scss';
@@ -68,10 +69,10 @@ const Dashboard: React.FC = () => {
   const pendingAdCardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // View mode states for all carousels
-  const [newsViewMode, setNewsViewMode] = useState<'card' | 'list'>('card');
-  const [adsViewMode, setAdsViewMode] = useState<'card' | 'list'>('card');
-  const [pendingPostsViewMode, setPendingPostsViewMode] = useState<'card' | 'list'>('card');
-  const [pendingAdsViewMode, setPendingAdsViewMode] = useState<'card' | 'list'>('card');
+  const [newsViewMode, setNewsViewMode] = useState<'card' | '3x' | 'list'>('card');
+  const [adsViewMode, setAdsViewMode] = useState<'card' | '3x' | 'list'>('card');
+  const [pendingPostsViewMode, setPendingPostsViewMode] = useState<'card' | '3x' | 'list'>('card');
+  const [pendingAdsViewMode, setPendingAdsViewMode] = useState<'card' | '3x' | 'list'>('card');
 
   const { data: news, loading, refetch } = useAsync<NewsPost[]>(
     () => {
@@ -1179,6 +1180,17 @@ const Dashboard: React.FC = () => {
                                 <span>Cards</span>
                               </button>
                               <button
+                                className={`view-btn ${newsViewMode === '3x' ? 'active' : ''}`}
+                                onClick={() => {
+                                  console.log('Switching to 3x cards view for news');
+                                  setNewsViewMode('3x');
+                                }}
+                                title="Visualização 3x Cards"
+                              >
+                                <FontAwesomeIcon icon={faThLarge} />
+                                <span>3x</span>
+                              </button>
+                              <button
                                 className={`view-btn ${newsViewMode === 'list' ? 'active' : ''}`}
                                 onClick={() => {
                                   console.log('Switching to list view for news');
@@ -1190,7 +1202,7 @@ const Dashboard: React.FC = () => {
                                 <span>Lista</span>
                               </button>
                             </div>
-                            {newsViewMode === 'card' && (
+                            {(newsViewMode === 'card' || newsViewMode === '3x') && (
                               <div className="carousel-info">
                                 <span>{currentCardIndex + 1} de {news.length}</span>
                               </div>
@@ -1336,6 +1348,73 @@ const Dashboard: React.FC = () => {
                                     }
                                   }}
                                 />
+                              ))}
+                            </div>
+                          </div>
+                        ) : newsViewMode === '3x' ? (
+                          // 3x Cards View (Three cards at once)
+                          <div className="cards-3x-container">
+                            <div className="cards-3x-grid">
+                              {news.map((newsPost) => (
+                                <div key={newsPost.id} className={`pokemon-card-3x ${getPostStatus(newsPost).class}`}>
+                                  <div className="pokemon-card-3x-inner">
+                                    <div className="pokemon-card-header">
+                                      <div className="card-type">Notícia</div>
+                                      <div className={`card-status ${getPostStatus(newsPost).class}`}>
+                                        {getPostStatus(newsPost).text}
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="pokemon-card-image">
+                                      {newsPost.imageUrl ? (
+                                        <img src={newsPost.imageUrl} alt={newsPost.title} />
+                                      ) : (
+                                        <div className="placeholder-image">
+                                          <FontAwesomeIcon icon={faNewspaper} size="2x" />
+                                        </div>
+                                      )}
+                                    </div>
+                                    
+                                    <div className="pokemon-card-content">
+                                      <h3 className="pokemon-card-title">{truncateContent(newsPost.title, 60)}</h3>
+                                      <p className="pokemon-card-excerpt">{truncateContent(newsPost.excerpt, 80)}</p>
+                                      
+                                      <div className="pokemon-card-meta">
+                                        <div className="meta-item">
+                                          <span className="meta-value">{new Date(newsPost.createdAt).toLocaleDateString('pt-BR')}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="pokemon-card-actions">
+                                      <button
+                                        onClick={() => handleEditNews(newsPost)}
+                                        className="pokemon-action-btn pokemon-action-btn--edit"
+                                        title="Editar"
+                                      >
+                                        <FontAwesomeIcon icon={faEdit} />
+                                      </button>
+                                      
+                                      {!newsPost.published && (
+                                        <button
+                                          onClick={() => handlePublishNews(newsPost.id)}
+                                          className="pokemon-action-btn pokemon-action-btn--publish"
+                                          title="Publicar"
+                                        >
+                                          <FontAwesomeIcon icon={faEye} />
+                                        </button>
+                                      )}
+                                      
+                                      <button
+                                        onClick={() => handleDeleteNews(newsPost.id)}
+                                        className="pokemon-action-btn pokemon-action-btn--delete"
+                                        title="Excluir"
+                                      >
+                                        <FontAwesomeIcon icon={faTrash} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
                               ))}
                             </div>
                           </div>
