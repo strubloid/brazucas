@@ -204,7 +204,7 @@ export const AdCard: React.FC<AdCardProps> = ({
       <div className="pokemon-card-inner">
         <div className="pokemon-card-front">
           <div className={headerClass}>
-            <div className={badgesClass}>
+            <div className="card-header-content">
               {isPending ? (
                 <>
                   <span className="status-badge pending">ANÚNCIO PENDENTE</span>
@@ -215,6 +215,10 @@ export const AdCard: React.FC<AdCardProps> = ({
                   {StatusManager.getStatusLabel(adStatus)}
                 </span>
               )}
+            </div>
+            {/* Add date below status badge */}
+            <div className="card-header-date">
+              {formatDate(ad.createdAt || ad.date)}
             </div>
           </div>
           
@@ -312,9 +316,7 @@ export const AdCard: React.FC<AdCardProps> = ({
               </>
             ) : (
               <>
-                <span className={dateClass}>
-                  {formatDate(ad.createdAt || ad.date)}
-                </span>
+                
                 <div className={actionsClass}>
                   {isActuallyPending ? (
                     // Pending ads: show edit, approve/publish, and reject buttons

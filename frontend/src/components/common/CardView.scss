@@ -261,13 +261,20 @@
     flex-direction: column;
     color: #2d3748;
 
-    // MTG-style top section with rounded corners
+    // MTG-style top section with rounded corners - HORIZONTAL LAYOUT
     .card-header {
       background: var(--header-bg, linear-gradient(135deg, #ffd700, #ffecb3));
       border-radius: 17px 17px 0 0;
-      padding: 0.8rem 1rem;
+      padding: 0.5rem 0.8rem; // Better padding for horizontal layout
       position: relative;
       border-bottom: 3px solid var(--header-border, #d4a574);
+      display: flex;
+      flex-direction: row; // Changed to horizontal layout
+      justify-content: space-between; // Space between status and date
+      align-items: center;
+      gap: 0.5rem; // Good gap between status and date
+      max-height: 50px; // Smaller height since horizontal
+      min-height: 46px; // Minimum for content
       
       &::after {
         content: '';
@@ -281,42 +288,43 @@
 
       .card-header-content {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-start; // Center the status badge
         align-items: center;
+        width: 100%;
 
         .status-badge {
-          padding: 0.5rem 1rem;
-          border-radius: 15px;
-          font-size: 0.75rem;
-          font-weight: 900; // Extra bold for better visibility
+          padding: 0.25rem 0.6rem; // Much smaller padding
+          border-radius: 4px; // Smaller radius
+          font-size: 0.6rem; // Smaller font
+          font-weight: 700; // Reduced weight
           text-transform: uppercase;
-          letter-spacing: 0.5px;
+          letter-spacing: 0.3px; // Less spacing
           color: white;
-          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
-          backdrop-filter: blur(8px);
-          border: 2px solid rgba(255, 255, 255, 0.3);
-          text-align: center; // Center the text
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); // Smaller shadow
+          backdrop-filter: blur(4px); // Less blur
+          border: 1px solid rgba(255, 255, 255, 0.2); // Thinner border
+          text-align: center;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          min-width: 80px;
+          min-width: 60px; // Smaller minimum width
 
           &.published {
             background: rgba(40, 167, 69, 0.15);
             color: #28a745;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            // text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
           }
 
           &.draft {
             background: rgba(108, 117, 125, 0.15);
             color: #6c757d;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            // text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
           }
 
           &.pending {
             background: rgba(253, 126, 20, 0.15);
             color: #fd7e14;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            // text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
             font-weight: 900; // Extra emphasis for pending status
           }
         }
@@ -339,6 +347,22 @@
             box-shadow: 0 3px 8px rgba(0, 123, 255, 0.3);
           }
         }
+      }
+
+      // Compact date below status badge
+      .card-header-date {
+        font-size: 0.7rem; // Much smaller text
+        color: #2d3748;
+        font-weight: 500; // Lighter weight
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1); // Lighter shadow
+        background: rgba(255, 255, 255, 0.7); // More transparent
+        padding: 0.15rem 0.4rem; // Much smaller padding
+        border-radius: 4px; // Smaller radius
+        backdrop-filter: blur(3px); // Less blur
+        text-align: center;
+        border: 1px solid rgba(139, 69, 19, 0.2); // Thinner border
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); // Smaller shadow
+        line-height: 1.2; // Tighter line height
       }
 
       .status-badges{
@@ -479,35 +503,18 @@
     // Bottom section with actions
     .card-footer {
       background: linear-gradient(135deg, #2d3748, #4a5568);
-      padding: 0; // Reduced top padding to bring date closer to top
+      padding: 1.1rem 1.2rem; // Padding for buttons only
       border-radius: 0 0 17px 17px;
       border-top: 3px solid #8b4513;
       position: relative; // Ensure proper positioning
       z-index: 5; // Bring footer above content
       display: flex;
-      flex-direction: column;
+      justify-content: center; // Center the buttons
       align-items: center;
-      gap: 0.8rem; // Space between date and buttons
-
-      .card-date {
-        font-size: 0.65rem; // Smaller text as requested
-        color: #f8f9fa;
-        font-weight: 500; // Slightly reduced weight
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-        background: rgba(0, 0, 0, 0.3);
-        padding: 0.25rem 0.5rem; // Smaller padding
-        border-radius: 6px; // Smaller border radius
-        backdrop-filter: blur(5px);
-        text-align: center; // Center the text
-        margin-bottom: 0; // Remove any default margin
-        order: 1; // Ensure date appears first
-        width: fit-content; // Only take space needed
-      }
 
       .card-actions {
         display: flex;
         gap: 8px; // Increased spacing between buttons
-        order: 2; // Buttons appear after date
 
         .action-btn {
           padding: 14px 20px; // Even larger padding
@@ -673,22 +680,12 @@
       }
 
       .card-footer {
-        padding: 0.5rem 0.8rem; // Reduced top padding for mobile too
+        padding: 0.6rem 0.8rem; // Just padding for buttons
         display: flex;
-        flex-direction: column;
+        justify-content: center; // Center the buttons
         align-items: center;
-        gap: 0.6rem; // Smaller gap for mobile
-        
-        .card-date {
-          font-size: 0.6rem; // Even smaller for mobile
-          padding: 0.2rem 0.4rem; // Smaller padding for mobile
-          order: 1;
-          text-align: center;
-          margin-bottom: 0;
-        }
         
         .card-actions {
-          order: 2;
           display: flex;
           gap: 6px; // Smaller gap for mobile
           
@@ -760,14 +757,23 @@
 
     .pokemon-card-front {
       .card-header {
-        padding: 0.6rem 0.8rem;
+        padding: 0.25rem 0.4rem; // Ultra compact for tiny screens
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.1rem; // Minimal gap
+        max-height: 45px; // Even smaller for tiny screens
+        min-height: 42px; // Minimal height
         
         .card-header-content {
           .status-badge {
-            padding: 0.3rem 0.6rem;
-            font-size: 0.6rem;
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.15rem 0.35rem; // Ultra tiny for smallest screens
+            font-size: 0.45rem; // Smallest readable font
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px; // Tiny radius
+            font-weight: 600;
+            letter-spacing: 0.1px;
 
             &.published {
               background: rgba(40, 167, 69, 0.15);
@@ -789,9 +795,17 @@
           }
           
           .publish-button {
-            padding: 0.3rem 0.6rem;
-            font-size: 0.6rem;
+            padding: 0.25rem 0.5rem; // Smaller button
+            font-size: 0.5rem; // Smaller font
           }
+        }
+
+        // Ultra compact date for tiny screens
+        .card-header-date {
+          font-size: 0.45rem; // Smallest readable size
+          padding: 0.08rem 0.25rem; // Minimal padding
+          border-radius: 3px; // Tiny radius
+          line-height: 1.1; // Tight line height
         }
       }
       
@@ -828,22 +842,12 @@
       }
 
       .card-footer {
-        padding: 0.4rem 0.6rem; // Even smaller padding for very small screens
+        padding: 0.5rem 0.6rem; // Just padding for buttons
         display: flex;
-        flex-direction: column;
+        justify-content: center; // Center the buttons
         align-items: center;
-        gap: 0.5rem; // Smaller gap for very small screens
-        
-        .card-date {
-          font-size: 0.55rem; // Very small text for tiny screens
-          padding: 0.15rem 0.3rem; // Very small padding
-          order: 1;
-          text-align: center;
-          margin-bottom: 0;
-        }
         
         .card-actions {
-          order: 2;
           display: flex;
           gap: 5px; // Very small gap for tiny screens
           
@@ -1013,7 +1017,7 @@
 
         .status-badge {
           padding: 0.4rem 0.8rem; // Increased padding from 0.3rem 0.6rem
-          border-radius: 10px; // 70% of 15px
+          border-radius: 4px; // 70% of 15px
           font-size: 0.6rem; // Slightly increased from 0.55rem for better readability
           font-weight: 900; // Extra bold for better visibility
           text-transform: uppercase;
