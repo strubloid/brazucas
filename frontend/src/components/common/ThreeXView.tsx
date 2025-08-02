@@ -15,7 +15,7 @@ const ThreeXView: React.FC<ThreeXViewProps> = ({
   items,
   renderCard,
   className = '',
-  itemsPerPage = 9
+  itemsPerPage = 3  // Changed from 9 to 3 for 3x1 layout (3 cards per row)
 }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -98,28 +98,24 @@ const ThreeXView: React.FC<ThreeXViewProps> = ({
 
   return (
     <div className={`cards-3x-container ${className}`}>
-      {/* Navigation arrows */}
-      {totalPages > 1 && (
-        <>
-          <button
-            className="three-x-nav three-x-nav--prev"
-            onClick={handlePrev}
-            disabled={currentPage === 0}
-          >
-            <FontAwesomeIcon icon={faChevronLeft} />
-          </button>
-          <button
-            className="three-x-nav three-x-nav--next"
-            onClick={handleNext}
-            disabled={currentPage === totalPages - 1}
-          >
-            <FontAwesomeIcon icon={faChevronRight} />
-          </button>
-        </>
-      )}
+      {/* Navigation arrows - always visible for consistency with card view */}
+      <button
+        className="three-x-nav three-x-nav--prev"
+        onClick={handlePrev}
+        disabled={currentPage === 0}
+      >
+        <FontAwesomeIcon icon={faChevronLeft} />
+      </button>
+      <button
+        className="three-x-nav three-x-nav--next"
+        onClick={handleNext}
+        disabled={currentPage === totalPages - 1}
+      >
+        <FontAwesomeIcon icon={faChevronRight} />
+      </button>
 
       {/* Cards Grid */}
-      <div className="cards-3x-grid">
+      <div className={`cards-3x-grid ${getCurrentPageItems().length === 1 ? 'cards-1' : getCurrentPageItems().length === 2 ? 'cards-2' : ''}`}>
         {getCurrentPageItems().map((item, index) => (
           <div
             key={`${currentPage}-${index}`}

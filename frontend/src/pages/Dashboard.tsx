@@ -37,6 +37,7 @@ const Dashboard: React.FC = () => {
   const dashboardRef = useAnimateOnMount('fadeIn');
   const { user } = useAuth();  
   const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'create' | 'ads' | 'create-ad' | 'approve-posts' | 'approve-ads'>('overview');
+  const [previousTab, setPreviousTab] = useState<'overview' | 'news' | 'create' | 'ads' | 'create-ad' | 'approve-posts' | 'approve-ads'>('overview');
   const [editingNews, setEditingNews] = useState<NewsPost | null>(null);
   const [editingAd, setEditingAd] = useState<Advertisement | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -344,6 +345,7 @@ const Dashboard: React.FC = () => {
       published: newsPost.published,
     });
     setEditingNews(newsPost);
+    setPreviousTab(activeTab);
     setActiveTab('create');
   };
 
@@ -357,6 +359,7 @@ const Dashboard: React.FC = () => {
       published: ad.published,
     });
     setEditingAd(ad);
+    setPreviousTab(activeTab);
     setActiveTab('create-ad');
   };
 
@@ -1198,8 +1201,8 @@ const Dashboard: React.FC = () => {
                           viewMode={newsViewMode}
                           onViewModeChange={setNewsViewMode}
                           totalItems={news.length}
-                          currentPage={newsViewMode === 'list' ? undefined : currentCardIndex + 1}
-                          totalPages={newsViewMode === 'list' ? undefined : news.length}
+                          currentPage={newsViewMode === 'list' ? undefined : newsViewMode === 'card' ? currentCardIndex + 1 : undefined}
+                          totalPages={newsViewMode === 'list' ? undefined : newsViewMode === 'card' ? news.length : undefined}
                         />
                         
                         {newsViewMode === 'card' ? (
@@ -1306,8 +1309,8 @@ const Dashboard: React.FC = () => {
                           viewMode={adsViewMode}
                           onViewModeChange={setAdsViewMode}
                           totalItems={ads.length}
-                          currentPage={adsViewMode === 'list' ? undefined : currentAdCardIndex + 1}
-                          totalPages={adsViewMode === 'list' ? undefined : ads.length}
+                          currentPage={adsViewMode === 'list' ? undefined : adsViewMode === 'card' ? currentAdCardIndex + 1 : undefined}
+                          totalPages={adsViewMode === 'list' ? undefined : adsViewMode === 'card' ? ads.length : undefined}
                         />
                         
                         {adsViewMode === 'card' ? (
@@ -1666,8 +1669,8 @@ const Dashboard: React.FC = () => {
                           viewMode={pendingPostsViewMode}
                           onViewModeChange={setPendingPostsViewMode}
                           totalItems={pendingNews.length}
-                          currentPage={pendingPostsViewMode === 'list' ? undefined : currentPendingPostIndex + 1}
-                          totalPages={pendingPostsViewMode === 'list' ? undefined : pendingNews.length}
+                          currentPage={pendingPostsViewMode === 'list' ? undefined : pendingPostsViewMode === 'card' ? currentPendingPostIndex + 1 : undefined}
+                          totalPages={pendingPostsViewMode === 'list' ? undefined : pendingPostsViewMode === 'card' ? pendingNews.length : undefined}
                         />
                         
                         {pendingPostsViewMode === 'card' ? (
@@ -1780,8 +1783,8 @@ const Dashboard: React.FC = () => {
                           viewMode={pendingAdsViewMode}
                           onViewModeChange={setPendingAdsViewMode}
                           totalItems={pendingAds.length}
-                          currentPage={pendingAdsViewMode === 'list' ? undefined : currentPendingAdIndex + 1}
-                          totalPages={pendingAdsViewMode === 'list' ? undefined : pendingAds.length}
+                          currentPage={pendingAdsViewMode === 'list' ? undefined : pendingAdsViewMode === 'card' ? currentPendingAdIndex + 1 : undefined}
+                          totalPages={pendingAdsViewMode === 'list' ? undefined : pendingAdsViewMode === 'card' ? pendingAds.length : undefined}
                         />
                         
                         {pendingAdsViewMode === 'card' ? (

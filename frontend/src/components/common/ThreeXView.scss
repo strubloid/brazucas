@@ -4,19 +4,26 @@
   padding: 1rem;
   position: relative;
   min-height: 500px;
+  overflow: hidden; // Prevent content from spilling out
   
   .cards-3x-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(224px, 1fr));
-    gap: 1.5rem;
-    max-width: 1200px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem; // Increased gap for bigger cards
+    max-width: 1200px; // Increased max width for bigger cards
     margin: 0 auto;
     justify-items: center;
     padding: 0 60px; // Space for navigation arrows
     
-    @media (min-width: 1200px) {
-      grid-template-columns: repeat(3, 1fr);
-      max-width: 800px; // Optimized for 3 cards
+    // Layouts for different card counts
+    &.cards-1 {
+      grid-template-columns: 1fr;
+      max-width: 380px; // Increased for bigger single card
+    }
+    
+    &.cards-2 {
+      grid-template-columns: repeat(2, 1fr);
+      max-width: 800px; // Increased for bigger two cards
     }
     
     @media (max-width: 767px) {

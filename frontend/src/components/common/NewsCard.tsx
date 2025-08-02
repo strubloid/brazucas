@@ -38,6 +38,18 @@ export const NewsCard: React.FC<NewsCardProps> = ({
     });
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger card click if clicking on buttons
+    if ((e.target as HTMLElement).closest('.action-btn')) {
+      return;
+    }
+    
+    // Only trigger edit for non-published posts
+    if (!post.published && onEdit) {
+      onEdit(post);
+    }
+  };
+
   if (viewType === 'list') {
     return (
       <div className={`news-list-item ${post.published ? 'published' : 'draft'} ${isPending ? 'pending' : ''}`}>
@@ -123,12 +135,14 @@ export const NewsCard: React.FC<NewsCardProps> = ({
   return (
     <div
       key={post.id || `news-${viewType}-${index}`}
-      className={`${cardClass} ${isPending ? 'pending' : post.published ? 'published' : 'draft'}`}
+      className={`${cardClass} ${isPending ? 'pending' : post.published ? 'published' : 'draft'} ${!post.published ? 'clickable' : ''}`}
       ref={cardRef}
       data-tilt
       data-tilt-max="15"
       data-tilt-speed="1000"
       data-tilt-perspective="1000"
+      onClick={handleCardClick}
+      style={{ cursor: !post.published ? 'pointer' : 'default' }}
     >
       <div className="pokemon-card-inner">
         <div className="pokemon-card-front">
@@ -163,61 +177,124 @@ export const NewsCard: React.FC<NewsCardProps> = ({
           </div>
           
           <div className={footerClass}>
-            <span className={dateClass}>
-              {formatDate(post.createdAt)}
-            </span>
-            <div className={actionsClass}>
-              {isPending ? (
-                <>
-                  {onEdit && (
-                    <button className="action-btn edit" onClick={() => onEdit(post)}>
-                      <FontAwesomeIcon icon={faEdit} />
-                      {viewType === '3x' && <span> EDITAR</span>}
-                    </button>
-                  )}
-                  {onApprove && (
-                    <button className="action-btn publish" onClick={() => onApprove(post)}>
-                      <FontAwesomeIcon icon={faCheck} />
-                      {viewType === '3x' && <span> PUBLICAR</span>}
-                    </button>
-                  )}
-                  {onReject && (
-                    <button className="action-btn delete" onClick={() => onReject(post)}>
-                      <FontAwesomeIcon icon={faTimes} />
-                      {viewType === '3x' && <span> EXCLUIR</span>}
-                    </button>
-                  )}
-                </>
-              ) : (
-                <>
-                  {post.published ? (
-                    // Published posts: only show delete button
-                    onDelete && (
-                      <button className="action-btn delete" onClick={() => onDelete(post)}>
-                        <FontAwesomeIcon icon={faTrash} />
-                        {viewType === '3x' && <span> EXCLUIR</span>}
-                      </button>
-                    )
-                  ) : (
-                    // Draft posts: show edit and publish buttons
+            {viewType === '3x' ? (
+              <>
+                <div className="card-date-section">
+                  <span className={dateClass}>
+                    {formatDate(post.createdAt)}
+                  </span>
+                </div>
+                <div className="card-bottom-section">
+                  <div className={actionsClass}>
+                    {isPending ? (
+                      <>
+                        {onEdit && (
+                          <button className="action-btn edit" onClick={() => onEdit(post)}>
+                            <FontAwesomeIcon icon={faEdit} />
+                            <span>EDITAR</span>
+                          </button>
+                        )}
+                        {onApprove && (
+                          <button className="action-btn publish" onClick={() => onApprove(post)}>
+                            <FontAwesomeIcon icon={faCheck} />
+                            <span>PUBLICAR</span>
+                          </button>
+                        )}
+                        {onReject && (
+                          <button className="action-btn delete" onClick={() => onReject(post)}>
+                            <FontAwesomeIcon icon={faTimes} />
+                            <span>EXCLUIR</span>
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {post.published ? (
+                          // Published posts: only show delete button
+                          onDelete && (
+                            <button className="action-btn delete" onClick={() => onDelete(post)}>
+                              <FontAwesomeIcon icon={faTrash} />
+                              <span>EXCLUIR</span>
+                            </button>
+                          )
+                        ) : (
+                          // Draft posts: show edit and publish buttons
+                          <>
+                            {onEdit && (
+                              <button className="action-btn edit" onClick={() => onEdit(post)}>
+                                <FontAwesomeIcon icon={faEdit} />
+                                <span>EDITAR</span>
+                              </button>
+                            )}
+                            {onPublish && (
+                              <button className="action-btn publish" onClick={() => onPublish(post)}>
+                                <FontAwesomeIcon icon={faEye} />
+                                <span>PUBLICAR</span>
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <span className={dateClass}>
+                  {formatDate(post.createdAt)}
+                </span>
+                <div className={actionsClass}>
+                  {isPending ? (
                     <>
                       {onEdit && (
                         <button className="action-btn edit" onClick={() => onEdit(post)}>
                           <FontAwesomeIcon icon={faEdit} />
-                          {viewType === '3x' && <span> EDITAR</span>}
                         </button>
                       )}
-                      {onPublish && (
-                        <button className="action-btn publish" onClick={() => onPublish(post)}>
-                          <FontAwesomeIcon icon={faEye} />
-                          {viewType === '3x' && <span> PUBLICAR</span>}
+                      {onApprove && (
+                        <button className="action-btn publish" onClick={() => onApprove(post)}>
+                          <FontAwesomeIcon icon={faCheck} />
+                        </button>
+                      )}
+                      {onReject && (
+                        <button className="action-btn delete" onClick={() => onReject(post)}>
+                          <FontAwesomeIcon icon={faTimes} />
                         </button>
                       )}
                     </>
+                  ) : (
+                    <>
+                      {post.published ? (
+                        // Published posts: only show delete button
+                        onDelete && (
+                          <button className="action-btn delete" onClick={() => onDelete(post)}>
+                            <FontAwesomeIcon icon={faTrash} />
+                            <span> EXCLUIR</span>
+                          </button>
+                        )
+                      ) : (
+                        // Draft posts: show edit and publish buttons
+                        <>
+                          {onEdit && (
+                            <button className="action-btn edit" onClick={() => onEdit(post)}>
+                              <FontAwesomeIcon icon={faEdit} />
+                              <span> EDITAR</span>
+                            </button>
+                          )}
+                          {onPublish && (
+                            <button className="action-btn publish" onClick={() => onPublish(post)}>
+                              <FontAwesomeIcon icon={faEye} />
+                              <span> PUBLICAR</span>
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
