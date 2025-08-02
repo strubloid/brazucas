@@ -632,6 +632,41 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Advertisement stats for advertisers and admins */}
+                {(user?.role === 'advertiser' || user?.role === 'admin') && (
+                  <>
+                    <div className="stat-card">
+                      <div className="stat-icon">
+                        <FontAwesomeIcon icon={faAd} />
+                      </div>
+                      <div className="stat-content">
+                        <h3 className="stat-number">{ads?.length || 0}</h3>
+                        <p className="stat-label">Total de Anúncios</p>
+                      </div>
+                    </div>
+                    
+                    <div className="stat-card">
+                      <div className="stat-icon published">
+                        <FontAwesomeIcon icon={faEye} />
+                      </div>
+                      <div className="stat-content">
+                        <h3 className="stat-number">{ads?.filter(a => a.published).length || 0}</h3>
+                        <p className="stat-label">Anúncios Publicados</p>
+                      </div>
+                    </div>
+                    
+                    <div className="stat-card">
+                      <div className="stat-icon draft">
+                        <FontAwesomeIcon icon={faClock} />
+                      </div>
+                      <div className="stat-content">
+                        <h3 className="stat-number">{ads?.filter(a => !a.published).length || 0}</h3>
+                        <p className="stat-label">Anúncios Rascunho</p>
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 {user?.role === 'admin' && (
                   <>
                     <div className="stat-card">
