@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import anime from 'animejs';
 import { useAnimateOnMount } from '../hooks/useAnimateOnMount';
 import { useAsync } from '../hooks/useAsync';
 import { useAuth } from '../context/AuthContext';
@@ -21,9 +22,12 @@ import {
   faEdit,
   faTimes,
   faEuroSign,
-  faCog
+  faCog,
+  faChevronLeft,
+  faChevronRight
 } from '@fortawesome/free-solid-svg-icons';
 import './Dashboard.scss';
+import './PokemonCarousel.scss';
 
 const Dashboard: React.FC = () => {
   const dashboardRef = useAnimateOnMount('fadeIn');
@@ -39,6 +43,11 @@ const Dashboard: React.FC = () => {
   const [selectedAd, setSelectedAd] = useState<Advertisement | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showAdDetailsModal, setShowAdDetailsModal] = useState(false);
+  
+  // Carousel state
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const { data: news, loading, refetch } = useAsync<NewsPost[]>(
     () => {
@@ -109,6 +118,35 @@ const Dashboard: React.FC = () => {
     contactEmail: '',
     published: false,
   });
+
+  // Initialize card positions - Must be before early return
+  useEffect(() => {
+    if (news && news.length > 0 && cardRefs.current.length > 0) {
+      cardRefs.current.forEach((card, index) => {
+        if (card) {
+          if (index === currentCardIndex) {
+            // Current card
+            anime.set(card, {
+              translateX: 0,
+              rotateY: 0,
+              opacity: 1,
+              scale: 1,
+              zIndex: 10
+            });
+          } else {
+            // Hidden cards
+            anime.set(card, {
+              translateX: index > currentCardIndex ? 600 : -600,
+              rotateY: index > currentCardIndex ? 90 : -90,
+              opacity: 0,
+              scale: 0.7,
+              zIndex: 1
+            });
+          }
+        }
+      });
+    }
+  }, [news, currentCardIndex]);
 
   // Check if user is authenticated AFTER all hooks are called
   if (!user) {
@@ -478,6 +516,77 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Carousel functions for Pokemon card effect
+  const nextCard = () => {
+    if (!news || news.length === 0) return;
+    
+    const currentCard = cardRefs.current[currentCardIndex];
+    const nextIndex = (currentCardIndex + 1) % news.length;
+    const nextCard = cardRefs.current[nextIndex];
+    
+    if (currentCard && nextCard) {
+      // Animate current card out (to the left)
+      anime({
+        targets: currentCard,
+        translateX: [-300, -600],
+        rotateY: [0, -90],
+        opacity: [1, 0],
+        scale: [1, 0.7],
+        duration: 400,
+        easing: 'easeInBack'
+      });
+      
+      // Animate next card in (from the right)
+      anime({
+        targets: nextCard,
+        translateX: [600, 0],
+        rotateY: [90, 0],
+        opacity: [0, 1],
+        scale: [0.7, 1],
+        duration: 600,
+        delay: 200,
+        easing: 'easeOutExpo'
+      });
+    }
+    
+    setCurrentCardIndex(nextIndex);
+  };
+
+  const prevCard = () => {
+    if (!news || news.length === 0) return;
+    
+    const currentCard = cardRefs.current[currentCardIndex];
+    const prevIndex = (currentCardIndex - 1 + news.length) % news.length;
+    const prevCard = cardRefs.current[prevIndex];
+    
+    if (currentCard && prevCard) {
+      // Animate current card out (to the right)
+      anime({
+        targets: currentCard,
+        translateX: [0, 600],
+        rotateY: [0, 90],
+        opacity: [1, 0],
+        scale: [1, 0.7],
+        duration: 400,
+        easing: 'easeInBack'
+      });
+      
+      // Animate previous card in (from the left)
+      anime({
+        targets: prevCard,
+        translateX: [-600, 0],
+        rotateY: [-90, 0],
+        opacity: [0, 1],
+        scale: [0.7, 1],
+        duration: 600,
+        delay: 200,
+        easing: 'easeOutExpo'
+      });
+    }
+    
+    setCurrentCardIndex(prevIndex);
+  };
+
   return (
     <div ref={dashboardRef} className="modern-dashboard">
       <div className="dashboard-container">
@@ -710,59 +819,162 @@ const Dashboard: React.FC = () => {
                 {loading ? (
                   <LoadingSpinner text="Carregando notícias..." />
                 ) : (
-                  <div className="dashboard__news-list">
-                    {news?.map((newsPost) => (
-                      <div key={newsPost.id} className="dashboard__news-item">
-                        <div className="dashboard__news-content">
-                          <h3 className="dashboard__news-title">{newsPost.title}</h3>
-                          <p className="dashboard__news-excerpt">{newsPost.excerpt}</p>
-                          <div className="dashboard__news-meta">
-                            <span className={`dashboard__news-status dashboard__news-status--${getPostStatus(newsPost).class}`}>
-                              {getPostStatus(newsPost).text}
-                            </span>
-                            <span className="dashboard__news-date">
-                              {getStatusDate(newsPost)}
-                            </span>
+                  <>
+                    {news && news.length > 0 ? (
+                      <div className="pokemon-carousel-container">
+                        <div className="carousel-header">
+                          <h2>Suas Notícias</h2>
+                          <div className="carousel-info">
+                            <span>{currentCardIndex + 1} de {news.length}</span>
                           </div>
                         </div>
-                        <div className="dashboard__news-actions">
-                          {/* Debug: Show buttons for all posts temporarily */}
-                          {true && (
-                            <>
-                              <button
-                                onClick={() => handleEditNews(newsPost)}
-                                className="dashboard__news-button dashboard__news-button--edit"
+                        
+                        <div className="pokemon-carousel" ref={carouselRef}>
+                          {/* Navigation buttons */}
+                          <button 
+                            className="carousel-nav carousel-nav--prev"
+                            onClick={prevCard}
+                            disabled={news.length <= 1}
+                          >
+                            <FontAwesomeIcon icon={faChevronLeft} />
+                          </button>
+                          
+                          <button 
+                            className="carousel-nav carousel-nav--next"
+                            onClick={nextCard}
+                            disabled={news.length <= 1}
+                          >
+                            <FontAwesomeIcon icon={faChevronRight} />
+                          </button>
+
+                          {/* Pokemon Cards */}
+                          <div className="cards-container">
+                            {news.map((newsPost, index) => (
+                              <div
+                                key={newsPost.id}
+                                ref={el => cardRefs.current[index] = el}
+                                className={`pokemon-card ${getPostStatus(newsPost).class}`}
+                                style={{
+                                  position: 'absolute',
+                                  width: '400px',
+                                  height: '550px'
+                                }}
                               >
-                                Editar
-                              </button>
-                              
-                              {!newsPost.published && (
-                                <button
-                                  onClick={() => handlePublishNews(newsPost.id)}
-                                  className="dashboard__news-button dashboard__news-button--publish"
-                                >
-                                  Publicar
-                                </button>
-                              )}
-                              
-                              <button
-                                onClick={() => handleDeleteNews(newsPost.id)}
-                                className="dashboard__news-button dashboard__news-button--delete"
-                              >
-                                Excluir
-                              </button>
-                            </>
-                          )}
+                                <div className="pokemon-card-inner">
+                                  <div className="pokemon-card-header">
+                                    <div className="card-type">Notícia</div>
+                                    <div className={`card-status ${getPostStatus(newsPost).class}`}>
+                                      {getPostStatus(newsPost).text}
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="pokemon-card-image">
+                                    {newsPost.imageUrl ? (
+                                      <img src={newsPost.imageUrl} alt={newsPost.title} />
+                                    ) : (
+                                      <div className="placeholder-image">
+                                        <FontAwesomeIcon icon={faNewspaper} size="3x" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="pokemon-card-content">
+                                    <h3 className="pokemon-card-title">{newsPost.title}</h3>
+                                    <p className="pokemon-card-excerpt">{truncateContent(newsPost.excerpt, 100)}</p>
+                                    
+                                    <div className="pokemon-card-meta">
+                                      <div className="meta-item">
+                                        <span className="meta-label">Data:</span>
+                                        <span className="meta-value">{new Date(newsPost.createdAt).toLocaleDateString('pt-BR')}</span>
+                                      </div>
+                                      {newsPost.published && (
+                                        <div className="meta-item">
+                                          <span className="meta-label">Publicado:</span>
+                                          <span className="meta-value">Sim</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="pokemon-card-actions">
+                                    <button
+                                      onClick={() => handleEditNews(newsPost)}
+                                      className="pokemon-action-btn pokemon-action-btn--edit"
+                                    >
+                                      <FontAwesomeIcon icon={faEdit} />
+                                      Editar
+                                    </button>
+                                    
+                                    {!newsPost.published && (
+                                      <button
+                                        onClick={() => handlePublishNews(newsPost.id)}
+                                        className="pokemon-action-btn pokemon-action-btn--publish"
+                                      >
+                                        <FontAwesomeIcon icon={faEye} />
+                                        Publicar
+                                      </button>
+                                    )}
+                                    
+                                    <button
+                                      onClick={() => handleDeleteNews(newsPost.id)}
+                                      className="pokemon-action-btn pokemon-action-btn--delete"
+                                    >
+                                      <FontAwesomeIcon icon={faTrash} />
+                                      Excluir
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        {/* Dots indicator */}
+                        <div className="carousel-dots">
+                          {news.map((_, index) => (
+                            <button
+                              key={index}
+                              className={`carousel-dot ${index === currentCardIndex ? 'active' : ''}`}
+                              onClick={() => {
+                                const currentCard = cardRefs.current[currentCardIndex];
+                                const targetCard = cardRefs.current[index];
+                                
+                                if (currentCard && targetCard && index !== currentCardIndex) {
+                                  // Animate current card out
+                                  anime({
+                                    targets: currentCard,
+                                    opacity: [1, 0],
+                                    scale: [1, 0.7],
+                                    rotateY: [0, index > currentCardIndex ? 90 : -90],
+                                    duration: 300,
+                                    easing: 'easeInBack'
+                                  });
+                                  
+                                  // Animate target card in
+                                  anime({
+                                    targets: targetCard,
+                                    translateX: [index > currentCardIndex ? 600 : -600, 0],
+                                    rotateY: [index > currentCardIndex ? 90 : -90, 0],
+                                    opacity: [0, 1],
+                                    scale: [0.7, 1],
+                                    duration: 500,
+                                    delay: 150,
+                                    easing: 'easeOutExpo'
+                                  });
+                                  
+                                  setCurrentCardIndex(index);
+                                }
+                              }}
+                            />
+                          ))}
                         </div>
                       </div>
-                    ))}
-                    
-                    {news?.length === 0 && (
+                    ) : (
                       <div className="dashboard__empty">
                         <p>Nenhuma notícia encontrada.</p>
                       </div>
                     )}
-                  </div>
+                  </>
                 )}
               </div>
             )}
