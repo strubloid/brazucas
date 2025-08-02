@@ -1674,7 +1674,6 @@ const Dashboard: React.FC = () => {
                             currentIndex={currentPendingPostIndex}
                             onPrevious={prevPendingPost}
                             onNext={nextPendingPost}
-                            cardsPerPage={9}
                             onDotClick={(index) => {
                               const currentCard = pendingPostCardRefs.current[currentPendingPostIndex];
                               const targetCard = pendingPostCardRefs.current[index];
@@ -1713,7 +1712,7 @@ const Dashboard: React.FC = () => {
                                 onApprove={(post) => handleApproval(post.id, true)}
                                 onReject={(post) => handleApproval(post.id, false)}
                                 onView={handleViewDetails}
-                                viewType="3x"
+                                viewType="card"
                                 isPending={true}
                               />
                             )}
@@ -1788,7 +1787,6 @@ const Dashboard: React.FC = () => {
                             currentIndex={currentPendingAdIndex}
                             onPrevious={prevPendingAd}
                             onNext={nextPendingAd}
-                            cardsPerPage={9}
                             onDotClick={(index) => {
                               const currentCard = pendingAdCardRefs.current[currentPendingAdIndex];
                               const targetCard = pendingAdCardRefs.current[index];
@@ -1827,7 +1825,7 @@ const Dashboard: React.FC = () => {
                                 onApprove={(ad) => handleAdApproval(ad.id, true)}
                                 onReject={(ad) => handleAdApproval(ad.id, false)}
                                 onView={handleViewAdDetails}
-                                viewType="3x"
+                                viewType="card"
                                 isPending={true}
                               />
                             )}
