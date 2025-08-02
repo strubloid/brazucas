@@ -8,7 +8,7 @@ import {
   requireAuth, 
   requireRole, 
   parseRequestBody, 
-  handleCors 
+  handleOptionsRequest 
 } from './utils';
 import { createNewsSchema, updateNewsSchema } from './validation';
 import { ApproveNewsRequest } from './types';
@@ -16,8 +16,8 @@ import { ApproveNewsRequest } from './types';
 export const handler = async (event: HandlerEvent, context: HandlerContext) => {
   try {
     // Handle CORS preflight
-    const corsResponse = handleCors(event);
-    if (corsResponse) return corsResponse;
+    const optionsResponse = handleOptionsRequest(event);
+    if (optionsResponse) return optionsResponse;
 
     // Connect to database and create repository
     const db = await dbConnection.connect();

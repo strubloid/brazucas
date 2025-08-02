@@ -24,6 +24,7 @@ export interface IUserService {
   register(userData: CreateUserRequest): Promise<AuthResponse>;
   login(credentials: LoginRequest): Promise<AuthResponse>;
   getUserById(id: string): Promise<Omit<User, 'password'> | null>;
+  getUserCount(): Promise<number>;
 }
 
 export interface INewsService {
@@ -115,6 +116,10 @@ export class UserService implements IUserService {
   async getUserById(id: string): Promise<Omit<User, 'password'> | null> {
     const user = await this.userRepository.findById(id);
     return user ? this.removePassword(user) : null;
+  }
+
+  async getUserCount(): Promise<number> {
+    return await this.userRepository.count();
   }
 
   private removePassword(user: User): Omit<User, 'password'> {

@@ -5,9 +5,16 @@ import { useAsync } from '../hooks/useAsync';
 import { useAuth } from '../context/AuthContext';
 import { NewsService } from '../services/newsService';
 import { AdService } from '../services/adService';
+import { StatisticsService, DashboardStatistics } from '../services/statisticsService';
 import { NewsPost, CreateNewsRequest, UpdateNewsRequest } from '../types/news';
 import { Advertisement, CreateAdvertisementRequest, UpdateAdvertisementRequest } from '../types/ads';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import ViewModeControls, { ViewMode } from '../components/common/ViewModeControls';
+import CardView from '../components/common/CardView';
+import ThreeXView from '../components/common/ThreeXView';
+import ListView from '../components/common/ListView';
+import { NewsCard } from '../components/common/NewsCard';
+import { AdCard } from '../components/common/AdCard';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faHome, 
@@ -18,20 +25,13 @@ import {
   faUsers,
   faTrash,
   faClock,
-  faEye,
-  faEdit,
-  faTimes,
-  faEuroSign,
-  faCog,
-  faChevronLeft,
-  faChevronRight,
-  faSquare,
-  faList,
-  faThLarge
+  faEye
 } from '@fortawesome/free-solid-svg-icons';
 import './Dashboard.scss';
 import './PokemonCarousel.scss';
-import './ViewModeControls.scss';
+import '../components/common/CardView.scss';
+import '../components/common/ThreeXView.scss';
+import '../components/common/ListView.scss';
 
 const Dashboard: React.FC = () => {
   const dashboardRef = useAnimateOnMount('fadeIn');
@@ -69,10 +69,23 @@ const Dashboard: React.FC = () => {
   const pendingAdCardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // View mode states for all carousels
-  const [newsViewMode, setNewsViewMode] = useState<'card' | '3x' | 'list'>('card');
-  const [adsViewMode, setAdsViewMode] = useState<'card' | '3x' | 'list'>('card');
-  const [pendingPostsViewMode, setPendingPostsViewMode] = useState<'card' | '3x' | 'list'>('card');
-  const [pendingAdsViewMode, setPendingAdsViewMode] = useState<'card' | '3x' | 'list'>('card');
+  const [newsViewMode, setNewsViewMode] = useState<ViewMode>('card');
+  const [adsViewMode, setAdsViewMode] = useState<ViewMode>('card');
+  const [pendingPostsViewMode, setPendingPostsViewMode] = useState<ViewMode>('card');
+  const [pendingAdsViewMode, setPendingAdsViewMode] = useState<ViewMode>('card');
+
+  // Statistics state
+  const [statistics, setStatistics] = useState<DashboardStatistics>({
+    totalUsers: 0,
+    totalNews: 0,
+    publishedNews: 0,
+    draftNews: 0,
+    totalAds: 0,
+    publishedAds: 0,
+    draftAds: 0,
+    pendingPosts: 0,
+    pendingAds: 0
+  });
 
   const { data: news, loading, refetch } = useAsync<NewsPost[]>(
     () => {
@@ -126,6 +139,23 @@ const Dashboard: React.FC = () => {
       });
     }
   }, [ads]);
+
+  // Fetch statistics for admin dashboard
+  React.useEffect(() => {
+    const fetchStatistics = async () => {
+      if (user?.role === 'admin') {
+        try {
+          const stats = await StatisticsService.getDashboardStatistics();
+          setStatistics(stats);
+        } catch (error) {
+          console.warn('Failed to fetch statistics:', error);
+          // Keep default statistics (all zeros)
+        }
+      }
+    };
+
+    fetchStatistics();
+  }, [user?.role]);
 
   const [formData, setFormData] = useState<CreateNewsRequest>({
     title: '',
@@ -1068,7 +1098,7 @@ const Dashboard: React.FC = () => {
                     <FontAwesomeIcon icon={faEye} />
                   </div>
                   <div className="stat-content">
-                    <h3 className="stat-number">{news?.filter(n => n.published).length || 0}</h3>
+                    <h3 className="stat-number">{user?.role === 'admin' ? statistics.publishedNews : (news?.filter(n => n.published && n.approved === true).length || 0)}</h3>
                     <p className="stat-label">Notícias Publicadas</p>
                   </div>
                 </div>
@@ -1078,7 +1108,7 @@ const Dashboard: React.FC = () => {
                     <FontAwesomeIcon icon={faClock} />
                   </div>
                   <div className="stat-content">
-                    <h3 className="stat-number">{news?.filter(n => !n.published).length || 0}</h3>
+                    <h3 className="stat-number">{user?.role === 'admin' ? statistics.draftNews : (news?.filter(n => !n.published || n.approved !== true).length || 0)}</h3>
                     <p className="stat-label">Rascunhos</p>
                   </div>
                 </div>
@@ -1091,7 +1121,7 @@ const Dashboard: React.FC = () => {
                         <FontAwesomeIcon icon={faAd} />
                       </div>
                       <div className="stat-content">
-                        <h3 className="stat-number">{ads?.length || 0}</h3>
+                        <h3 className="stat-number">{user?.role === 'admin' ? statistics.totalAds : (ads?.length || 0)}</h3>
                         <p className="stat-label">Total de Anúncios</p>
                       </div>
                     </div>
@@ -1101,7 +1131,7 @@ const Dashboard: React.FC = () => {
                         <FontAwesomeIcon icon={faEye} />
                       </div>
                       <div className="stat-content">
-                        <h3 className="stat-number">{ads?.filter(a => a.published).length || 0}</h3>
+                        <h3 className="stat-number">{user?.role === 'admin' ? statistics.publishedAds : (ads?.filter(a => a.published && a.approved === true).length || 0)}</h3>
                         <p className="stat-label">Anúncios Publicados</p>
                       </div>
                     </div>
@@ -1111,7 +1141,7 @@ const Dashboard: React.FC = () => {
                         <FontAwesomeIcon icon={faClock} />
                       </div>
                       <div className="stat-content">
-                        <h3 className="stat-number">{ads?.filter(a => !a.published).length || 0}</h3>
+                        <h3 className="stat-number">{user?.role === 'admin' ? statistics.draftAds : (ads?.filter(a => !a.published || a.approved !== true).length || 0)}</h3>
                         <p className="stat-label">Anúncios Rascunho</p>
                       </div>
                     </div>
@@ -1125,7 +1155,7 @@ const Dashboard: React.FC = () => {
                         <FontAwesomeIcon icon={faCheckCircle} />
                       </div>
                       <div className="stat-content">
-                        <h3 className="stat-number">{pendingNews?.length || 0}</h3>
+                        <h3 className="stat-number">{statistics.pendingPosts}</h3>
                         <p className="stat-label">Posts Pendentes</p>
                       </div>
                     </div>
@@ -1135,7 +1165,7 @@ const Dashboard: React.FC = () => {
                         <FontAwesomeIcon icon={faAd} />
                       </div>
                       <div className="stat-content">
-                        <h3 className="stat-number">{pendingAds?.length || 0}</h3>
+                        <h3 className="stat-number">{statistics.pendingAds}</h3>
                         <p className="stat-label">Anúncios Pendentes</p>
                       </div>
                     </div>
@@ -1145,7 +1175,7 @@ const Dashboard: React.FC = () => {
                         <FontAwesomeIcon icon={faUsers} />
                       </div>
                       <div className="stat-content">
-                        <h3 className="stat-number">247</h3>
+                        <h3 className="stat-number">{statistics.totalUsers}</h3>
                         <p className="stat-label">Usuários Registrados</p>
                       </div>
                     </div>
@@ -1164,311 +1194,92 @@ const Dashboard: React.FC = () => {
                   <>
                     {news && news.length > 0 ? (
                       <div className="pokemon-carousel-container">
-                        <div className="carousel-header">
-                          
-                          <div className="view-controls">
-                            <div className="view-mode-buttons">
-                              <button
-                                className={`view-btn ${newsViewMode === 'card' ? 'active' : ''}`}
-                                onClick={() => {
-                                  console.log('Switching to card view for news');
-                                  setNewsViewMode('card');
-                                }}
-                                title="Visualização em Cards"
-                              >
-                                <FontAwesomeIcon icon={faSquare} />
-                                <span>Cards</span>
-                              </button>
-                              <button
-                                className={`view-btn ${newsViewMode === '3x' ? 'active' : ''}`}
-                                onClick={() => {
-                                  console.log('Switching to 3x cards view for news');
-                                  setNewsViewMode('3x');
-                                }}
-                                title="Visualização 3x Cards"
-                              >
-                                <FontAwesomeIcon icon={faThLarge} />
-                                <span>3x</span>
-                              </button>
-                              <button
-                                className={`view-btn ${newsViewMode === 'list' ? 'active' : ''}`}
-                                onClick={() => {
-                                  console.log('Switching to list view for news');
-                                  setNewsViewMode('list');
-                                }}
-                                title="Visualização em Lista"
-                              >
-                                <FontAwesomeIcon icon={faList} />
-                                <span>Lista</span>
-                              </button>
-                            </div>
-                            {(newsViewMode === 'card' || newsViewMode === '3x') && (
-                              <div className="carousel-info">
-                                <span>{currentCardIndex + 1} de {news.length}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                        <ViewModeControls
+                          viewMode={newsViewMode}
+                          onViewModeChange={setNewsViewMode}
+                          totalItems={news.length}
+                          currentPage={newsViewMode === 'list' ? undefined : currentCardIndex + 1}
+                          totalPages={newsViewMode === 'list' ? undefined : news.length}
+                        />
                         
                         {newsViewMode === 'card' ? (
-                          // Pokemon Card View (One by One)
-                          <div className="pokemon-carousel" ref={carouselRef}>
-                            {/* Navigation buttons */}
-                            <button 
-                              className="carousel-nav carousel-nav--prev"
-                              onClick={prevCard}
-                              disabled={news.length <= 1}
-                            >
-                              <FontAwesomeIcon icon={faChevronLeft} />
-                            </button>
-                            
-                            <button 
-                              className="carousel-nav carousel-nav--next"
-                              onClick={nextCard}
-                              disabled={news.length <= 1}
-                            >
-                              <FontAwesomeIcon icon={faChevronRight} />
-                            </button>
-
-                            {/* Pokemon Cards */}
-                            <div className="cards-container">
-                              {news.map((newsPost, index) => (
-                                <div
-                                  key={newsPost.id}
-                                  ref={el => cardRefs.current[index] = el}
-                                  className={`pokemon-card ${getPostStatus(newsPost).class}`}
-                                  style={{
-                                    position: 'absolute',
-                                    width: '400px',
-                                    height: '550px'
-                                  }}
-                                >
-                                  <div className="pokemon-card-inner">
-                                    <div className="pokemon-card-header">
-                                      <div className="card-type">Notícia</div>
-                                      <div className={`card-status ${getPostStatus(newsPost).class}`}>
-                                        {getPostStatus(newsPost).text}
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="pokemon-card-image">
-                                      {newsPost.imageUrl ? (
-                                        <img src={newsPost.imageUrl} alt={newsPost.title} />
-                                      ) : (
-                                        <div className="placeholder-image">
-                                          <FontAwesomeIcon icon={faNewspaper} size="3x" />
-                                        </div>
-                                      )}
-                                    </div>
-                                    
-                                    <div className="pokemon-card-content">
-                                      <h3 className="pokemon-card-title">{newsPost.title}</h3>
-                                      <p className="pokemon-card-excerpt">{truncateContent(newsPost.excerpt, 100)}</p>
-                                      
-                                      <div className="pokemon-card-meta">
-                                        <div className="meta-item">
-                                          <span className="meta-label">Data:</span>
-                                          <span className="meta-value">{new Date(newsPost.createdAt).toLocaleDateString('pt-BR')}</span>
-                                        </div>
-                                        {newsPost.published && (
-                                          <div className="meta-item">
-                                            <span className="meta-label">Publicado:</span>
-                                            <span className="meta-value">Sim</span>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="pokemon-card-actions">
-                                      <button
-                                        onClick={() => handleEditNews(newsPost)}
-                                        className="pokemon-action-btn pokemon-action-btn--edit"
-                                      >
-                                        <FontAwesomeIcon icon={faEdit} />
-                                        Editar
-                                      </button>
-                                      
-                                      {!newsPost.published && (
-                                        <button
-                                          onClick={() => handlePublishNews(newsPost.id)}
-                                          className="pokemon-action-btn pokemon-action-btn--publish"
-                                        >
-                                          <FontAwesomeIcon icon={faEye} />
-                                          Publicar
-                                        </button>
-                                      )}
-                                      
-                                      <button
-                                        onClick={() => handleDeleteNews(newsPost.id)}
-                                        className="pokemon-action-btn pokemon-action-btn--delete"
-                                      >
-                                        <FontAwesomeIcon icon={faTrash} />
-                                        Excluir
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                            
-                            {/* Dots indicator */}
-                            <div className="carousel-dots">
-                              {news.map((_, index) => (
-                                <button
-                                  key={index}
-                                  className={`carousel-dot ${index === currentCardIndex ? 'active' : ''}`}
-                                  onClick={() => {
-                                    const currentCard = cardRefs.current[currentCardIndex];
-                                    const targetCard = cardRefs.current[index];
-                                    
-                                    if (currentCard && targetCard && index !== currentCardIndex) {
-                                      // Animate current card out
-                                      anime({
-                                        targets: currentCard,
-                                        opacity: [1, 0],
-                                        scale: [1, 0.7],
-                                        rotateY: [0, index > currentCardIndex ? 90 : -90],
-                                        duration: 300,
-                                        easing: 'easeInBack'
-                                      });
-                                      
-                                      // Animate target card in
-                                      anime({
-                                        targets: targetCard,
-                                        translateX: [index > currentCardIndex ? 600 : -600, 0],
-                                        rotateY: [index > currentCardIndex ? 90 : -90, 0],
-                                        opacity: [0, 1],
-                                        scale: [0.7, 1],
-                                        duration: 500,
-                                        delay: 150,
-                                        easing: 'easeOutExpo'
-                                      });
-                                      
-                                      setCurrentCardIndex(index);
-                                    }
-                                  }}
-                                />
-                              ))}
-                            </div>
-                          </div>
+                          <CardView
+                            items={news}
+                            currentIndex={currentCardIndex}
+                            onPrevious={prevCard}
+                            onNext={nextCard}
+                            onDotClick={(index) => {
+                              const currentCard = cardRefs.current[currentCardIndex];
+                              const targetCard = cardRefs.current[index];
+                              
+                              if (currentCard && targetCard && index !== currentCardIndex) {
+                                // Animate current card out
+                                anime({
+                                  targets: currentCard,
+                                  opacity: [1, 0],
+                                  scale: [1, 0.7],
+                                  rotateY: [0, index > currentCardIndex ? 90 : -90],
+                                  duration: 300,
+                                  easing: 'easeInBack'
+                                });
+                                
+                                // Animate target card in
+                                anime({
+                                  targets: targetCard,
+                                  translateX: [index > currentCardIndex ? 600 : -600, 0],
+                                  rotateY: [index > currentCardIndex ? 90 : -90, 0],
+                                  opacity: [0, 1],
+                                  scale: [0.7, 1],
+                                  duration: 500,
+                                  delay: 150,
+                                  easing: 'easeOutExpo'
+                                });
+                                
+                                setCurrentCardIndex(index);
+                              }
+                            }}
+                            renderCard={(newsPost, index) => (
+                              <NewsCard
+                                post={newsPost}
+                                index={index}
+                                cardRef={el => cardRefs.current[index] = el}
+                                onEdit={handleEditNews}
+                                onDelete={(post) => handleDeleteNews(post.id)}
+                                onPublish={(post) => handlePublishNews(post.id)}
+                                viewType="card"
+                              />
+                            )}
+                            containerRef={carouselRef}
+                            cardRefs={cardRefs}
+                          />
                         ) : newsViewMode === '3x' ? (
-                          // 3x Cards View (Three cards at once)
-                          <div className="cards-3x-container">
-                            <div className="cards-3x-grid">
-                              {news.map((newsPost) => (
-                                <div key={newsPost.id} className={`pokemon-card-3x ${getPostStatus(newsPost).class}`}>
-                                  <div className="pokemon-card-3x-inner">
-                                    <div className="pokemon-card-header">
-                                      <div className="card-type">Notícia</div>
-                                      <div className={`card-status ${getPostStatus(newsPost).class}`}>
-                                        {getPostStatus(newsPost).text}
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="pokemon-card-image">
-                                      {newsPost.imageUrl ? (
-                                        <img src={newsPost.imageUrl} alt={newsPost.title} />
-                                      ) : (
-                                        <div className="placeholder-image">
-                                          <FontAwesomeIcon icon={faNewspaper} size="2x" />
-                                        </div>
-                                      )}
-                                    </div>
-                                    
-                                    <div className="pokemon-card-content">
-                                      <h3 className="pokemon-card-title">{truncateContent(newsPost.title, 60)}</h3>
-                                      <p className="pokemon-card-excerpt">{truncateContent(newsPost.excerpt, 80)}</p>
-                                      
-                                      <div className="pokemon-card-meta">
-                                        <div className="meta-item">
-                                          <span className="meta-value">{new Date(newsPost.createdAt).toLocaleDateString('pt-BR')}</span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="pokemon-card-actions">
-                                      <button
-                                        onClick={() => handleEditNews(newsPost)}
-                                        className="pokemon-action-btn pokemon-action-btn--edit"
-                                        title="Editar"
-                                      >
-                                        <FontAwesomeIcon icon={faEdit} />
-                                      </button>
-                                      
-                                      {!newsPost.published && (
-                                        <button
-                                          onClick={() => handlePublishNews(newsPost.id)}
-                                          className="pokemon-action-btn pokemon-action-btn--publish"
-                                          title="Publicar"
-                                        >
-                                          <FontAwesomeIcon icon={faEye} />
-                                        </button>
-                                      )}
-                                      
-                                      <button
-                                        onClick={() => handleDeleteNews(newsPost.id)}
-                                        className="pokemon-action-btn pokemon-action-btn--delete"
-                                        title="Excluir"
-                                      >
-                                        <FontAwesomeIcon icon={faTrash} />
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                          <ThreeXView
+                            items={news}
+                            renderCard={(newsPost, index) => (
+                              <NewsCard
+                                post={newsPost}
+                                index={index}
+                                onEdit={handleEditNews}
+                                onDelete={(post) => handleDeleteNews(post.id)}
+                                onPublish={(post) => handlePublishNews(post.id)}
+                                viewType="3x"
+                              />
+                            )}
+                          />
                         ) : (
-                          // List View (Multiple Items)
-                          <div className="list-view-container">
-                            <div className="news-list-grid">
-                              {news.map((newsPost) => (
-                                <div key={newsPost.id} className={`news-list-item ${getPostStatus(newsPost).class}`}>
-                                  <div className="news-list-content">
-                                    <div className="news-list-header">
-                                      <h3 className="news-list-title">{newsPost.title}</h3>
-                                      <span className={`news-list-status ${getPostStatus(newsPost).class}`}>
-                                        {getPostStatus(newsPost).text}
-                                      </span>
-                                    </div>
-                                    <p className="news-list-excerpt">{truncateContent(newsPost.excerpt, 150)}</p>
-                                    <div className="news-list-meta">
-                                      <span className="news-list-date">
-                                        {new Date(newsPost.createdAt).toLocaleDateString('pt-BR')}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="news-list-actions">
-                                    <button
-                                      onClick={() => handleEditNews(newsPost)}
-                                      className="list-action-btn list-action-btn--edit"
-                                      title="Editar"
-                                    >
-                                      <FontAwesomeIcon icon={faEdit} />
-                                    </button>
-                                    
-                                    {!newsPost.published && (
-                                      <button
-                                        onClick={() => handlePublishNews(newsPost.id)}
-                                        className="list-action-btn list-action-btn--publish"
-                                        title="Publicar"
-                                      >
-                                        <FontAwesomeIcon icon={faEye} />
-                                      </button>
-                                    )}
-                                    
-                                    <button
-                                      onClick={() => handleDeleteNews(newsPost.id)}
-                                      className="list-action-btn list-action-btn--delete"
-                                      title="Excluir"
-                                    >
-                                      <FontAwesomeIcon icon={faTrash} />
-                                    </button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                          <ListView
+                            items={news}
+                            renderListItem={(newsPost, index) => (
+                              <NewsCard
+                                post={newsPost}
+                                index={index}
+                                onEdit={handleEditNews}
+                                onDelete={(post) => handleDeleteNews(post.id)}
+                                onPublish={(post) => handlePublishNews(post.id)}
+                                viewType="list"
+                              />
+                            )}
+                          />
                         )}
                       </div>
                     ) : (
@@ -1490,241 +1301,92 @@ const Dashboard: React.FC = () => {
                   <>
                     {ads && ads.length > 0 ? (
                       <div className="pokemon-carousel-container">
-                        <div className="carousel-header">
-                          
-                          <div className="view-controls">
-                            <div className="view-mode-buttons">
-                              <button
-                                className={`view-btn ${adsViewMode === 'card' ? 'active' : ''}`}
-                                onClick={() => {
-                                  console.log('Switching to card view for ads');
-                                  setAdsViewMode('card');
-                                }}
-                                title="Visualização em Cards"
-                              >
-                                <FontAwesomeIcon icon={faSquare} />
-                                <span>Cards</span>
-                              </button>
-                              <button
-                                className={`view-btn ${adsViewMode === 'list' ? 'active' : ''}`}
-                                onClick={() => {
-                                  console.log('Switching to list view for ads');
-                                  setAdsViewMode('list');
-                                }}
-                                title="Visualização em Lista"
-                              >
-                                <FontAwesomeIcon icon={faList} />
-                                <span>Lista</span>
-                              </button>
-                            </div>
-                            {adsViewMode === 'card' && (
-                              <div className="carousel-info">
-                                <span>{currentAdCardIndex + 1} de {ads.length}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                        <ViewModeControls
+                          viewMode={adsViewMode}
+                          onViewModeChange={setAdsViewMode}
+                          totalItems={ads.length}
+                          currentPage={adsViewMode === 'list' ? undefined : currentAdCardIndex + 1}
+                          totalPages={adsViewMode === 'list' ? undefined : ads.length}
+                        />
                         
                         {adsViewMode === 'card' ? (
-                          // Pokemon Card View (One by One)
-                          <div className="pokemon-carousel" ref={adCarouselRef}>
-                            {/* Navigation buttons */}
-                            <button 
-                              className="carousel-nav carousel-nav--prev"
-                              onClick={prevAdCard}
-                              disabled={ads.length <= 1}
-                            >
-                              <FontAwesomeIcon icon={faChevronLeft} />
-                            </button>
-                            
-                            <button 
-                              className="carousel-nav carousel-nav--next"
-                              onClick={nextAdCard}
-                              disabled={ads.length <= 1}
-                            >
-                              <FontAwesomeIcon icon={faChevronRight} />
-                            </button>
-
-                            {/* Pokemon Cards for Ads */}
-                            <div className="cards-container">
-                              {ads.map((ad, index) => (
-                                <div
-                                  key={ad.id || `ad-${index}`}
-                                  ref={el => adCardRefs.current[index] = el}
-                                  className={`pokemon-card ${getAdStatus(ad).class}`}
-                                  style={{
-                                    position: 'absolute',
-                                    width: '400px',
-                                    height: '550px'
-                                  }}
-                                >
-                                  <div className="pokemon-card-inner">
-                                    <div className="pokemon-card-header">
-                                      <div className="card-type">Anúncio</div>
-                                      <div className={`card-status ${getAdStatus(ad).class}`}>
-                                        {getAdStatus(ad).text}
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="pokemon-card-image">
-                                      <div className="placeholder-image">
-                                        <FontAwesomeIcon icon={faAd} size="3x" />
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="pokemon-card-content">
-                                      <h3 className="pokemon-card-title">{ad.title}</h3>
-                                      <p className="pokemon-card-excerpt">{truncateContent(ad.description, 100)}</p>
-                                      
-                                      <div className="pokemon-card-meta">
-                                        <div className="meta-item">
-                                          <span className="meta-label">Categoria:</span>
-                                          <span className="meta-value">{ad.category}</span>
-                                        </div>
-                                        <div className="meta-item">
-                                          <span className="meta-label">Preço:</span>
-                                          <span className="meta-value">{ad.price}</span>
-                                        </div>
-                                        <div className="meta-item">
-                                          <span className="meta-label">Data:</span>
-                                          <span className="meta-value">{new Date(ad.createdAt).toLocaleDateString('pt-BR')}</span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="pokemon-card-actions">
-                                      {/* Only show Edit if ad is not rejected */}
-                                      {getAdStatus(ad).class !== 'rejected' && getAdStatus(ad).class !== 'published' && (
-                                        <button
-                                          onClick={() => handleEditAd(ad)}
-                                          className="pokemon-action-btn pokemon-action-btn--edit"
-                                        >
-                                          <FontAwesomeIcon icon={faEdit} />
-                                          Editar
-                                        </button>
-                                      )}
-                                      
-                                      {/* Only show Publish if ad is not published and not rejected */}
-                                      {!ad.published && getAdStatus(ad).class !== 'rejected' && (
-                                        <button
-                                          onClick={() => handlePublishAd(ad.id)}
-                                          className="pokemon-action-btn pokemon-action-btn--publish"
-                                        >
-                                          <FontAwesomeIcon icon={faEye} />
-                                          Publicar
-                                        </button>
-                                      )}
-                                      
-                                      <button
-                                        onClick={() => handleDeleteAd(ad.id)}
-                                        className="pokemon-action-btn pokemon-action-btn--delete"
-                                      >
-                                        <FontAwesomeIcon icon={faTrash} />
-                                        Excluir
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                            
-                            {/* Dots indicator for ads */}
-                            <div className="carousel-dots">
-                              {ads.map((_, index) => (
-                                <button
-                                  key={index}
-                                  className={`carousel-dot ${index === currentAdCardIndex ? 'active' : ''}`}
-                                  onClick={() => {
-                                    const currentCard = adCardRefs.current[currentAdCardIndex];
-                                    const targetCard = adCardRefs.current[index];
-                                    
-                                    if (currentCard && targetCard && index !== currentAdCardIndex) {
-                                      // Animate current card out
-                                      anime({
-                                        targets: currentCard,
-                                        opacity: [1, 0],
-                                        scale: [1, 0.7],
-                                        rotateY: [0, index > currentAdCardIndex ? 90 : -90],
-                                        duration: 300,
-                                        easing: 'easeInBack'
-                                      });
-                                      
-                                      // Animate target card in
-                                      anime({
-                                        targets: targetCard,
-                                        translateX: [index > currentAdCardIndex ? 600 : -600, 0],
-                                        rotateY: [index > currentAdCardIndex ? 90 : -90, 0],
-                                        opacity: [0, 1],
-                                        scale: [0.7, 1],
-                                        duration: 500,
-                                        delay: 150,
-                                        easing: 'easeOutExpo'
-                                      });
-                                      
-                                      setCurrentAdCardIndex(index);
-                                    }
-                                  }}
-                                />
-                              ))}
-                            </div>
-                          </div>
+                          <CardView
+                            items={ads}
+                            currentIndex={currentAdCardIndex}
+                            onPrevious={prevAdCard}
+                            onNext={nextAdCard}
+                            onDotClick={(index) => {
+                              const currentCard = adCardRefs.current[currentAdCardIndex];
+                              const targetCard = adCardRefs.current[index];
+                              
+                              if (currentCard && targetCard && index !== currentAdCardIndex) {
+                                // Animate current card out
+                                anime({
+                                  targets: currentCard,
+                                  opacity: [1, 0],
+                                  scale: [1, 0.7],
+                                  rotateY: [0, index > currentAdCardIndex ? 90 : -90],
+                                  duration: 300,
+                                  easing: 'easeInBack'
+                                });
+                                
+                                // Animate target card in
+                                anime({
+                                  targets: targetCard,
+                                  translateX: [index > currentAdCardIndex ? 600 : -600, 0],
+                                  rotateY: [index > currentAdCardIndex ? 90 : -90, 0],
+                                  opacity: [0, 1],
+                                  scale: [0.7, 1],
+                                  duration: 500,
+                                  delay: 150,
+                                  easing: 'easeOutExpo'
+                                });
+                                
+                                setCurrentAdCardIndex(index);
+                              }
+                            }}
+                            renderCard={(ad, index) => (
+                              <AdCard
+                                ad={ad}
+                                index={index}
+                                cardRef={el => adCardRefs.current[index] = el}
+                                onEdit={handleEditAd}
+                                onDelete={(ad) => handleDeleteAd(ad.id)}
+                                onPublish={(ad) => handlePublishAd(ad.id)}
+                                viewType="card"
+                              />
+                            )}
+                            containerRef={adCarouselRef}
+                            cardRefs={adCardRefs}
+                          />
+                        ) : adsViewMode === '3x' ? (
+                          <ThreeXView
+                            items={ads}
+                            renderCard={(ad, index) => (
+                              <AdCard
+                                ad={ad}
+                                index={index}
+                                onEdit={handleEditAd}
+                                onDelete={(ad) => handleDeleteAd(ad.id)}
+                                onPublish={(ad) => handlePublishAd(ad.id)}
+                                viewType="3x"
+                              />
+                            )}
+                          />
                         ) : (
-                          // List View (Multiple Items)
-                          <div className="list-view-container">
-                            <div className="ads-list-grid">
-                              {ads.map((ad) => (
-                                <div key={ad.id || `ad-list-${ad.id}`} className={`ads-list-item ${getAdStatus(ad).class}`}>
-                                  <div className="ads-list-content">
-                                    <div className="ads-list-header">
-                                      <h3 className="ads-list-title">{ad.title}</h3>
-                                      <span className={`ads-list-status ${getAdStatus(ad).class}`}>
-                                        {getAdStatus(ad).text}
-                                      </span>
-                                    </div>
-                                    <p className="ads-list-excerpt">{truncateContent(ad.description, 150)}</p>
-                                    <div className="ads-list-meta">
-                                      <span className="ads-list-category">{ad.category}</span>
-                                      <span className="ads-list-price">{ad.price}</span>
-                                      <span className="ads-list-date">
-                                        {new Date(ad.createdAt).toLocaleDateString('pt-BR')}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="ads-list-actions">
-                                    {/* Only show Edit if ad is not rejected */}
-                                    {getAdStatus(ad).class !== 'rejected' && getAdStatus(ad).class !== 'published' && (
-                                      <button
-                                        onClick={() => handleEditAd(ad)}
-                                        className="list-action-btn list-action-btn--edit"
-                                        title="Editar"
-                                      >
-                                        <FontAwesomeIcon icon={faEdit} />
-                                      </button>
-                                    )}
-                                    
-                                    {/* Only show Publish if ad is not published and not rejected */}
-                                    {!ad.published && getAdStatus(ad).class !== 'rejected' && (
-                                      <button
-                                        onClick={() => handlePublishAd(ad.id)}
-                                        className="list-action-btn list-action-btn--publish"
-                                        title="Publicar"
-                                      >
-                                        <FontAwesomeIcon icon={faEye} />
-                                      </button>
-                                    )}
-                                    
-                                    <button
-                                      onClick={() => handleDeleteAd(ad.id)}
-                                      className="list-action-btn list-action-btn--delete"
-                                      title="Excluir"
-                                    >
-                                      <FontAwesomeIcon icon={faTrash} />
-                                    </button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                          <ListView
+                            items={ads}
+                            renderListItem={(ad, index) => (
+                              <AdCard
+                                ad={ad}
+                                index={index}
+                                onEdit={handleEditAd}
+                                onDelete={(ad) => handleDeleteAd(ad.id)}
+                                onPublish={(ad) => handlePublishAd(ad.id)}
+                                viewType="list"
+                              />
+                            )}
+                          />
                         )}
                       </div>
                     ) : (
@@ -1992,229 +1654,101 @@ const Dashboard: React.FC = () => {
             {/* Approve Posts Tab - Admin Only */}
             {activeTab === 'approve-posts' && user?.role === 'admin' && (
               <div className="approval-section">
-                                
                 {pendingLoading ? (
                   <LoadingSpinner text="Carregando posts pendentes..." />
                 ) : (
                   <>
                     {pendingNews && pendingNews.length > 0 ? (
                       <div className="pokemon-carousel-container">
-                        <div className="view-controls">
-                          <div className="view-mode-buttons">
-                            <button
-                                className={`view-btn ${pendingPostsViewMode === 'card' ? 'active' : ''}`}
-                                onClick={() => {
-                                  console.log('Switching to card view for pending posts');
-                                  setPendingPostsViewMode('card');
-                                }}
-                                title="Vista de Cartas Pokemon"
-                            >
-                                <FontAwesomeIcon icon={faSquare} />
-                                <span>Cards</span>
-                            </button>
-                            <button
-                                className={`view-btn ${pendingPostsViewMode === 'list' ? 'active' : ''}`}
-                                onClick={() => {
-                                  console.log('Switching to list view for pending posts');
-                                  setPendingPostsViewMode('list');
-                                }}
-                                title="Vista de Lista"
-                            >
-                                <FontAwesomeIcon icon={faList} />
-                                <span>Lista</span>
-                            </button>
-                          </div>
-                          <div className="carousel-info">
-                            {pendingPostsViewMode === 'card' && (
-                              <span>{currentPendingPostIndex + 1} de {pendingNews.length}</span>
-                            )}
-                          </div>
-                        </div>
+                        <ViewModeControls
+                          viewMode={pendingPostsViewMode}
+                          onViewModeChange={setPendingPostsViewMode}
+                          totalItems={pendingNews.length}
+                          currentPage={pendingPostsViewMode === 'list' ? undefined : currentPendingPostIndex + 1}
+                          totalPages={pendingPostsViewMode === 'list' ? undefined : pendingNews.length}
+                        />
                         
                         {pendingPostsViewMode === 'card' ? (
-                          <div className="pokemon-carousel" ref={pendingPostCarouselRef}>
-                          {/* Navigation buttons */}
-                          <button 
-                            className="carousel-nav carousel-nav--prev"
-                            onClick={prevPendingPost}
-                            disabled={pendingNews.length <= 1}
-                          >
-                            <FontAwesomeIcon icon={faChevronLeft} />
-                          </button>
-                          
-                          <button 
-                            className="carousel-nav carousel-nav--next"
-                            onClick={nextPendingPost}
-                            disabled={pendingNews.length <= 1}
-                          >
-                            <FontAwesomeIcon icon={faChevronRight} />
-                          </button>
-
-                          {/* Pokemon Cards for Pending Posts */}
-                          <div className="cards-container">
-                            {pendingNews.map((post, index) => (
-                              <div
-                                key={post.id}
-                                ref={el => pendingPostCardRefs.current[index] = el}
-                                className="pokemon-card pending"
-                                style={{
-                                  position: 'absolute',
-                                  width: '400px',
-                                  height: '550px'
-                                }}
-                              >
-                                <div className="pokemon-card-inner">
-                                  <div className="pokemon-card-header">
-                                    <div className="card-type">Post Pendente</div>
-                                    <div className="card-status pending">
-                                      Aguardando Aprovação
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="pokemon-card-image">
-                                    {post.imageUrl ? (
-                                      <img src={post.imageUrl} alt={post.title} />
-                                    ) : (
-                                      <div className="placeholder-image">
-                                        <FontAwesomeIcon icon={faNewspaper} size="3x" />
-                                      </div>
-                                    )}
-                                  </div>
-                                  
-                                  <div className="pokemon-card-content">
-                                    <h3 className="pokemon-card-title">{post.title}</h3>
-                                    <p className="pokemon-card-excerpt">{truncateContent(post.excerpt || post.content, 100)}</p>
-                                    
-                                    <div className="pokemon-card-meta">
-                                      <div className="meta-item">
-                                        <span className="meta-label">Autor:</span>
-                                        <span className="meta-value">{post.authorNickname}</span>
-                                      </div>
-                                      <div className="meta-item">
-                                        <span className="meta-label">Enviado:</span>
-                                        <span className="meta-value">{formatDate(post.createdAt)}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="pokemon-card-actions">
-                                    <button
-                                      onClick={() => handleApproval(post.id, true)}
-                                      className="pokemon-action-btn pokemon-action-btn--publish"
-                                      disabled={processingIds.has(post.id)}
-                                    >
-                                      <FontAwesomeIcon icon={faCheckCircle} />
-                                      {processingIds.has(post.id) ? 'Processando...' : 'Aprovar'}
-                                    </button>
-                                    
-                                    <button
-                                      onClick={() => handleApproval(post.id, false)}
-                                      className="pokemon-action-btn pokemon-action-btn--delete"
-                                      disabled={processingIds.has(post.id)}
-                                    >
-                                      <FontAwesomeIcon icon={faTrash} />
-                                      {processingIds.has(post.id) ? 'Processando...' : 'Rejeitar'}
-                                    </button>
-                                    
-                                    <button
-                                      onClick={() => handleViewDetails(post)}
-                                      className="pokemon-action-btn pokemon-action-btn--edit"
-                                    >
-                                      <FontAwesomeIcon icon={faEye} />
-                                      Ver Detalhes
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Dots indicator for pending posts */}
-                          <div className="carousel-dots">
-                            {pendingNews.map((_, index) => (
-                              <button
-                                key={index}
-                                className={`carousel-dot ${index === currentPendingPostIndex ? 'active' : ''}`}
-                                onClick={() => {
-                                  const currentCard = pendingPostCardRefs.current[currentPendingPostIndex];
-                                  const targetCard = pendingPostCardRefs.current[index];
-                                  
-                                  if (currentCard && targetCard && index !== currentPendingPostIndex) {
-                                    // Animate current card out
-                                    anime({
-                                      targets: currentCard,
-                                      opacity: [1, 0],
-                                      scale: [1, 0.7],
-                                      rotateY: [0, index > currentPendingPostIndex ? 90 : -90],
-                                      duration: 300,
-                                      easing: 'easeInBack'
-                                    });
-                                    
-                                    // Animate target card in
-                                    anime({
-                                      targets: targetCard,
-                                      translateX: [index > currentPendingPostIndex ? 600 : -600, 0],
-                                      rotateY: [index > currentPendingPostIndex ? 90 : -90, 0],
-                                      opacity: [0, 1],
-                                      scale: [0.7, 1],
-                                      duration: 500,
-                                      delay: 150,
-                                      easing: 'easeOutExpo'
-                                    });
-                                    
-                                    setCurrentPendingPostIndex(index);
-                                  }
-                                }}
+                          <CardView
+                            items={pendingNews}
+                            currentIndex={currentPendingPostIndex}
+                            onPrevious={prevPendingPost}
+                            onNext={nextPendingPost}
+                            onDotClick={(index) => {
+                              const currentCard = pendingPostCardRefs.current[currentPendingPostIndex];
+                              const targetCard = pendingPostCardRefs.current[index];
+                              
+                              if (currentCard && targetCard && index !== currentPendingPostIndex) {
+                                // Animate current card out
+                                anime({
+                                  targets: currentCard,
+                                  opacity: [1, 0],
+                                  scale: [1, 0.7],
+                                  rotateY: [0, index > currentPendingPostIndex ? 90 : -90],
+                                  duration: 300,
+                                  easing: 'easeInBack'
+                                });
+                                
+                                // Animate target card in
+                                anime({
+                                  targets: targetCard,
+                                  translateX: [index > currentPendingPostIndex ? 600 : -600, 0],
+                                  rotateY: [index > currentPendingPostIndex ? 90 : -90, 0],
+                                  opacity: [0, 1],
+                                  scale: [0.7, 1],
+                                  duration: 500,
+                                  delay: 150,
+                                  easing: 'easeOutExpo'
+                                });
+                                
+                                setCurrentPendingPostIndex(index);
+                              }
+                            }}
+                            renderCard={(post, index) => (
+                              <NewsCard
+                                post={post}
+                                index={index}
+                                cardRef={el => pendingPostCardRefs.current[index] = el}
+                                onApprove={(post) => handleApproval(post.id, true)}
+                                onReject={(post) => handleApproval(post.id, false)}
+                                onView={handleViewDetails}
+                                viewType="card"
+                                isPending={true}
                               />
-                            ))}
-                          </div>
-                        </div>
+                            )}
+                            containerRef={pendingPostCarouselRef}
+                            cardRefs={pendingPostCardRefs}
+                          />
+                        ) : pendingPostsViewMode === '3x' ? (
+                          <ThreeXView
+                            items={pendingNews}
+                            renderCard={(post, index) => (
+                              <NewsCard
+                                post={post}
+                                index={index}
+                                onApprove={(post) => handleApproval(post.id, true)}
+                                onReject={(post) => handleApproval(post.id, false)}
+                                onView={handleViewDetails}
+                                viewType="3x"
+                                isPending={true}
+                              />
+                            )}
+                          />
                         ) : (
-                          <div className="list-view-container">
-                            <div className="news-list-grid">
-                              {pendingNews.map((post) => (
-                                <div key={post.id} className="news-list-item pending">
-                                  <div className="news-list-content">
-                                    <div className="news-list-header">
-                                      <h3 className="news-list-title">{post.title}</h3>
-                                      <span className="news-list-status pending">Pendente</span>
-                                    </div>
-                                    <p className="news-list-excerpt">{post.content.substring(0, 150)}...</p>
-                                    <div className="news-list-meta">
-                                      <span className="news-list-date">
-                                        {new Date(post.createdAt).toLocaleDateString('pt-BR')}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="news-list-actions">
-                                    <button
-                                      onClick={() => handleApprovePost(post.id)}
-                                      className="list-action-btn list-action-btn--publish"
-                                      disabled={processingIds.has(post.id)}
-                                      title="Aprovar Post"
-                                    >
-                                      <FontAwesomeIcon icon={faCheckCircle} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleRejectPost(post.id)}
-                                      className="list-action-btn list-action-btn--delete"
-                                      disabled={processingIds.has(post.id)}
-                                      title="Rejeitar Post"
-                                    >
-                                      <FontAwesomeIcon icon={faTrash} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleViewDetails(post)}
-                                      className="list-action-btn list-action-btn--edit"
-                                      title="Ver Detalhes"
-                                    >
-                                      <FontAwesomeIcon icon={faEye} />
-                                    </button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                          <ListView
+                            items={pendingNews}
+                            renderListItem={(post, index) => (
+                              <NewsCard
+                                post={post}
+                                index={index}
+                                onApprove={(post) => handleApproval(post.id, true)}
+                                onReject={(post) => handleApproval(post.id, false)}
+                                onView={handleViewDetails}
+                                viewType="list"
+                                isPending={true}
+                              />
+                            )}
+                          />
                         )}
                       </div>
                     ) : (
@@ -2233,235 +1767,101 @@ const Dashboard: React.FC = () => {
             {/* Approve Ads Tab - Admin Only */}
             {activeTab === 'approve-ads' && user?.role === 'admin' && (
               <div className="approval-section">
-                
                 {pendingAdsLoading ? (
                   <LoadingSpinner text="Carregando anúncios pendentes..." />
                 ) : (
                   <>
                     {pendingAds && pendingAds.length > 0 ? (
                       <div className="pokemon-carousel-container">
-                        <div className="view-controls">
-                          <div className="view-mode-buttons">
-                            <button
-                                className={`view-btn ${pendingAdsViewMode === 'card' ? 'active' : ''}`}
-                                onClick={() => {
-                                  console.log('Switching to card view for pending ads');
-                                  setPendingAdsViewMode('card');
-                                }}
-                                title="Vista de Cartas Pokemon"
-                            >
-                                <FontAwesomeIcon icon={faSquare} />
-                                <span>Cards</span>
-                            </button>
-                            <button
-                                className={`view-btn ${pendingAdsViewMode === 'list' ? 'active' : ''}`}
-                                onClick={() => {
-                                  console.log('Switching to list view for pending ads');
-                                  setPendingAdsViewMode('list');
-                                }}
-                                title="Vista de Lista"
-                            >
-                                <FontAwesomeIcon icon={faList} />
-                                <span>Lista</span>
-                            </button>
-                          </div>
-                          <div className="carousel-info">
-                            {pendingAdsViewMode === 'card' && (
-                              <span>{currentPendingAdIndex + 1} de {pendingAds.length}</span>
-                            )}
-                          </div>
-                        </div>
+                        <ViewModeControls
+                          viewMode={pendingAdsViewMode}
+                          onViewModeChange={setPendingAdsViewMode}
+                          totalItems={pendingAds.length}
+                          currentPage={pendingAdsViewMode === 'list' ? undefined : currentPendingAdIndex + 1}
+                          totalPages={pendingAdsViewMode === 'list' ? undefined : pendingAds.length}
+                        />
                         
                         {pendingAdsViewMode === 'card' ? (
-                        <div className="pokemon-carousel" ref={pendingAdCarouselRef}>
-                          {/* Navigation buttons */}
-                          <button 
-                            className="carousel-nav carousel-nav--prev"
-                            onClick={prevPendingAd}
-                            disabled={pendingAds.length <= 1}
-                          >
-                            <FontAwesomeIcon icon={faChevronLeft} />
-                          </button>
-                          
-                          <button 
-                            className="carousel-nav carousel-nav--next"
-                            onClick={nextPendingAd}
-                            disabled={pendingAds.length <= 1}
-                          >
-                            <FontAwesomeIcon icon={faChevronRight} />
-                          </button>
-
-                          {/* Pokemon Cards for Pending Ads */}
-                          <div className="cards-container">
-                            {pendingAds.map((ad, index) => (
-                              <div
-                                key={ad.id || `pending-ad-${index}`}
-                                ref={el => pendingAdCardRefs.current[index] = el}
-                                className="pokemon-card pending"
-                                style={{
-                                  position: 'absolute',
-                                  width: '400px',
-                                  height: '550px'
-                                }}
-                              >
-                                <div className="pokemon-card-inner">
-                                  <div className="pokemon-card-header">
-                                    <div className="card-type">Anúncio Pendente</div>
-                                    <div className="card-status pending">
-                                      Aguardando Aprovação
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="pokemon-card-image">
-                                    <div className="placeholder-image">
-                                      <FontAwesomeIcon icon={faAd} size="3x" />
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="pokemon-card-content">
-                                    <h3 className="pokemon-card-title">{ad.title}</h3>
-                                    <p className="pokemon-card-excerpt">{truncateContent(ad.description, 100)}</p>
-                                    
-                                    <div className="pokemon-card-meta">
-                                      <div className="meta-item">
-                                        <span className="meta-label">Autor:</span>
-                                        <span className="meta-value">{ad.authorNickname}</span>
-                                      </div>
-                                      <div className="meta-item">
-                                        <span className="meta-label">Categoria:</span>
-                                        <span className="meta-value">{ad.category}</span>
-                                      </div>
-                                      <div className="meta-item">
-                                        <span className="meta-label">Preço:</span>
-                                        <span className="meta-value">{ad.price}</span>
-                                      </div>
-                                      <div className="meta-item">
-                                        <span className="meta-label">Enviado:</span>
-                                        <span className="meta-value">{formatDate(ad.createdAt)}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="pokemon-card-actions">
-                                    <button
-                                      onClick={() => handleAdApproval(ad.id, true)}
-                                      className="pokemon-action-btn pokemon-action-btn--publish"
-                                      disabled={processingIds.has(ad.id)}
-                                    >
-                                      <FontAwesomeIcon icon={faCheckCircle} />
-                                      {processingIds.has(ad.id) ? 'Processando...' : 'Aprovar'}
-                                    </button>
-                                    
-                                    <button
-                                      onClick={() => handleAdApproval(ad.id, false)}
-                                      className="pokemon-action-btn pokemon-action-btn--delete"
-                                      disabled={processingIds.has(ad.id)}
-                                    >
-                                      <FontAwesomeIcon icon={faTrash} />
-                                      {processingIds.has(ad.id) ? 'Processando...' : 'Rejeitar'}
-                                    </button>
-                                    
-                                    <button
-                                      onClick={() => handleViewAdDetails(ad)}
-                                      className="pokemon-action-btn pokemon-action-btn--edit"
-                                    >
-                                      <FontAwesomeIcon icon={faEye} />
-                                      Ver Detalhes
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Dots indicator for pending ads */}
-                          <div className="carousel-dots">
-                            {pendingAds.map((_, index) => (
-                              <button
-                                key={index}
-                                className={`carousel-dot ${index === currentPendingAdIndex ? 'active' : ''}`}
-                                onClick={() => {
-                                  const currentCard = pendingAdCardRefs.current[currentPendingAdIndex];
-                                  const targetCard = pendingAdCardRefs.current[index];
-                                  
-                                  if (currentCard && targetCard && index !== currentPendingAdIndex) {
-                                    // Animate current card out
-                                    anime({
-                                      targets: currentCard,
-                                      opacity: [1, 0],
-                                      scale: [1, 0.7],
-                                      rotateY: [0, index > currentPendingAdIndex ? 90 : -90],
-                                      duration: 300,
-                                      easing: 'easeInBack'
-                                    });
-                                    
-                                    // Animate target card in
-                                    anime({
-                                      targets: targetCard,
-                                      translateX: [index > currentPendingAdIndex ? 600 : -600, 0],
-                                      rotateY: [index > currentPendingAdIndex ? 90 : -90, 0],
-                                      opacity: [0, 1],
-                                      scale: [0.7, 1],
-                                      duration: 500,
-                                      delay: 150,
-                                      easing: 'easeOutExpo'
-                                    });
-                                    
-                                    setCurrentPendingAdIndex(index);
-                                  }
-                                }}
+                          <CardView
+                            items={pendingAds}
+                            currentIndex={currentPendingAdIndex}
+                            onPrevious={prevPendingAd}
+                            onNext={nextPendingAd}
+                            onDotClick={(index) => {
+                              const currentCard = pendingAdCardRefs.current[currentPendingAdIndex];
+                              const targetCard = pendingAdCardRefs.current[index];
+                              
+                              if (currentCard && targetCard && index !== currentPendingAdIndex) {
+                                // Animate current card out
+                                anime({
+                                  targets: currentCard,
+                                  opacity: [1, 0],
+                                  scale: [1, 0.7],
+                                  rotateY: [0, index > currentPendingAdIndex ? 90 : -90],
+                                  duration: 300,
+                                  easing: 'easeInBack'
+                                });
+                                
+                                // Animate target card in
+                                anime({
+                                  targets: targetCard,
+                                  translateX: [index > currentPendingAdIndex ? 600 : -600, 0],
+                                  rotateY: [index > currentPendingAdIndex ? 90 : -90, 0],
+                                  opacity: [0, 1],
+                                  scale: [0.7, 1],
+                                  duration: 500,
+                                  delay: 150,
+                                  easing: 'easeOutExpo'
+                                });
+                                
+                                setCurrentPendingAdIndex(index);
+                              }
+                            }}
+                            renderCard={(ad, index) => (
+                              <AdCard
+                                ad={ad}
+                                index={index}
+                                cardRef={el => pendingAdCardRefs.current[index] = el}
+                                onApprove={(ad) => handleAdApproval(ad.id, true)}
+                                onReject={(ad) => handleAdApproval(ad.id, false)}
+                                onView={handleViewAdDetails}
+                                viewType="card"
+                                isPending={true}
                               />
-                            ))}
-                          </div>
-                        </div>
+                            )}
+                            containerRef={pendingAdCarouselRef}
+                            cardRefs={pendingAdCardRefs}
+                          />
+                        ) : pendingAdsViewMode === '3x' ? (
+                          <ThreeXView
+                            items={pendingAds}
+                            renderCard={(ad, index) => (
+                              <AdCard
+                                ad={ad}
+                                index={index}
+                                onApprove={(ad) => handleAdApproval(ad.id, true)}
+                                onReject={(ad) => handleAdApproval(ad.id, false)}
+                                onView={handleViewAdDetails}
+                                viewType="3x"
+                                isPending={true}
+                              />
+                            )}
+                          />
                         ) : (
-                          <div className="list-view-container">
-                            <div className="ads-list-grid">
-                              {pendingAds.map((ad) => (
-                                <div key={ad.id} className="ads-list-item pending">
-                                  <div className="ads-list-content">
-                                    <div className="ads-list-header">
-                                      <h3 className="ads-list-title">{ad.title}</h3>
-                                      <span className="ads-list-status pending">Pendente</span>
-                                    </div>
-                                    <p className="ads-list-excerpt">{ad.description.substring(0, 150)}...</p>
-                                    <div className="ads-list-meta">
-                                      <span className="ads-list-category">{ad.category}</span>
-                                      <span className="ads-list-price">€{ad.price}</span>
-                                      <span className="ads-list-date">
-                                        {new Date(ad.createdAt).toLocaleDateString('pt-BR')}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="ads-list-actions">
-                                    <button
-                                      onClick={() => handleApproveAd(ad.id)}
-                                      className="list-action-btn list-action-btn--publish"
-                                      disabled={processingIds.has(ad.id)}
-                                      title="Aprovar Anúncio"
-                                    >
-                                      <FontAwesomeIcon icon={faCheckCircle} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleRejectAd(ad.id)}
-                                      className="list-action-btn list-action-btn--delete"
-                                      disabled={processingIds.has(ad.id)}
-                                      title="Rejeitar Anúncio"
-                                    >
-                                      <FontAwesomeIcon icon={faTrash} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleViewAdDetails(ad)}
-                                      className="list-action-btn list-action-btn--edit"
-                                      title="Ver Detalhes"
-                                    >
-                                      <FontAwesomeIcon icon={faEye} />
-                                    </button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                          <ListView
+                            items={pendingAds}
+                            renderListItem={(ad, index) => (
+                              <AdCard
+                                ad={ad}
+                                index={index}
+                                onApprove={(ad) => handleAdApproval(ad.id, true)}
+                                onReject={(ad) => handleAdApproval(ad.id, false)}
+                                onView={handleViewAdDetails}
+                                viewType="list"
+                                isPending={true}
+                              />
+                            )}
+                          />
                         )}
                       </div>
                     ) : (

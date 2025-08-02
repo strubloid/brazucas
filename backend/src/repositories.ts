@@ -7,6 +7,7 @@ export interface IUserRepository {
   create(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User>;
   update(id: string, updates: Partial<User>): Promise<User>;
   delete(id: string): Promise<boolean>;
+  count(): Promise<number>;
 }
 
 export interface INewsRepository {
@@ -75,6 +76,10 @@ export class InMemoryUserRepository implements IUserRepository {
     
     this.users.splice(userIndex, 1);
     return true;
+  }
+
+  async count(): Promise<number> {
+    return this.users.length;
   }
 }
 

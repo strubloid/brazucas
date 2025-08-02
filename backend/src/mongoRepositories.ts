@@ -72,6 +72,10 @@ export class MongoUserRepository implements IUserRepository {
     const result = await this.collection.deleteOne({ _id: id as any });
     return result.deletedCount > 0;
   }
+
+  async count(): Promise<number> {
+    return await this.collection.countDocuments();
+  }
 }
 
 export class MongoNewsRepository implements INewsRepository {

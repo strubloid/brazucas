@@ -2,7 +2,7 @@ import { HandlerEvent, HandlerContext } from '@netlify/functions';
 import { UserService } from './services';
 import { MongoUserRepository } from './mongoRepositories';
 import { dbConnection } from './database';
-import { createResponse, handleError, parseRequestBody, handleCors } from './utils';
+import { createResponse, handleError, parseRequestBody, handleOptionsRequest } from './utils';
 import { createUserSchema } from './validation';
 import { UserRole } from './types';
 import { z } from 'zod';
@@ -18,10 +18,10 @@ export const handler = async (event: HandlerEvent, context: HandlerContext) => {
     console.log('Headers:', event.headers);
     
     // Handle CORS preflight
-    const corsResponse = handleCors(event);
-    if (corsResponse) {
+    const optionsResponse = handleOptionsRequest(event);
+    if (optionsResponse) {
       console.log('Returning CORS response');
-      return corsResponse;
+      return optionsResponse;
     }
 
     if (event.httpMethod !== 'POST') {
