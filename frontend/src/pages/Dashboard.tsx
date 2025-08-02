@@ -778,7 +778,7 @@ const Dashboard: React.FC = () => {
                       <div key={ad.id || `ad-${index}`} className="dashboard__news-item">
                         <div className="dashboard__news-content">
                           <h3 className="dashboard__news-title">{ad.title}</h3>
-                          <p className="dashboard__news-excerpt">{ad.description}</p>
+                          <p className="dashboard__news-excerpt" style={{ wordBreak: 'break-word' }}>{ad.description}</p>
                           <div className="dashboard__news-meta">
                             <span className="ad-category">{ad.category}</span>
                             <span className="ad-price">{ad.price}</span>
@@ -791,14 +791,17 @@ const Dashboard: React.FC = () => {
                           </div>
                         </div>
                         <div className="dashboard__news-actions">
-                          <button
-                            onClick={() => handleEditAd(ad)}
-                            className="dashboard__news-button dashboard__news-button--edit"
-                          >
-                            Editar
-                          </button>
-                          
-                          {!ad.published && (
+                          {/* Only show Edit if ad is not rejected */}
+                          {getAdStatus(ad).class !== 'rejected' && getAdStatus(ad).class !== 'published'  && (
+                            <button
+                              onClick={() => handleEditAd(ad)}
+                              className="dashboard__news-button dashboard__news-button--edit"
+                            >
+                              Editar
+                            </button>
+                          )}
+                          {/* Only show Publish if ad is not published and not rejected */}
+                          {!ad.published && getAdStatus(ad).class !== 'rejected' && (
                             <button
                               onClick={() => handlePublishAd(ad.id)}
                               className="dashboard__news-button dashboard__news-button--publish"
@@ -806,7 +809,6 @@ const Dashboard: React.FC = () => {
                               Publicar
                             </button>
                           )}
-                          
                           <button
                             onClick={() => handleDeleteAd(ad.id)}
                             className="dashboard__news-button dashboard__news-button--delete"
