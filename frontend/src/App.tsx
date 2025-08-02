@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import AdminRegister from './pages/AdminRegister';
 import News from './pages/News';
 import NewsDetail from './pages/NewsDetail';
+import Ads from './pages/Ads';
 import Dashboard from './pages/Dashboard';
 import AdSubmission from './pages/AdSubmission';
 import { AdminDashboard } from './components/admin/AdminDashboard';
@@ -30,6 +31,7 @@ const App: React.FC = () => {
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/news" element={<News />} />
               <Route path="/news/:id" element={<NewsDetail />} />
+              <Route path="/ads" element={<Ads />} />
               
               {/* Temporarily simplified routes - re-enable auth later */}
               <Route path="/dashboard" element={<Dashboard />} />

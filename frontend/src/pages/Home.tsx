@@ -2,7 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAsync } from '../hooks/useAsync';
 import { NewsService } from '../services/newsService';
+import { AdService } from '../services/adService';
 import { NewsPost } from '../types/news';
+import { Advertisement } from '../types/ads';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const Home: React.FC = () => {
@@ -12,8 +14,17 @@ const Home: React.FC = () => {
     []
   );
 
+  // Fetch latest published ads for homepage
+  const { data: ads, loading: adsLoading } = useAsync<Advertisement[]>(
+    () => AdService.getPublishedAds(),
+    []
+  );
+
   // Get the latest 3 published news for homepage
   const latestNews = news?.slice(0, 3) || [];
+  
+  // Get the latest 3 published ads for homepage
+  const latestAds = ads?.slice(0, 3) || [];
 
   const styles = {
     container: {
@@ -169,6 +180,74 @@ const Home: React.FC = () => {
       marginBottom: '2rem',
       lineHeight: 1.6,
     },
+    adsGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+      gap: '2rem',
+      marginBottom: '2rem',
+    },
+    adCard: {
+      background: '#fff',
+      padding: '1.5rem',
+      borderRadius: '12px',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+      transition: 'transform 0.2s',
+      border: '1px solid #e5e7eb',
+    },
+    adHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: '1rem',
+    },
+    adTitle: {
+      fontSize: '1.2rem',
+      fontWeight: 'bold',
+      marginBottom: '0.5rem',
+      color: '#333',
+      flex: 1,
+      marginRight: '1rem',
+    },
+    adCategory: {
+      background: '#f3f4f6',
+      color: '#6b7280',
+      padding: '4px 8px',
+      borderRadius: '8px',
+      fontSize: '0.8rem',
+      fontWeight: '500',
+    },
+    adDescription: {
+      color: '#666',
+      lineHeight: 1.6,
+      marginBottom: '1rem',
+      fontSize: '0.95rem',
+    },
+    adPrice: {
+      fontSize: '1.2rem',
+      fontWeight: 'bold',
+      color: '#009639',
+      marginBottom: '1rem',
+    },
+    adFooter: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingTop: '1rem',
+      borderTop: '1px solid #f3f4f6',
+    },
+    adAuthor: {
+      fontSize: '0.85rem',
+      color: '#6b7280',
+    },
+    adContact: {
+      background: '#009639',
+      color: 'white',
+      padding: '6px 12px',
+      borderRadius: '6px',
+      textDecoration: 'none',
+      fontSize: '0.85rem',
+      fontWeight: '600',
+    },
   };
 
   return (
@@ -290,6 +369,111 @@ const Home: React.FC = () => {
             </article>
           </div>
         )}
+      </section>
+
+      {/* Latest Ads Section */}
+      <section style={styles.section}>
+        <h2 style={styles.sectionTitle}>Últimos Anúncios</h2>
+        
+        {adsLoading ? (
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <LoadingSpinner text="Carregando anúncios..." />
+          </div>
+        ) : latestAds.length > 0 ? (
+          <div style={styles.adsGrid}>
+            {latestAds.map((ad) => (
+              <article key={ad.id} style={styles.adCard}>
+                <div style={styles.adHeader}>
+                  <h3 style={styles.adTitle}>{ad.title}</h3>
+                  <span style={styles.adCategory}>{ad.category}</span>
+                </div>
+                <p style={styles.adDescription}>
+                  {ad.description.length > 100 
+                    ? `${ad.description.substring(0, 100)}...` 
+                    : ad.description
+                  }
+                </p>
+                <div style={styles.adPrice}>
+                  {ad.price.includes('€') ? ad.price : `€${ad.price}`}
+                </div>
+                <div style={styles.adFooter}>
+                  <span style={styles.adAuthor}>
+                    Por: {ad.authorNickname || 'Anônimo'}
+                  </span>
+                  <a 
+                    href={`mailto:${ad.contactEmail}`}
+                    style={styles.adContact}
+                    title="Entrar em contato"
+                  >
+                    Contatar
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          // Boilerplate content when no published ads exist
+          <div style={styles.adsGrid}>
+            <article style={styles.adCard}>
+              <div style={styles.adHeader}>
+                <h3 style={styles.adTitle}>Aulas de Português</h3>
+                <span style={styles.adCategory}>Educação</span>
+              </div>
+              <p style={styles.adDescription}>
+                Aulas particulares de português para brasileiros que querem melhorar sua comunicação profissional.
+              </p>
+              <div style={styles.adPrice}>€25/hora</div>
+              <div style={styles.adFooter}>
+                <span style={styles.adAuthor}>Por: Maria Silva</span>
+                <Link to="/ads" style={styles.adContact}>Ver mais</Link>
+              </div>
+            </article>
+
+            <article style={styles.adCard}>
+              <div style={styles.adHeader}>
+                <h3 style={styles.adTitle}>Serviço de Limpeza</h3>
+                <span style={styles.adCategory}>Serviços</span>
+              </div>
+              <p style={styles.adDescription}>
+                Limpeza residencial e comercial com produtos eco-friendly. Experiência de 5 anos.
+              </p>
+              <div style={styles.adPrice}>€15/hora</div>
+              <div style={styles.adFooter}>
+                <span style={styles.adAuthor}>Por: João Santos</span>
+                <Link to="/ads" style={styles.adContact}>Ver mais</Link>
+              </div>
+            </article>
+
+            <article style={styles.adCard}>
+              <div style={styles.adHeader}>
+                <h3 style={styles.adTitle}>Produtos Brasileiros</h3>
+                <span style={styles.adCategory}>Produtos</span>
+              </div>
+              <p style={styles.adDescription}>
+                Venda de produtos brasileiros importados: temperos, doces, café e muito mais!
+              </p>
+              <div style={styles.adPrice}>A partir de €5</div>
+              <div style={styles.adFooter}>
+                <span style={styles.adAuthor}>Por: Ana Costa</span>
+                <Link to="/ads" style={styles.adContact}>Ver mais</Link>
+              </div>
+            </article>
+          </div>
+        )}
+
+        <div style={styles.cta}>
+          <h3 style={styles.ctaTitle}>Quer anunciar também?</h3>
+          <p style={styles.ctaText}>
+            Divulgue seus produtos e serviços para a comunidade brasileira em Cork.
+          </p>
+          <Link to="/submit-ad" style={styles.primaryButton}>
+            Criar Anúncio
+          </Link>
+          <span style={{ margin: '0 1rem' }}>ou</span>
+          <Link to="/ads" style={styles.secondaryButton}>
+            Ver Todos os Anúncios
+          </Link>
+        </div>
       </section>
 
       {/* Community Section */}

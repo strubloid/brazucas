@@ -135,6 +135,11 @@ const Header: React.FC = () => {
                   Notícias
                 </Link>
               </li>
+              <li>
+                <Link to="/ads" style={styles.navLink}>
+                  Anúncios
+                </Link>
+              </li>
               {isAuthenticated && (
                 <li>
                   <Link to="/dashboard" style={styles.navLink}>
@@ -204,6 +209,11 @@ const Header: React.FC = () => {
               <li>
                 <Link to="/news" style={styles.navLink} onClick={() => setIsMenuOpen(false)}>
                   Notícias
+                </Link>
+              </li>
+              <li>
+                <Link to="/ads" style={styles.navLink} onClick={() => setIsMenuOpen(false)}>
+                  Anúncios
                 </Link>
               </li>
               {isAuthenticated && (
