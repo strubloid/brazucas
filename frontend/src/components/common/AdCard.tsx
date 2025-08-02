@@ -177,7 +177,9 @@ export const AdCard: React.FC<AdCardProps> = ({
               {ad.imageUrl ? (
                 <img src={ad.imageUrl} alt={ad.title} />
               ) : (
-                <FontAwesomeIcon icon={faAd} className="placeholder-icon" />
+                <div className="placeholder-content">
+                  <div className="brazucas-logo">BRAZUCAS</div>
+                </div>
               )}
             </div>
             
@@ -208,35 +210,48 @@ export const AdCard: React.FC<AdCardProps> = ({
                   {onEdit && (
                     <button className="action-btn edit" onClick={() => onEdit(ad)}>
                       <FontAwesomeIcon icon={faEdit} />
+                      {viewType === '3x' && <span> EDITAR</span>}
                     </button>
                   )}
                   {onApprove && (
                     <button className="action-btn publish" onClick={() => onApprove(ad)}>
                       <FontAwesomeIcon icon={faCheck} />
+                      {viewType === '3x' && <span> PUBLICAR</span>}
                     </button>
                   )}
                   {onReject && (
                     <button className="action-btn delete" onClick={() => onReject(ad)}>
                       <FontAwesomeIcon icon={faTimes} />
+                      {viewType === '3x' && <span> EXCLUIR</span>}
                     </button>
                   )}
                 </>
               ) : (
                 <>
-                  {onEdit && (
-                    <button className="action-btn edit" onClick={() => onEdit(ad)}>
-                      <FontAwesomeIcon icon={faEdit} />
-                    </button>
-                  )}
-                  {onPublish && ad.status !== 'published' && (
-                    <button className="action-btn publish" onClick={() => onPublish(ad)}>
-                      <FontAwesomeIcon icon={faEye} />
-                    </button>
-                  )}
-                  {onDelete && (
-                    <button className="action-btn delete" onClick={() => onDelete(ad)}>
-                      <FontAwesomeIcon icon={faTrash} />
-                    </button>
+                  {ad.status === 'published' ? (
+                    // Published ads: only show delete button
+                    onDelete && (
+                      <button className="action-btn delete" onClick={() => onDelete(ad)}>
+                        <FontAwesomeIcon icon={faTrash} />
+                        {viewType === '3x' && <span> EXCLUIR</span>}
+                      </button>
+                    )
+                  ) : (
+                    // Draft ads: show edit and publish buttons
+                    <>
+                      {onEdit && (
+                        <button className="action-btn edit" onClick={() => onEdit(ad)}>
+                          <FontAwesomeIcon icon={faEdit} />
+                          {viewType === '3x' && <span> EDITAR</span>}
+                        </button>
+                      )}
+                      {onPublish && (
+                        <button className="action-btn publish" onClick={() => onPublish(ad)}>
+                          <FontAwesomeIcon icon={faEye} />
+                          {viewType === '3x' && <span> PUBLICAR</span>}
+                        </button>
+                      )}
+                    </>
                   )}
                 </>
               )}

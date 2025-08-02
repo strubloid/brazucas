@@ -13,6 +13,7 @@ interface CardViewProps {
   containerRef?: React.RefObject<HTMLDivElement>;
   cardRefs?: React.MutableRefObject<(HTMLDivElement | null)[]>;
   className?: string;
+  cardsPerPage?: number; // New prop to control how many cards to show
 }
 
 const CardView: React.FC<CardViewProps> = ({
@@ -24,49 +25,76 @@ const CardView: React.FC<CardViewProps> = ({
   renderCard,
   containerRef,
   cardRefs,
-  className = ''
+  className = '',
+  cardsPerPage = 3 // Default to 3 cards
 }) => {
+  const getVisibleItems = () => {
+    if (cardsPerPage === 1) {
+      return [{ item: items[currentIndex], index: currentIndex }];
+    }
+    
+    const visibleItems = [];
+    for (let i = 0; i < cardsPerPage && i < items.length; i++) {
+      const itemIndex = (currentIndex + i) % items.length;
+      visibleItems.push({ item: items[itemIndex], index: itemIndex });
+    }
+    return visibleItems;
+  };
+
+  const visibleItems = getVisibleItems();
+
   return (
     <div className={`pokemon-carousel ${className}`} ref={containerRef}>
-      {/* Navigation buttons */}
-      <button 
-        className="carousel-nav carousel-nav--prev"
-        onClick={onPrevious}
-        disabled={items.length <= 1}
-      >
-        <FontAwesomeIcon icon={faChevronLeft} />
-      </button>
-      
-      <button 
-        className="carousel-nav carousel-nav--next"
-        onClick={onNext}
-        disabled={items.length <= 1}
-      >
-        <FontAwesomeIcon icon={faChevronRight} />
-      </button>
+      {/* Navigation buttons - only show if more items than cards per page */}
+      {items.length > cardsPerPage && (
+        <>
+          <button 
+            className="carousel-nav carousel-nav--prev"
+            onClick={onPrevious}
+            disabled={items.length <= cardsPerPage}
+          >
+            <FontAwesomeIcon icon={faChevronLeft} />
+          </button>
+          
+          <button 
+            className="carousel-nav carousel-nav--next"
+            onClick={onNext}
+            disabled={items.length <= cardsPerPage}
+          >
+            <FontAwesomeIcon icon={faChevronRight} />
+          </button>
+        </>
+      )}
 
       {/* Cards Container */}
       <div className="cards-container">
-        {items.map((item, index) => (
+        {visibleItems.map(({ item, index }) => (
           <div
             key={index}
-            className={`card-wrapper ${index === currentIndex ? 'active' : ''}`}
+            className={`card-wrapper ${index === currentIndex ? 'active' : 'visible'}`}
+            ref={cardRefs ? el => {
+              if (cardRefs.current) {
+                cardRefs.current[index] = el;
+              }
+            } : undefined}
           >
             {renderCard(item, index)}
           </div>
         ))}
       </div>
 
-      {/* Dots indicator */}
-      <div className="carousel-dots">
-        {items.map((_, index) => (
-          <button
-            key={index}
-            className={`carousel-dot ${index === currentIndex ? 'active' : ''}`}
-            onClick={() => onDotClick(index)}
-          />
-        ))}
-      </div>
+      {/* Dots indicator - only show if more items than cards per page */}
+      {items.length > cardsPerPage && (
+        <div className="carousel-dots">
+          {Array.from({ length: Math.ceil(items.length / cardsPerPage) }, (_, pageIndex) => (
+            <button
+              key={pageIndex}
+              className={`carousel-dot ${Math.floor(currentIndex / cardsPerPage) === pageIndex ? 'active' : ''}`}
+              onClick={() => onDotClick(pageIndex * cardsPerPage)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

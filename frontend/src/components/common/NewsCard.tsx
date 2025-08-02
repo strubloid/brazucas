@@ -152,7 +152,9 @@ export const NewsCard: React.FC<NewsCardProps> = ({
               {post.imageUrl ? (
                 <img src={post.imageUrl} alt={post.title} />
               ) : (
-                <FontAwesomeIcon icon={faNewspaper} className="placeholder-icon" />
+                <div className="placeholder-content">
+                  <div className="brazucas-logo">BRAZUCAS</div>
+                </div>
               )}
             </div>
             
@@ -170,35 +172,48 @@ export const NewsCard: React.FC<NewsCardProps> = ({
                   {onEdit && (
                     <button className="action-btn edit" onClick={() => onEdit(post)}>
                       <FontAwesomeIcon icon={faEdit} />
+                      {viewType === '3x' && <span> EDITAR</span>}
                     </button>
                   )}
                   {onApprove && (
                     <button className="action-btn publish" onClick={() => onApprove(post)}>
                       <FontAwesomeIcon icon={faCheck} />
+                      {viewType === '3x' && <span> PUBLICAR</span>}
                     </button>
                   )}
                   {onReject && (
                     <button className="action-btn delete" onClick={() => onReject(post)}>
                       <FontAwesomeIcon icon={faTimes} />
+                      {viewType === '3x' && <span> EXCLUIR</span>}
                     </button>
                   )}
                 </>
               ) : (
                 <>
-                  {onEdit && (
-                    <button className="action-btn edit" onClick={() => onEdit(post)}>
-                      <FontAwesomeIcon icon={faEdit} />
-                    </button>
-                  )}
-                  {onPublish && !post.published && (
-                    <button className="action-btn publish" onClick={() => onPublish(post)}>
-                      <FontAwesomeIcon icon={faEye} />
-                    </button>
-                  )}
-                  {onDelete && (
-                    <button className="action-btn delete" onClick={() => onDelete(post)}>
-                      <FontAwesomeIcon icon={faTrash} />
-                    </button>
+                  {post.published ? (
+                    // Published posts: only show delete button
+                    onDelete && (
+                      <button className="action-btn delete" onClick={() => onDelete(post)}>
+                        <FontAwesomeIcon icon={faTrash} />
+                        {viewType === '3x' && <span> EXCLUIR</span>}
+                      </button>
+                    )
+                  ) : (
+                    // Draft posts: show edit and publish buttons
+                    <>
+                      {onEdit && (
+                        <button className="action-btn edit" onClick={() => onEdit(post)}>
+                          <FontAwesomeIcon icon={faEdit} />
+                          {viewType === '3x' && <span> EDITAR</span>}
+                        </button>
+                      )}
+                      {onPublish && (
+                        <button className="action-btn publish" onClick={() => onPublish(post)}>
+                          <FontAwesomeIcon icon={faEye} />
+                          {viewType === '3x' && <span> PUBLICAR</span>}
+                        </button>
+                      )}
+                    </>
                   )}
                 </>
               )}
