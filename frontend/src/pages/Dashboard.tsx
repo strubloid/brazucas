@@ -1913,11 +1913,7 @@ const Dashboard: React.FC = () => {
             {/* Approve Posts Tab - Admin Only */}
             {activeTab === 'approve-posts' && user?.role === 'admin' && (
               <div className="approval-section">
-                <div className="approval-header">
-                  <h2>Posts Pendentes de Aprovação</h2>
-                  <p>Revise e aprove posts enviados por usuários</p>
-                </div>
-                
+                                
                 {pendingLoading ? (
                   <LoadingSpinner text="Carregando posts pendentes..." />
                 ) : (
@@ -2158,10 +2154,6 @@ const Dashboard: React.FC = () => {
             {/* Approve Ads Tab - Admin Only */}
             {activeTab === 'approve-ads' && user?.role === 'admin' && (
               <div className="approval-section">
-                <div className="approval-header">
-                  <h2>Anúncios Pendentes de Aprovação</h2>
-                  <p>Revise e aprove anúncios enviados por usuários</p>
-                </div>
                 
                 {pendingAdsLoading ? (
                   <LoadingSpinner text="Carregando anúncios pendentes..." />
