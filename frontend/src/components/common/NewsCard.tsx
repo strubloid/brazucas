@@ -207,10 +207,10 @@ export const NewsCard: React.FC<NewsCardProps> = ({
           <div className={footerClass}>
             {viewType === '3x' ? (
               <>
-                <div className="card-date-section">
-                  <span className={dateClass}>
-                    {formatDate(post.createdAt)}
-                  </span>
+                <div className="card-description-section">
+                  <div className="card-description-footer-3x">
+                    {post.content}
+                  </div>
                 </div>
                 <div className="card-bottom-section">
                   <div className={actionsClass}>
@@ -219,20 +219,15 @@ export const NewsCard: React.FC<NewsCardProps> = ({
                       <>
                         {onEdit && (
                           <button className="action-btn edit" onClick={() => onEdit(post)}>
-                            <FontAwesomeIcon icon={faEdit} />
-                            <span>EDITAR</span>
                           </button>
                         )}
                         {(onApprove || onPublish) && (
                           <button className="action-btn publish" onClick={() => onApprove ? onApprove(post) : onPublish ? onPublish(post) : undefined}>
-                            <FontAwesomeIcon icon={faCheck} />
                             <span>PUBLICAR</span>
                           </button>
                         )}
                         {(onReject || onDelete) && (
                           <button className="action-btn delete" onClick={() => onReject ? onReject(post) : onDelete ? onDelete(post) : undefined}>
-                            <FontAwesomeIcon icon={faTimes} />
-                            <span>EXCLUIR</span>
                           </button>
                         )}
                       </>
@@ -242,8 +237,6 @@ export const NewsCard: React.FC<NewsCardProps> = ({
                           // Published posts: only show delete button
                           onDelete && (
                             <button className="action-btn delete" onClick={() => onDelete(post)}>
-                              <FontAwesomeIcon icon={faTrash} />
-                              <span>EXCLUIR</span>
                             </button>
                           )
                         ) : (
@@ -251,13 +244,10 @@ export const NewsCard: React.FC<NewsCardProps> = ({
                           <>
                             {onEdit && (
                               <button className="action-btn edit" onClick={() => onEdit(post)}>
-                                <FontAwesomeIcon icon={faEdit} />
-                                <span>EDITAR</span>
                               </button>
                             )}
                             {onPublish && (
                               <button className="action-btn publish" onClick={() => onPublish(post)}>
-                                <FontAwesomeIcon icon={faEye} />
                                 <span>PUBLICAR</span>
                               </button>
                             )}

@@ -253,10 +253,10 @@ export const AdCard: React.FC<AdCardProps> = ({
           <div className={footerClass}>
             {viewType === '3x' ? (
               <>
-                <div className="card-date-section">
-                  <span className={dateClass}>
-                    {formatDate(ad.createdAt || ad.date)}
-                  </span>
+                <div className="card-description-section">
+                  <div className="card-description-footer-3x">
+                    {ad.description}
+                  </div>
                 </div>
                 <div className="card-bottom-section">
                   <div className={actionsClass}>
@@ -265,20 +265,15 @@ export const AdCard: React.FC<AdCardProps> = ({
                       <>
                         {onEdit && (
                           <button className="action-btn edit" onClick={() => onEdit(ad)}>
-                            <FontAwesomeIcon icon={faEdit} />
-                            <span>EDITAR</span>
                           </button>
                         )}
                         {(onApprove || onPublish) && (
                           <button className="action-btn publish" onClick={() => onApprove ? onApprove(ad) : onPublish ? onPublish(ad) : undefined}>
-                            <FontAwesomeIcon icon={faCheck} />
                             <span>PUBLICAR</span>
                           </button>
                         )}
                         {(onReject || onDelete) && (
                           <button className="action-btn delete" onClick={() => onReject ? onReject(ad) : onDelete ? onDelete(ad) : undefined}>
-                            <FontAwesomeIcon icon={faTimes} />
-                            <span>EXCLUIR</span>
                           </button>
                         )}
                       </>
@@ -288,8 +283,6 @@ export const AdCard: React.FC<AdCardProps> = ({
                           // Published ads: only show delete button
                           onDelete && (
                             <button className="action-btn delete" onClick={() => onDelete(ad)}>
-                              <FontAwesomeIcon icon={faTrash} />
-                              <span>EXCLUIR</span>
                             </button>
                           )
                         ) : (
@@ -297,13 +290,10 @@ export const AdCard: React.FC<AdCardProps> = ({
                           <>
                             {onEdit && (
                               <button className="action-btn edit" onClick={() => onEdit(ad)}>
-                                <FontAwesomeIcon icon={faEdit} />
-                                <span>EDITAR</span>
                               </button>
                             )}
                             {onPublish && (
                               <button className="action-btn publish" onClick={() => onPublish(ad)}>
-                                <FontAwesomeIcon icon={faEye} />
                                 <span>PUBLICAR</span>
                               </button>
                             )}

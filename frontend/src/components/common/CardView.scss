@@ -1339,21 +1339,26 @@
     border-top: none;
     flex-shrink: 0; // Prevent footer from shrinking
 
-    .card-date-section {
+    .card-description-section {
       padding: 0.5rem 0.7rem;
       background: rgba(255, 255, 255, 0.7);
       border-top: 1px solid rgba(203, 213, 224, 0.3);
       
-      .card-date-3x {
-        font-size: 0.75rem;
-        color: #2d3748;
-        font-weight: 700;
-        text-align: center;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      .card-description-footer-3x {
+        font-size: 0.65rem;
+        color: #4a5568;
+        line-height: 1.4;
+        text-align: left;
         background: linear-gradient(135deg, #fff, #f8f9fa);
         padding: 0.4rem 0.6rem;
         border-radius: 8px;
         border: 1px solid rgba(203, 213, 224, 0.4);
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        max-height: 2.4rem;
       }
     }
 
@@ -1368,45 +1373,40 @@
 
       .card-actions-3x {
         display: flex;
-        gap: 0.8rem; // Increased gap to prevent hover conflicts
+        gap: 0.6rem;
         justify-content: center;
         align-items: center;
-        flex-wrap: wrap;
-        padding: 0.2rem; // Add padding to create separation
+        padding: 0.2rem;
 
         .action-btn {
-          padding: 0.8rem 1.2rem;
+          padding: 0.6rem;
           border: none;
-          border-radius: 12px;
-          font-size: 0.75rem;
-          font-weight: 700;
+          border-radius: 8px;
+          font-size: 0.85rem;
+          font-weight: 600;
           cursor: pointer;
           transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
           color: white;
           display: flex;
           align-items: center;
           justify-content: center;
-          min-width: 65px; // Increased minimum width for better separation
-          min-height: 40px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+          min-width: 36px;
+          min-height: 36px;
+          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
           position: relative;
           z-index: 10;
-          text-transform: uppercase;
-          letter-spacing: 0.8px;
           text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-          isolation: isolate; // Create new stacking context to prevent conflicts
-          pointer-events: auto; // Ensure button can receive events
+          isolation: isolate;
+          pointer-events: auto;
           
-          // Prevent hover bleeding to adjacent buttons
           &::after {
             content: '';
             position: absolute;
-            inset: -2px; // Create invisible boundary
+            inset: -2px;
             pointer-events: none;
             z-index: -1;
           }
 
-          // Add shimmer effect
           &::before {
             content: '';
             position: absolute;
@@ -1416,61 +1416,76 @@
             height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
             transition: left 0.5s;
-            pointer-events: none; // Prevent interaction with shimmer
+            pointer-events: none;
           }
 
           &:hover::before {
             left: 100%;
           }
 
-          span {
-            margin-left: 4px;
-            font-size: 0.7rem;
-            white-space: nowrap;
-            font-weight: 600;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-            pointer-events: none; // Prevent span from interfering with button events
-          }
-
           &:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
-            z-index: 20; // Bring hovered button to front
+            transform: translateY(-2px) scale(1.1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+            z-index: 20;
           }
 
+          // Edit button - pencil icon
           &.edit {
             background: linear-gradient(135deg, #17a2b8, #138496);
             border: 2px solid rgba(255, 255, 255, 0.3);
-            margin-right: 2px; // Add small margin to create clear separation
+
+            &::after {
+              content: '✏️';
+              font-size: 0.9rem;
+            }
 
             &:hover {
               background: linear-gradient(135deg, #138496, #117a8b);
-              box-shadow: 0 8px 20px rgba(23, 162, 184, 0.6);
-              z-index: 25; // Higher z-index for edit button when hovered
+              box-shadow: 0 6px 16px rgba(23, 162, 184, 0.6);
             }
           }
 
+          // Delete button - X icon
           &.delete {
             background: linear-gradient(135deg, #dc3545, #c82333);
             border: 2px solid rgba(255, 255, 255, 0.3);
-            margin: 0 2px; // Add margin on both sides
+
+            &::after {
+              content: '✕';
+              font-size: 1rem;
+              font-weight: bold;
+            }
 
             &:hover {
               background: linear-gradient(135deg, #c82333, #bd2130);
-              box-shadow: 0 8px 20px rgba(220, 53, 69, 0.6);
-              z-index: 25; // Higher z-index for delete button when hovered
+              box-shadow: 0 6px 16px rgba(220, 53, 69, 0.6);
             }
           }
 
+          // Publish button - with text and icon
           &.publish {
             background: linear-gradient(135deg, #28a745, #20c997);
             border: 2px solid rgba(255, 255, 255, 0.3);
-            margin-left: 2px; // Add small margin to create clear separation
+            padding: 0.6rem 1rem;
+            min-width: 90px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            gap: 0.3rem;
+
+            &::before {
+              content: '📢';
+              font-size: 0.8rem;
+            }
+
+            span {
+              font-weight: 700;
+              pointer-events: none;
+            }
 
             &:hover {
               background: linear-gradient(135deg, #20c997, #1e7e34);
-              box-shadow: 0 8px 20px rgba(40, 167, 69, 0.6);
-              z-index: 25; // Higher z-index for publish button when hovered
+              box-shadow: 0 6px 16px rgba(40, 167, 69, 0.6);
             }
           }
         }
