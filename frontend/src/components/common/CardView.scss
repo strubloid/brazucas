@@ -141,6 +141,39 @@
   }
 }
 
+// Pulsing glow for pending status
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 
+      0 4px 15px rgba(253, 126, 20, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 6px 25px rgba(253, 126, 20, 0.8),
+      0 0 20px rgba(253, 126, 20, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  100% {
+    box-shadow: 
+      0 4px 15px rgba(253, 126, 20, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+}
+
+// Animated border shine effect
+@keyframes borderShine {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 // Enhanced grid layout for 3x cards to prevent overflow
 .three-x-grid {
   display: grid;
@@ -261,20 +294,40 @@
     flex-direction: column;
     color: #2d3748;
 
-    // MTG-style top section with rounded corners - HORIZONTAL LAYOUT
+    // MTG-style top section with rounded corners - ENHANCED HORIZONTAL LAYOUT
     .card-header {
-      background: var(--header-bg, linear-gradient(135deg, #ffd700, #ffecb3));
+      background: var(--header-bg, linear-gradient(135deg, #ffd700 0%, #ffecb3 50%, #ffc107 100%));
       border-radius: 17px 17px 0 0;
-      padding: 0.5rem 0.8rem; // Better padding for horizontal layout
+      padding: 0.6rem 1rem;
       position: relative;
       border-bottom: 3px solid var(--header-border, #d4a574);
       display: flex;
-      flex-direction: row; // Changed to horizontal layout
-      justify-content: space-between; // Space between status and date
+      flex-direction: row;
+      justify-content: space-between;
       align-items: center;
-      gap: 0.5rem; // Good gap between status and date
-      max-height: 50px; // Smaller height since horizontal
-      min-height: 46px; // Minimum for content
+      gap: 0.8rem;
+      max-height: 50px;
+      min-height: 46px;
+      overflow: hidden;
+      
+      // Enhanced gradient overlay for depth
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          135deg, 
+          rgba(255, 255, 255, 0.3) 0%, 
+          transparent 30%, 
+          transparent 70%, 
+          rgba(0, 0, 0, 0.1) 100%
+        );
+        pointer-events: none;
+        z-index: 1;
+      }
       
       &::after {
         content: '';
@@ -283,49 +336,121 @@
         left: 0;
         right: 0;
         height: 3px;
-        background: var(--header-accent, linear-gradient(90deg, #8b4513, #d4a574, #8b4513));
+        background: var(--header-accent, linear-gradient(90deg, #8b4513, #d4a574, #ffd700, #d4a574, #8b4513));
+        box-shadow: 0 1px 3px rgba(139, 69, 19, 0.3);
       }
 
       .card-header-content {
         display: flex;
-        justify-content: flex-start; // Center the status badge
+        justify-content: flex-start;
         align-items: center;
-        width: 100%;
+        position: relative;
+        z-index: 2;
 
         .status-badge {
-          padding: 0.25rem 0.6rem; // Much smaller padding
-          border-radius: 4px; // Smaller radius
-          font-size: 0.6rem; // Smaller font
-          font-weight: 700; // Reduced weight
+          padding: 0.35rem 0.8rem;
+          border-radius: 20px;
+          font-size: 0.65rem;
+          font-weight: 800;
           text-transform: uppercase;
-          letter-spacing: 0.3px; // Less spacing
+          letter-spacing: 0.8px;
           color: white;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); // Smaller shadow
-          backdrop-filter: blur(4px); // Less blur
-          border: 1px solid rgba(255, 255, 255, 0.2); // Thinner border
+          position: relative;
+          overflow: hidden;
+          backdrop-filter: blur(10px);
+          border: 2px solid rgba(255, 255, 255, 0.4);
           text-align: center;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          min-width: 60px; // Smaller minimum width
+          min-width: 75px;
+          transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          transform: translateZ(0);
+          
+          // Animated gradient background
+          &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+              90deg,
+              transparent,
+              rgba(255, 255, 255, 0.4),
+              transparent
+            );
+            transition: left 0.6s ease;
+            z-index: -1;
+          }
+          
+          &:hover::before {
+            left: 100%;
+          }
+          
+          // Enhanced glow effect
+          &::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: inherit;
+            filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -2;
+          }
+          
+          &:hover::after {
+            opacity: 0.6;
+          }
 
           &.published {
-            background: rgba(40, 167, 69, 0.15);
-            color: #28a745;
-            // text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            background: linear-gradient(135deg, #28a745 0%, #20c997 50%, #17a2b8 100%);
+            box-shadow: 
+              0 4px 15px rgba(40, 167, 69, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+            
+            &:hover {
+              transform: translateY(-2px) scale(1.05);
+              box-shadow: 
+                0 8px 25px rgba(40, 167, 69, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            }
           }
 
           &.draft {
-            background: rgba(108, 117, 125, 0.15);
-            color: #6c757d;
-            // text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            background: linear-gradient(135deg, #6c757d 0%, #495057 50%, #343a40 100%);
+            box-shadow: 
+              0 4px 15px rgba(108, 117, 125, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+            
+            &:hover {
+              transform: translateY(-2px) scale(1.05);
+              box-shadow: 
+                0 8px 25px rgba(108, 117, 125, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            }
           }
 
           &.pending {
-            background: rgba(253, 126, 20, 0.15);
-            color: #fd7e14;
-            // text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-            font-weight: 900; // Extra emphasis for pending status
+            background: linear-gradient(135deg, #fd7e14 0%, #ff6b35 50%, #e74c3c 100%);
+            box-shadow: 
+              0 4px 15px rgba(253, 126, 20, 0.5),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+            font-weight: 900;
+            animation: pulseGlow 2s ease-in-out infinite alternate;
+            
+            &:hover {
+              transform: translateY(-2px) scale(1.05);
+              box-shadow: 
+                0 8px 25px rgba(253, 126, 20, 0.7),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            }
           }
         }
 
@@ -349,20 +474,71 @@
         }
       }
 
-      // Compact date below status badge
+      // Enhanced date element with premium styling
       .card-header-date {
-        font-size: 0.7rem; // Much smaller text
+        font-size: 0.7rem;
         color: #2d3748;
-        font-weight: 500; // Lighter weight
-        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1); // Lighter shadow
-        background: rgba(255, 255, 255, 0.7); // More transparent
-        padding: 0.15rem 0.4rem; // Much smaller padding
-        border-radius: 4px; // Smaller radius
-        backdrop-filter: blur(3px); // Less blur
+        font-weight: 600;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        position: relative;
+        z-index: 2;
+        
+        // Premium glass morphism effect
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.9) 0%,
+          rgba(255, 255, 255, 0.7) 100%
+        );
+        padding: 0.3rem 0.8rem;
+        border-radius: 25px;
+        backdrop-filter: blur(15px) saturate(180%);
         text-align: center;
-        border: 1px solid rgba(139, 69, 19, 0.2); // Thinner border
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); // Smaller shadow
-        line-height: 1.2; // Tighter line height
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        box-shadow: 
+          0 8px 32px rgba(139, 69, 19, 0.15),
+          inset 0 1px 0 rgba(255, 255, 255, 0.8),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        line-height: 1.2;
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        transform: translateZ(0);
+        
+        // Subtle animated border
+        &::before {
+          content: '';
+          position: absolute;
+          inset: -1px;
+          border-radius: inherit;
+          background: linear-gradient(
+            45deg,
+            transparent,
+            rgba(139, 69, 19, 0.3),
+            transparent,
+            rgba(212, 165, 116, 0.4),
+            transparent
+          );
+          background-size: 300% 300%;
+          animation: borderShine 3s ease-in-out infinite;
+          z-index: -1;
+          opacity: 0.7;
+        }
+        
+        // Hover effects
+        &:hover {
+          transform: translateY(-1px) scale(1.02);
+          box-shadow: 
+            0 12px 40px rgba(139, 69, 19, 0.25),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+          background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.95) 0%,
+            rgba(255, 255, 255, 0.8) 100%
+          );
+        }
+        
+        // Text enhancement
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+        letter-spacing: 0.5px;
       }
 
       .status-badges{
@@ -651,6 +827,37 @@
     height: 420px;
 
     .pokemon-card-front {
+      .card-header {
+        padding: 0.4rem 0.7rem;
+        max-height: 45px;
+        min-height: 42px;
+        
+        .card-header-content {
+          .status-badge {
+            padding: 0.25rem 0.6rem;
+            font-size: 0.55rem;
+            letter-spacing: 0.5px;
+            border-radius: 15px;
+            min-width: 65px;
+            
+            // Maintain animations on mobile but lighter
+            &.pending {
+              animation: pulseGlow 3s ease-in-out infinite alternate;
+            }
+          }
+        }
+        
+        .card-header-date {
+          font-size: 0.6rem;
+          padding: 0.2rem 0.6rem;
+          border-radius: 20px;
+          letter-spacing: 0.3px;
+          
+          &::before {
+            animation-duration: 4s; // Slower animation on mobile
+          }
+        }
+      }
       .card-content {
         .card-image {
           height: 200px;
@@ -757,55 +964,46 @@
 
     .pokemon-card-front {
       .card-header {
-        padding: 0.25rem 0.4rem; // Ultra compact for tiny screens
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.1rem; // Minimal gap
-        max-height: 45px; // Even smaller for tiny screens
-        min-height: 42px; // Minimal height
+        padding: 0.3rem 0.5rem;
+        flex-direction: row; // Keep horizontal on mobile
+        justify-content: space-between;
+        max-height: 40px;
+        min-height: 38px;
+        gap: 0.4rem;
         
         .card-header-content {
           .status-badge {
-            padding: 0.15rem 0.35rem; // Ultra tiny for smallest screens
-            font-size: 0.45rem; // Smallest readable font
-            backdrop-filter: blur(2px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 4px; // Tiny radius
-            font-weight: 600;
-            letter-spacing: 0.1px;
-
-            &.published {
-              background: rgba(40, 167, 69, 0.15);
-              color: #28a745;
-              text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-            }
-
-            &.draft {
-              background: rgba(108, 117, 125, 0.15);
-              color: #6c757d;
-              text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-            }
-
+            padding: 0.2rem 0.5rem;
+            font-size: 0.5rem;
+            letter-spacing: 0.3px;
+            border-radius: 12px;
+            min-width: 55px;
+            backdrop-filter: blur(8px);
+            
+            // Simpler animations for tiny screens
             &.pending {
-              background: rgba(253, 126, 20, 0.15);
-              color: #fd7e14;
-              text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+              animation: pulseGlow 4s ease-in-out infinite alternate;
             }
-          }
-          
-          .publish-button {
-            padding: 0.25rem 0.5rem; // Smaller button
-            font-size: 0.5rem; // Smaller font
+            
+            &:hover {
+              transform: scale(1.02); // Subtle hover only
+            }
           }
         }
 
-        // Ultra compact date for tiny screens
         .card-header-date {
-          font-size: 0.45rem; // Smallest readable size
-          padding: 0.08rem 0.25rem; // Minimal padding
-          border-radius: 3px; // Tiny radius
-          line-height: 1.1; // Tight line height
+          font-size: 0.5rem;
+          padding: 0.15rem 0.4rem;
+          border-radius: 15px;
+          letter-spacing: 0.2px;
+          
+          &::before {
+            display: none; // Remove complex animations on tiny screens
+          }
+          
+          &:hover {
+            transform: scale(1.02);
+          }
         }
       }
       
