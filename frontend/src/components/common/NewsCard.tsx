@@ -171,7 +171,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({
       <div className="pokemon-card-inner">
         <div className="pokemon-card-front">
           <div className={headerClass}>
-            <div className={badgesClass}>
+            <div className="card-header-content">
               {isPending ? (
                 <>
                   <span className="status-badge pending">POST PENDENTE</span>
@@ -182,6 +182,10 @@ export const NewsCard: React.FC<NewsCardProps> = ({
                   {StatusManager.getStatusLabel(newsStatus)}
                 </span>
               )}
+            </div>
+            {/* Add date in header like AdCard */}
+            <div className="card-header-date">
+              {formatDate(post.createdAt)}
             </div>
           </div>
           
@@ -266,9 +270,6 @@ export const NewsCard: React.FC<NewsCardProps> = ({
               </>
             ) : (
               <>
-                <span className={dateClass}>
-                  {formatDate(post.createdAt)}
-                </span>
                 <div className={actionsClass}>
                   {isActuallyPending ? (
                     // Pending posts: show edit, approve/publish, and reject buttons
