@@ -222,26 +222,6 @@ const CardView: React.FC<CardViewProps> = ({
   };
 
   const visibleItems = getVisibleItems();
-  
-  // Debug logging with more context
-  console.log('CardView Debug:', {
-    itemsLength: items.length,
-    currentIndex,
-    effectiveCurrentIndex,
-    cardsPerPage,
-    animationState,
-    visibleItemsCount: visibleItems.length,
-    visibleItems: visibleItems.map(item => ({ 
-      index: item.index, 
-      hasItem: !!item.item,
-      itemTitle: item.item?.title || 'No title'
-    })),
-    itemsPreview: items.slice(0, 3).map((item, idx) => ({
-      index: idx,
-      title: item?.title || 'No title',
-      hasContent: !!item
-    }))
-  });
 
   return (
     <div className={`pokemon-carousel ${className}`} ref={containerRef}>

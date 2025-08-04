@@ -46,20 +46,21 @@
 
   .cards-container {
     position: relative;
-    height: auto;
+    height: 480px; // Fixed height to contain absolutely positioned cards
+    width: 100%;
     padding: 0 40px;
     display: flex;
     justify-content: center;
-    align-items: stretch;
-    gap: 20px;
-    flex-wrap: wrap;
+    align-items: center;
     overflow: visible; // FIXED: Allow cards to show fully on hover
     
     .card-wrapper {
-      position: relative;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
       opacity: 0;
       visibility: hidden;
-      transform: perspective(1000px) rotateY(-90deg) translateX(100px);
       transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       flex: 0 0 auto;
       transform-style: preserve-3d;
@@ -70,30 +71,33 @@
       &:first-child {
         opacity: 1;
         visibility: visible;
-        transform: perspective(1000px) rotateY(0deg) translateX(0);
+        transform: translateX(-50%) perspective(1000px) rotateY(0deg);
       }
       
       &.active {
         opacity: 1 !important;
         visibility: visible !important;
-        transform: perspective(1000px) rotateY(0deg) translateX(0) !important;
+        transform: translateX(-50%) perspective(1000px) rotateY(0deg) !important;
         z-index: 2;
-        
-        // Enhanced entrance animation
-        animation: cardFlipIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        position: absolute;
+        top: 0;
+        left: 50%;
       }
       
       &.visible {
         opacity: 0.9 !important;
         visibility: visible !important;
-        transform: perspective(1000px) rotateY(0deg) translateX(0) !important;
+        transform: translateX(-50%) perspective(1000px) rotateY(0deg) !important;
         z-index: 1;
+        position: absolute;
+        top: 0;
+        left: 50%;
       }
       
       &.hidden {
         opacity: 0;
         visibility: hidden;
-        transform: perspective(1000px) rotateY(-90deg) translateX(100px);
+        transform: translateX(-50%) perspective(1000px) rotateY(-90deg) translateX(200px);
         z-index: 0;
       }
       
@@ -110,7 +114,10 @@
       &.entering-right {
         opacity: 0;
         visibility: visible;
-        transform: perspective(1000px) rotateY(-90deg) translateX(100px);
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%) perspective(1000px) rotateY(-90deg) translateX(100px);
         animation: cardFlipIn 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
         z-index: 3;
       }
@@ -119,7 +126,10 @@
       &.entering-left {
         opacity: 0;
         visibility: visible;
-        transform: perspective(1000px) rotateY(90deg) translateX(-100px);
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%) perspective(1000px) rotateY(90deg) translateX(-100px);
         animation: cardFlipInLeft 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
         z-index: 3;
       }
@@ -128,7 +138,10 @@
       &.exiting-right {
         opacity: 1;
         visibility: visible;
-        transform: perspective(1000px) rotateY(0deg) translateX(0);
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%) perspective(1000px) rotateY(0deg);
         animation: cardFlipOutRight 0.5s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
         z-index: 1;
       }
@@ -137,7 +150,10 @@
       &.exiting-left {
         opacity: 1;
         visibility: visible;
-        transform: perspective(1000px) rotateY(0deg) translateX(0);
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%) perspective(1000px) rotateY(0deg);
         animation: cardFlipOut 0.5s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
         z-index: 1;
       }
@@ -258,83 +274,83 @@
   }
 }
 
-// Card flip in animation (for entering cards) - BEAUTIFUL VERSION
+// Card flip in animation (for entering cards from RIGHT) - BEAUTIFUL VERSION
 @keyframes cardFlipIn {
   0% {
     opacity: 0;
-    transform: perspective(1000px) rotateY(-90deg) translateX(100px) scale(0.8);
+    transform: translateX(-50%) perspective(1000px) rotateY(-90deg) translateX(200px) scale(0.8);
   }
   30% {
     opacity: 0.3;
-    transform: perspective(1000px) rotateY(-60deg) translateX(75px) scale(0.85);
+    transform: translateX(-50%) perspective(1000px) rotateY(-60deg) translateX(150px) scale(0.85);
   }
   60% {
     opacity: 0.7;
-    transform: perspective(1000px) rotateY(-30deg) translateX(25px) scale(0.95);
+    transform: translateX(-50%) perspective(1000px) rotateY(-30deg) translateX(50px) scale(0.95);
   }
   100% {
     opacity: 1;
-    transform: perspective(1000px) rotateY(0deg) translateX(0) scale(1);
+    transform: translateX(-50%) perspective(1000px) rotateY(0deg) translateX(0) scale(1);
   }
 }
 
-// Card flip in from left (for previous navigation) - BEAUTIFUL VERSION
+// Card flip in from left (for previous navigation from LEFT) - BEAUTIFUL VERSION
 @keyframes cardFlipInLeft {
   0% {
     opacity: 0;
-    transform: perspective(1000px) rotateY(90deg) translateX(-100px) scale(0.8);
+    transform: translateX(-50%) perspective(1000px) rotateY(90deg) translateX(-200px) scale(0.8);
   }
   30% {
     opacity: 0.3;
-    transform: perspective(1000px) rotateY(60deg) translateX(-75px) scale(0.85);
+    transform: translateX(-50%) perspective(1000px) rotateY(60deg) translateX(-150px) scale(0.85);
   }
   60% {
     opacity: 0.7;
-    transform: perspective(1000px) rotateY(30deg) translateX(-25px) scale(0.95);
+    transform: translateX(-50%) perspective(1000px) rotateY(30deg) translateX(-50px) scale(0.95);
   }
   100% {
     opacity: 1;
-    transform: perspective(1000px) rotateY(0deg) translateX(0) scale(1);
+    transform: translateX(-50%) perspective(1000px) rotateY(0deg) translateX(0) scale(1);
   }
 }
 
-// Card flip out animation (for exiting cards to left) - BEAUTIFUL VERSION
+// Card flip out animation (for exiting cards to LEFT) - BEAUTIFUL VERSION
 @keyframes cardFlipOut {
   0% {
     opacity: 1;
-    transform: perspective(1000px) rotateY(0deg) translateX(0) scale(1);
+    transform: translateX(-50%) perspective(1000px) rotateY(0deg) translateX(0) scale(1);
   }
   40% {
     opacity: 0.7;
-    transform: perspective(1000px) rotateY(30deg) translateX(-25px) scale(0.95);
+    transform: translateX(-50%) perspective(1000px) rotateY(30deg) translateX(-50px) scale(0.95);
   }
   70% {
     opacity: 0.3;
-    transform: perspective(1000px) rotateY(60deg) translateX(-75px) scale(0.85);
+    transform: translateX(-50%) perspective(1000px) rotateY(60deg) translateX(-150px) scale(0.85);
   }
   100% {
     opacity: 0;
-    transform: perspective(1000px) rotateY(90deg) translateX(-100px) scale(0.8);
+    transform: translateX(-50%) perspective(1000px) rotateY(90deg) translateX(-200px) scale(0.8);
   }
 }
 
-// Card flip out to right (for exiting cards to right) - BEAUTIFUL VERSION
+// Card flip out to right (for exiting cards to RIGHT) - BEAUTIFUL VERSION
 @keyframes cardFlipOutRight {
   0% {
     opacity: 1;
-    transform: perspective(1000px) rotateY(0deg) translateX(0) scale(1);
+    transform: translateX(-50%) perspective(1000px) rotateY(0deg) translateX(0) scale(1);
   }
   40% {
     opacity: 0.7;
-    transform: perspective(1000px) rotateY(-30deg) translateX(25px) scale(0.95);
+    transform: translateX(-50%) perspective(1000px) rotateY(-30deg) translateX(50px) scale(0.95);
   }
   70% {
     opacity: 0.3;
-    transform: perspective(1000px) rotateY(-60deg) translateX(75px) scale(0.85);
+    transform: translateX(-50%) perspective(1000px) rotateY(-60deg) translateX(150px) scale(0.85);
   }
   100% {
     opacity: 0;
-    transform: perspective(1000px) rotateY(-90deg) translateX(100px) scale(0.8);
+    transform: translateX(-50%) perspective(1000px) rotateY(-90deg) translateX(200px) scale(0.8);
   }
 }
 
