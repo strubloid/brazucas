@@ -76,7 +76,7 @@ INSERT INTO status_contexts (name, display_name, description) VALUES
 -- Previously archived content should now use "rejected" status instead.
 INSERT INTO status_definitions (code, display_name, description, color_background, color_border, color_text, color_header_bg, sort_order) VALUES
 -- Draft statuses
-('draft', 'Rascunho', 'Conteúdo em elaboração', 'rgba(156, 163, 175, 0.15)', '#9ca3af', '#374151', 'rgba(156, 163, 175, 0.1)', 1),
+('draft', 'Rascunho', 'Conteúdo em elaboração', 'rgba(156, 163, 175, 0.15)', '#9ca3af', '#000000', 'rgba(156, 163, 175, 0.1)', 1),
 
 -- Pending statuses
 ('pending_approval', 'Aguardando Aprovação', 'Aguardando aprovação administrativa', 'rgba(251, 146, 60, 0.15)', '#fb923c', '#c2410c', 'rgba(251, 146, 60, 0.1)', 2),

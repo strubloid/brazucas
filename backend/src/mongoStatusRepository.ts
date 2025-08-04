@@ -27,7 +27,7 @@ export class MongoStatusSystemRepository {
           description: 'Conteúdo em elaboração',
           colorBackground: 'rgba(156, 163, 175, 0.15)',
           colorBorder: '#9ca3af',
-          colorText: '#374151',
+          colorText: '#787893',
           colorHeaderBg: 'rgba(156, 163, 175, 0.1)',
           sortOrder: 1,
           isActive: true,

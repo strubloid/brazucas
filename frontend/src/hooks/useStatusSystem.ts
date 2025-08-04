@@ -99,7 +99,7 @@ export const useStatusSystem = (
         colors: {
           background: 'rgba(107, 114, 128, 0.15)',
           border: '#6b7280',
-          text: '#374151',
+          text: '#787893',
           headerBg: 'rgba(107, 114, 128, 0.1)'
         },
         isDefault: true,

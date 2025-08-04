@@ -51,7 +51,7 @@ export const STATUS_COLORS: Record<string, StatusColor> = {
   draft: {
     background: 'rgba(107, 114, 128, 0.15)',
     border: '#6b7280',
-    text: '#374151',
+    text: '#787893',
     headerBackground: 'rgba(107, 114, 128, 0.1)'
   },
   
