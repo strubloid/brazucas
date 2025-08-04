@@ -208,7 +208,6 @@ export const EnhancedStatusFilter: React.FC<EnhancedStatusFilterProps> = ({
                     )}
                     <div className="status-badge">
                     <span className="status-name">{status.displayName}</span>
-                    {isDefault && <span className="default-indicator">*</span>}
                     </div>
                 </div>
                 </button>

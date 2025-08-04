@@ -79,8 +79,7 @@ INSERT INTO status_definitions (code, display_name, description, color_backgroun
 ('draft', 'Rascunho', 'Conteúdo em elaboração', 'rgba(156, 163, 175, 0.15)', '#9ca3af', '#374151', 'rgba(156, 163, 175, 0.1)', 1),
 
 -- Pending statuses
-('pending', 'Pendente', 'Aguardando aprovação', 'rgba(251, 146, 60, 0.15)', '#fb923c', '#c2410c', 'rgba(251, 146, 60, 0.1)', 2),
-('pending_approval', 'Pendente Aprovação', 'Aguardando aprovação administrativa', 'rgba(251, 146, 60, 0.15)', '#fb923c', '#c2410c', 'rgba(251, 146, 60, 0.1)', 3),
+('pending_approval', 'Aguardando Aprovação', 'Aguardando aprovação administrativa', 'rgba(251, 146, 60, 0.15)', '#fb923c', '#c2410c', 'rgba(251, 146, 60, 0.1)', 2),
 
 -- Approved/Published statuses
 ('approved', 'Aprovado', 'Conteúdo aprovado mas não publicado', 'rgba(34, 197, 94, 0.15)', '#22c55e', '#166534', 'rgba(34, 197, 94, 0.1)', 4),

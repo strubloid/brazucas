@@ -35,7 +35,7 @@ export class MongoStatusSystemRepository {
         },
         {
           code: 'pending_approval',
-          displayName: 'Pendente Aprovação',
+          displayName: 'Aguardando Aprovação',
           description: 'Aguardando aprovação administrativa',
           colorBackground: 'rgba(251, 146, 60, 0.15)',
           colorBorder: '#fb923c',

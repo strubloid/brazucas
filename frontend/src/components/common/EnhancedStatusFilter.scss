@@ -156,16 +156,6 @@
 
       &.default {
         position: relative;
-        &::before {
-          content: '';
-          position: absolute;
-          top: 4px;
-          right: 4px;
-          width: 6px;
-          height: 6px;
-          background: #f59e0b;
-          border-radius: 50%;
-        }
       }
 
       .status-indicator {
@@ -212,18 +202,11 @@
           text-overflow: ellipsis;
 
           .status-name {
-            color: var(--status-text, #e5e7eb);
+            color: var(--status-text, #e6ebe5);
             font-weight: 500;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-          }
-
-          .default-indicator {
-            color: #f59e0b;
-            font-weight: bold;
-            font-size: 12px;
-            flex-shrink: 0;
           }
         }
       }

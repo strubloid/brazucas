@@ -83,7 +83,7 @@ export const STATUS_COLORS: Record<string, StatusColor> = {
 // Status display names
 export const STATUS_LABELS: Record<string, string> = {
   draft: 'Rascunho',
-  pending: 'Pendente',
+  pending_approval: 'Aguardando Aprovação',
   published: 'Publicado',
   approved: 'Aprovado',
   rejected: 'Rejeitado', 

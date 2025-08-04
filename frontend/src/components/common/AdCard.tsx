@@ -84,7 +84,6 @@ export const AdCard: React.FC<AdCardProps> = ({
             {isPending ? (
               <>
                 <span className="status-badge pending">ANÚNCIO PENDENTE</span>
-                <span className="status-badge draft"> AGUARDANDO APROVAÇÃO</span>
               </>
             ) : (
               <span className={`status-badge ${adStatus}`}>
@@ -208,7 +207,6 @@ export const AdCard: React.FC<AdCardProps> = ({
               {isPending ? (
                 <>
                   <span className="status-badge pending">ANÚNCIO PENDENTE</span>
-                  <span className="status-badge draft"> AGUARDANDO APROVAÇÃO</span>
                 </>
               ) : (
                 <span className={`status-badge ${adStatus}`}>

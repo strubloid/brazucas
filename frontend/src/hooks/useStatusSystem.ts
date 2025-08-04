@@ -107,7 +107,7 @@ export const useStatusSystem = (
       },
       pending_approval: {
         code: 'pending_approval',
-        displayName: 'Pendente Aprovação',
+        displayName: 'Aguardando Aprovação',
         colors: {
           background: 'rgba(251, 146, 60, 0.15)',
           border: '#fb923c',
