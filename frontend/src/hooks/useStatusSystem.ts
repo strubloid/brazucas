@@ -164,10 +164,9 @@ export const useStatusSystem = (
         baseStatuses.rejected
       ];
     } else if (ctx.context === 'approval') {
+      // Only show "Pendente Aprovação" for approval screens
       return [
-        { ...baseStatuses.pending_approval, isDefault: true },
-        baseStatuses.approved,
-        baseStatuses.rejected
+        { ...baseStatuses.pending_approval, isDefault: true }
       ];
     } else {
       return [baseStatuses.published];

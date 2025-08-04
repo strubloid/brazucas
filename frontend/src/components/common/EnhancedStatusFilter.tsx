@@ -128,6 +128,11 @@ export const EnhancedStatusFilter: React.FC<EnhancedStatusFilterProps> = ({
     );
   }
 
+  // Hide the filter completely when there's only one status available in approval screens
+  if (context.context === 'approval' && availableStatuses.length <= 1) {
+    return null;
+  }
+
   const selectedCount = selectedStatuses.length;
   const totalCount = availableStatuses.length;
 

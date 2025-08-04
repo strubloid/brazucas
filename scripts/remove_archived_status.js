@@ -1,6 +1,8 @@
 // Script to remove "archived" status from the database
 // Run this script with: node remove_archived_status.js
 
+
+// TODO: make this script being a part of the 001_create_initial_statuses.js migration
 const { MongoClient } = require('mongodb');
 require('dotenv').config({ path: '../.env' });
 
