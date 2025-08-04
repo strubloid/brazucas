@@ -231,27 +231,23 @@ export const NewsCard: React.FC<NewsCardProps> = ({
                           </button>
                         )}
                       </>
+                    ) : isPublished ? (
+                      // Published posts: only show delete button
+                      onDelete && (
+                        <button className="action-btn delete" onClick={() => onDelete(post)}>
+                        </button>
+                      )
                     ) : (
+                      // Draft posts: show edit and publish buttons
                       <>
-                        {isPublished ? (
-                          // Published posts: only show delete button
-                          onDelete && (
-                            <button className="action-btn delete" onClick={() => onDelete(post)}>
-                            </button>
-                          )
-                        ) : (
-                          // Draft posts: show edit and publish buttons
-                          <>
-                            {onEdit && (
-                              <button className="action-btn edit" onClick={() => onEdit(post)}>
-                              </button>
-                            )}
-                            {onPublish && (
-                              <button className="action-btn publish" onClick={() => onPublish(post)}>
-                                <span>PUBLICAR</span>
-                              </button>
-                            )}
-                          </>
+                        {onEdit && (
+                          <button className="action-btn edit" onClick={() => onEdit(post)}>
+                          </button>
+                        )}
+                        {onPublish && (
+                          <button className="action-btn publish" onClick={() => onPublish(post)}>
+                            <span>PUBLICAR</span>
+                          </button>
                         )}
                       </>
                     )}

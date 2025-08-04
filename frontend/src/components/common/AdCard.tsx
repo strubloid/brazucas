@@ -277,27 +277,23 @@ export const AdCard: React.FC<AdCardProps> = ({
                           </button>
                         )}
                       </>
+                    ) : isPublished ? (
+                      // Published ads: only show delete button
+                      onDelete && (
+                        <button className="action-btn delete" onClick={() => onDelete(ad)}>
+                        </button>
+                      )
                     ) : (
+                      // Draft ads: show edit and publish buttons
                       <>
-                        {isPublished ? (
-                          // Published ads: only show delete button
-                          onDelete && (
-                            <button className="action-btn delete" onClick={() => onDelete(ad)}>
-                            </button>
-                          )
-                        ) : (
-                          // Draft ads: show edit and publish buttons
-                          <>
-                            {onEdit && (
-                              <button className="action-btn edit" onClick={() => onEdit(ad)}>
-                              </button>
-                            )}
-                            {onPublish && (
-                              <button className="action-btn publish" onClick={() => onPublish(ad)}>
-                                <span>PUBLICAR</span>
-                              </button>
-                            )}
-                          </>
+                        {onEdit && (
+                          <button className="action-btn edit" onClick={() => onEdit(ad)}>
+                          </button>
+                        )}
+                        {onPublish && (
+                          <button className="action-btn publish" onClick={() => onPublish(ad)}>
+                            <span>PUBLICAR</span>
+                          </button>
                         )}
                       </>
                     )}
