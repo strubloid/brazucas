@@ -30,148 +30,89 @@ const CardView: React.FC<CardViewProps> = ({
   className = '',
   cardsPerPage = 3 // Default to 3 cards
 }) => {
-  const [transitionDirection, setTransitionDirection] = useState<TransitionDirection>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [previousIndex, setPreviousIndex] = useState(currentIndex);
+  // Simplified state management - MUST be before any early returns
+  const [animationState, setAnimationState] = useState<{
+    isAnimating: boolean;
+    direction: 'next' | 'prev' | null;
+    fromIndex: number | null;
+    toIndex: number;
+  }>({
+    isAnimating: false,
+    direction: null,
+    fromIndex: null,
+    toIndex: currentIndex
+  });
+  
+  const [lastClickTime, setLastClickTime] = useState(0);
 
-  // Safety mechanism to reset stuck transitions
+  // Ensure currentIndex is valid and provide fallback
+  const effectiveCurrentIndex = items && items.length > 0 
+    ? Math.max(0, Math.min(currentIndex, items.length - 1))
+    : 0;
+  
+  // Robust animation end handler
+  const handleAnimationEnd = (event: React.AnimationEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLDivElement;
+    const animationName = event.animationName;
+    
+    // Only handle our entering animations (when new card finishes animating in)
+    if (target.classList.contains('card-wrapper') && 
+        (animationName === 'cardFlipIn' || animationName === 'cardFlipInLeft')) {
+      
+      setAnimationState(prev => ({
+        ...prev,
+        isAnimating: false,
+        direction: null,
+        fromIndex: null
+      }));
+    }
+  };
+
+  // Update animation state when currentIndex changes
   useEffect(() => {
-    if (isTransitioning) {
-      console.log('CardView: Starting safety timer for transition');
-      const safetyTimer = setTimeout(() => {
-        console.warn('CardView: Resetting stuck transition - currentIndex:', currentIndex, 'previousIndex:', previousIndex, 'direction:', transitionDirection);
-        setIsTransitioning(false);
-        setTransitionDirection(null);
-      }, 1000); // Reduced to 1 second safety timeout
-
-      return () => {
-        console.log('CardView: Clearing safety timer');
-        clearTimeout(safetyTimer);
-      };
+    if (items && items.length > 0 && effectiveCurrentIndex !== animationState.toIndex) {
+      const fromIndex = animationState.toIndex;
+      let direction: 'next' | 'prev' = 'next';
+      
+      // Determine direction including wrap-around
+      if (fromIndex === items.length - 1 && effectiveCurrentIndex === 0) {
+        direction = 'next'; // Wrapped forward
+      } else if (fromIndex === 0 && effectiveCurrentIndex === items.length - 1) {
+        direction = 'prev'; // Wrapped backward  
+      } else if (effectiveCurrentIndex > fromIndex) {
+        direction = 'next';
+      } else {
+        direction = 'prev';
+      }
+      
+      setAnimationState({
+        isAnimating: true,
+        direction,
+        fromIndex,
+        toIndex: effectiveCurrentIndex
+      });
     }
-  }, [isTransitioning, currentIndex, previousIndex, transitionDirection]);
+  }, [effectiveCurrentIndex, items?.length, animationState.toIndex]);
 
+  // Fallback safety mechanism - if animation gets stuck, reset after timeout
   useEffect(() => {
-    if (currentIndex !== previousIndex) {
-      console.log('CardView: Transition starting', { currentIndex, previousIndex, itemsLength: items.length });
-      setIsTransitioning(true);
+    if (animationState.isAnimating) {
+      const fallbackTimer = setTimeout(() => {
+        setAnimationState(prev => ({
+          ...prev,
+          isAnimating: false,
+          direction: null,
+          fromIndex: null
+        }));
+      }, 1000); // 1 second fallback
       
-      // Determine direction based on index change
-      let direction: TransitionDirection = null;
-      
-      // Handle wrap-around cases for circular navigation
-      if (previousIndex === items.length - 1 && currentIndex === 0) {
-        // Wrapped forward (last -> first)
-        direction = 'next';
-      } else if (previousIndex === 0 && currentIndex === items.length - 1) {
-        // Wrapped backward (first -> last)
-        direction = 'prev';
-      } else if (currentIndex > previousIndex) {
-        // Normal forward movement
-        direction = 'next';
-      } else if (currentIndex < previousIndex) {
-        // Normal backward movement
-        direction = 'prev';
-      }
-      
-      console.log('CardView: Direction determined:', direction);
-      setTransitionDirection(direction);
-      setPreviousIndex(currentIndex);
-
-      // Use timing that matches the beautiful flip animations
-      const timer = setTimeout(() => {
-        console.log('CardView: Transition completed via timeout');
-        setIsTransitioning(false);
-        setTransitionDirection(null);
-      }, 800); // 0.6s animation + 0.2s delay for perfect timing
-
-      return () => {
-        console.log('CardView: Cleaning up transition timer');
-        clearTimeout(timer);
-      };
+      return () => clearTimeout(fallbackTimer);
     }
-  }, [currentIndex, previousIndex, items.length]);
+  }, [animationState.isAnimating]);
 
-  const handleNext = () => {
-    if (!isTransitioning && items.length > 1) {
-      console.log('CardView: Next clicked, current:', currentIndex);
-      onNext();
-    }
-  };
-
-  const handlePrevious = () => {
-    if (!isTransitioning && items.length > 1) {
-      console.log('CardView: Previous clicked, current:', currentIndex);
-      onPrevious();
-    }
-  };
-
-  const getCardClasses = (index: number) => {
-    let classes = 'card-wrapper';
-    
-    if (isTransitioning && transitionDirection) {
-      if (index === previousIndex) {
-        // Current card exiting
-        const exitClass = transitionDirection === 'next' ? ' exiting-left' : ' exiting-right';
-        classes += exitClass;
-        console.log(`CardView: Card ${index} exiting with class:`, exitClass);
-      } else if (index === currentIndex) {
-        // New card entering
-        const enterClass = transitionDirection === 'next' ? ' entering-right' : ' entering-left';
-        classes += enterClass;
-        console.log(`CardView: Card ${index} entering with class:`, enterClass);
-      } else {
-        classes += ' visible';
-      }
-    } else {
-      // No transition - show current cards normally
-      if (cardsPerPage === 1) {
-        // For single card view, only show current card
-        if (index === currentIndex) {
-          classes += ' active';
-        } else {
-          classes += ' hidden'; // Explicitly hide others
-        }
-      } else {
-        // For multi-card view
-        if (index === currentIndex) {
-          classes += ' active';
-        } else {
-          classes += ' visible';
-        }
-      }
-    }
-    
-    return classes;
-  };
-  const getVisibleItems = () => {
-    if (cardsPerPage === 1) {
-      // For single card view, show both current and previous during transition
-      if (isTransitioning && previousIndex !== currentIndex) {
-        const visibleItems: { item: any; index: number }[] = [];
-        // Add previous card (will be exiting)
-        visibleItems.push({ item: items[previousIndex], index: previousIndex });
-        // Add current card (will be entering)
-        visibleItems.push({ item: items[currentIndex], index: currentIndex });
-        return visibleItems;
-      }
-      // When not transitioning, show only current card
-      return [{ item: items[currentIndex], index: currentIndex }];
-    }
-    
-    // Multi-card view
-    const visibleItems = [];
-    for (let i = 0; i < cardsPerPage && i < items.length; i++) {
-      const itemIndex = (currentIndex + i) % items.length;
-      visibleItems.push({ item: items[itemIndex], index: itemIndex });
-    }
-    return visibleItems;
-  };
-
-  const visibleItems = getVisibleItems();
-
-  // Safety check
+  // Early safety check - AFTER all hooks
   if (!items || items.length === 0) {
+    console.log('CardView: No items provided - showing fallback message');
     return (
       <div className={`pokemon-carousel ${className} empty`} ref={containerRef}>
         <div className="cards-container">
@@ -180,9 +121,127 @@ const CardView: React.FC<CardViewProps> = ({
       </div>
     );
   }
+  
+  if (currentIndex !== effectiveCurrentIndex) {
+    console.log('CardView: Invalid currentIndex corrected', { 
+      provided: currentIndex, 
+      effective: effectiveCurrentIndex, 
+      itemsLength: items.length 
+    });
+  }
 
-  // Ensure currentIndex is valid
-  const safeCurrentIndex = Math.max(0, Math.min(currentIndex, items.length - 1));
+  // Simplified navigation handlers
+  const handleNext = () => {
+    const now = Date.now();
+    if (items.length > 1 && now - lastClickTime > 300) {
+      setLastClickTime(now);
+      onNext();
+    }
+  };
+
+  const handlePrevious = () => {
+    const now = Date.now();
+    if (items.length > 1 && now - lastClickTime > 300) {
+      setLastClickTime(now);
+      onPrevious();
+    }
+  };
+
+  // Simplified card class logic
+  const getCardClasses = (index: number) => {
+    let classes = 'card-wrapper';
+    
+    if (animationState.isAnimating) {
+      if (index === animationState.fromIndex) {
+        // Card that's leaving
+        classes += animationState.direction === 'next' ? ' exiting-left' : ' exiting-right';
+      } else if (index === animationState.toIndex) {
+        // Card that's entering
+        classes += animationState.direction === 'next' ? ' entering-right' : ' entering-left';
+      } else {
+        // Other cards
+        classes += ' hidden';
+      }
+    } else {
+      // No animation - show cards based on view mode
+      if (cardsPerPage === 1) {
+        if (index === effectiveCurrentIndex) {
+          classes += ' active';
+        } else {
+          classes += ' hidden';
+        }
+      } else {
+        // Multi-card view - show multiple cards
+        const startIndex = effectiveCurrentIndex;
+        const endIndex = (effectiveCurrentIndex + cardsPerPage - 1) % items.length;
+        
+        // Check if this index should be visible
+        let isVisible = false;
+        for (let i = 0; i < cardsPerPage; i++) {
+          const visibleIndex = (startIndex + i) % items.length;
+          if (visibleIndex === index) {
+            isVisible = true;
+            break;
+          }
+        }
+        
+        if (isVisible) {
+          classes += index === effectiveCurrentIndex ? ' active' : ' visible';
+        } else {
+          classes += ' hidden';
+        }
+      }
+    }
+    
+    return classes;
+  };
+  
+  // Simplified visible items logic
+  const getVisibleItems = () => {
+    if (cardsPerPage === 1) {
+      // Single card mode
+      if (animationState.isAnimating && animationState.fromIndex !== null) {
+        // During animation, show both cards
+        return [
+          { item: items[animationState.fromIndex], index: animationState.fromIndex },
+          { item: items[animationState.toIndex], index: animationState.toIndex }
+        ];
+      } else {
+        // Not animating, show current card only
+        return [{ item: items[effectiveCurrentIndex], index: effectiveCurrentIndex }];
+      }
+    } else {
+      // Multi-card mode - show multiple cards starting from current
+      const visibleItems = [];
+      for (let i = 0; i < cardsPerPage && i < items.length; i++) {
+        const itemIndex = (effectiveCurrentIndex + i) % items.length;
+        visibleItems.push({ item: items[itemIndex], index: itemIndex });
+      }
+      return visibleItems;
+    }
+  };
+
+  const visibleItems = getVisibleItems();
+  
+  // Debug logging with more context
+  console.log('CardView Debug:', {
+    itemsLength: items.length,
+    currentIndex,
+    effectiveCurrentIndex,
+    cardsPerPage,
+    animationState,
+    visibleItemsCount: visibleItems.length,
+    visibleItems: visibleItems.map(item => ({ 
+      index: item.index, 
+      hasItem: !!item.item,
+      itemTitle: item.item?.title || 'No title'
+    })),
+    itemsPreview: items.slice(0, 3).map((item, idx) => ({
+      index: idx,
+      title: item?.title || 'No title',
+      hasContent: !!item
+    }))
+  });
 
   return (
     <div className={`pokemon-carousel ${className}`} ref={containerRef}>
@@ -192,7 +251,6 @@ const CardView: React.FC<CardViewProps> = ({
           <button 
             className="carousel-nav carousel-nav--prev"
             onClick={handlePrevious}
-            disabled={isTransitioning}
           >
             <FontAwesomeIcon icon={faChevronLeft} />
           </button>
@@ -200,7 +258,6 @@ const CardView: React.FC<CardViewProps> = ({
           <button 
             className="carousel-nav carousel-nav--next"
             onClick={handleNext}
-            disabled={isTransitioning}
           >
             <FontAwesomeIcon icon={faChevronRight} />
           </button>
@@ -211,8 +268,9 @@ const CardView: React.FC<CardViewProps> = ({
       <div className="cards-container">
         {visibleItems.map(({ item, index }) => (
           <div
-            key={`${index}-${isTransitioning ? transitionDirection : 'static'}`}
+            key={`${index}-${animationState.isAnimating ? animationState.direction : 'static'}`}
             className={getCardClasses(index)}
+            onAnimationEnd={handleAnimationEnd}
             ref={cardRefs ? el => {
               if (cardRefs.current) {
                 cardRefs.current[index] = el;

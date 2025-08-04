@@ -52,9 +52,9 @@ const Dashboard: React.FC = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showAdDetailsModal, setShowAdDetailsModal] = useState(false);
   
-  // Status filtering states - Initialize with all statuses selected
-  const [selectedNewsStatuses, setSelectedNewsStatuses] = useState<string[]>([]);
-  const [selectedAdStatuses, setSelectedAdStatuses] = useState<string[]>([]);
+  // Status filtering states - Initialize with default statuses to prevent empty state
+  const [selectedNewsStatuses, setSelectedNewsStatuses] = useState<string[]>(['draft', 'pending', 'published', 'rejected', 'archived']);
+  const [selectedAdStatuses, setSelectedAdStatuses] = useState<string[]>(['draft', 'pending', 'approved', 'published', 'rejected']);
 
   // Initialize status filters after component mounts
   useEffect(() => {
@@ -153,7 +153,13 @@ const Dashboard: React.FC = () => {
 
   // Filter data based on selected statuses
   const filteredNews = React.useMemo(() => {
-    if (!news || !Array.isArray(news) || selectedNewsStatuses.length === 0) return [];
+    if (!news || !Array.isArray(news)) return [];
+    
+    // If no statuses selected, show all items (fallback)
+    if (selectedNewsStatuses.length === 0) {
+      console.log('Dashboard: No news statuses selected, showing all news');
+      return news;
+    }
     
     try {
       return news.filter(newsPost => {
