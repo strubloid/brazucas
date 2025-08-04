@@ -33,6 +33,7 @@ export const EnhancedStatusFilter: React.FC<EnhancedStatusFilterProps> = ({
     error,
     availableStatuses,
     selectedStatuses,
+    setSelectedStatuses,
     toggleStatus,
     clearAll,
     selectAll
@@ -53,6 +54,22 @@ export const EnhancedStatusFilter: React.FC<EnhancedStatusFilterProps> = ({
       }
     } else {
       // Multi select mode: toggle status
+      
+      // Special handling for "draft" status
+      if (statusCode === 'draft' && selectedStatuses.includes('draft')) {
+        console.log("Special handling for draft status deselection");
+        
+        // If this is the only selected status and it's being deselected, force empty selection
+        if (selectedStatuses.length === 1) {
+          clearAll();
+          if (onSelectionChange) {
+            onSelectionChange([]);
+          }
+          return;
+        }
+      }
+      
+      // Normal toggle for other statuses
       toggleStatus(statusCode);
     }
   };
@@ -60,11 +77,29 @@ export const EnhancedStatusFilter: React.FC<EnhancedStatusFilterProps> = ({
   const handleSelectAll = () => {
     if (multiSelect) {
       selectAll();
+      // Force direct notification to parent with all statuses to ensure proper selection
+      if (onSelectionChange) {
+        onSelectionChange(availableStatuses.map(s => s.code));
+      }
     }
   };
 
   const handleClearAll = () => {
+    // First call internal clearAll
     clearAll();
+    
+    // Force direct notification to parent with empty array
+    if (onSelectionChange) {
+      console.log("EnhancedStatusFilter: Notifying parent of empty selection");
+      onSelectionChange([]);
+      
+      // Use forceful approach with a longer delay
+      setTimeout(() => {
+        // This will reset both our internal state and notify parent component
+        setSelectedStatuses([]);
+        onSelectionChange([]);
+      }, 100);
+    }
   };
 
   if (loading) {
@@ -115,65 +150,66 @@ export const EnhancedStatusFilter: React.FC<EnhancedStatusFilterProps> = ({
           )}
         </div>
       )}
+      <div className="filter-container">
+        {multiSelect && (showSelectAll || showClearAll) && (
+            <div className="filter-actions">
+            {showSelectAll && (
+                <button
+                type="button"
+                className="action-button select-all"
+                onClick={handleSelectAll}
+                disabled={selectedCount === totalCount}
+                >
+                Selecionar Todos
+                </button>
+            )}
+            {showClearAll && (
+                <button
+                type="button"
+                className="action-button clear-all"
+                onClick={handleClearAll}
+                disabled={selectedCount === 0}
+                >
+                Limpar Todos
+                </button>
+            )}
+            </div>
+        )}
 
-      {multiSelect && (showSelectAll || showClearAll) && (
-        <div className="filter-actions">
-          {showSelectAll && (
-            <button
-              type="button"
-              className="action-button select-all"
-              onClick={handleSelectAll}
-              disabled={selectedCount === totalCount}
-            >
-              Selecionar Todos
-            </button>
-          )}
-          {showClearAll && (
-            <button
-              type="button"
-              className="action-button clear-all"
-              onClick={handleClearAll}
-              disabled={selectedCount === 0}
-            >
-              Limpar Todos
-            </button>
-          )}
-        </div>
-      )}
+        <div className="status-options">
+            {availableStatuses.map((status: AvailableStatus) => {
+            const isSelected = selectedStatuses.includes(status.code);
+            const isDefault = status.isDefault;
 
-      <div className="status-options">
-        {availableStatuses.map((status: AvailableStatus) => {
-          const isSelected = selectedStatuses.includes(status.code);
-          const isDefault = status.isDefault;
-
-          return (
-            <button
-              key={status.code}
-              type="button"
-              className={`status-option ${isSelected ? 'selected' : ''} ${isDefault ? 'default' : ''}`}
-              onClick={() => handleStatusClick(status.code)}
-              style={{
-                '--status-bg': status.colors.background,
-                '--status-border': status.colors.border,
-                '--status-text': status.colors.text,
-                '--status-header-bg': status.colors.headerBg
-              } as React.CSSProperties}
-              title={status.description || status.displayName}
-            >
-              <div className="status-indicator">
-                {multiSelect && (
-                  <div className={`checkbox ${isSelected ? 'checked' : ''}`}>
-                    {isSelected && <span className="checkmark">✓</span>}
-                  </div>
-                )}
-                <div className="status-badge">
-                  <span className="status-name">{status.displayName}</span>
-                  {isDefault && <span className="default-indicator">*</span>}
+            return (
+                <button
+                key={status.code}
+                type="button"
+                className={`status-option ${isSelected ? 'selected' : ''} ${isDefault ? 'default' : ''}`}
+                onClick={() => handleStatusClick(status.code)}
+                style={{
+                    '--status-bg': status.colors.background,
+                    '--status-border': status.colors.border,
+                    '--status-text': status.colors.text,
+                    '--status-header-bg': status.colors.headerBg
+                } as React.CSSProperties}
+                title={status.description || status.displayName}
+                >
+                <div className="status-indicator">
+                    {multiSelect && (
+                    <div className={`checkbox ${isSelected ? 'checked' : ''}`}>
+                        {isSelected && <span className="checkmark">✓</span>}
+                    </div>
+                    )}
+                    <div className="status-badge">
+                    <span className="status-name">{status.displayName}</span>
+                    {isDefault && <span className="default-indicator">*</span>}
+                    </div>
                 </div>
-              </div>
-            </button>
-          );
-        })}
+                </button>
+            );
+            })}
+        </div>
       </div>
 
       {context.context === 'approval' && (

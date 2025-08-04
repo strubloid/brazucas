@@ -52,8 +52,11 @@ export const useStatusSystem = (
       if (response && response.availableStatuses && Array.isArray(response.availableStatuses)) {
         setAvailableStatuses(response.availableStatuses);
         
-        // If no statuses are selected and we have available statuses, select the default
-        if (selectedStatuses.length === 0 && response.availableStatuses.length > 0) {
+        // ONLY auto-select default on first initialization, not on subsequent fetches
+        // Also check if there's a flag indicating explicit clear was performed
+        const wasExplicitlyCleared = localStorage.getItem(`${storageKey}-cleared`) === "true";
+        if (!wasExplicitlyCleared && selectedStatuses.length === 0 && initialStatuses.length === 0) {
+          console.log("Auto-selecting default status on first load only");
           const defaultStatus = response.availableStatuses.find(s => s.isDefault);
           if (defaultStatus) {
             setSelectedStatusesState([defaultStatus.code]);
@@ -70,7 +73,11 @@ export const useStatusSystem = (
       const fallbackStatuses = getFallbackStatuses(context);
       setAvailableStatuses(fallbackStatuses);
       
-      if (selectedStatuses.length === 0 && fallbackStatuses.length > 0) {
+      // ONLY auto-select default on first initialization, not on subsequent fetches
+      // Also check if there's a flag indicating explicit clear was performed
+      const wasExplicitlyCleared = localStorage.getItem(`${storageKey}-cleared`) === "true";
+      if (!wasExplicitlyCleared && selectedStatuses.length === 0 && fallbackStatuses.length > 0 && initialStatuses.length === 0) {
+        console.log("Auto-selecting default status from fallback on first load only");
         const defaultStatus = fallbackStatuses.find(s => s.isDefault);
         if (defaultStatus) {
           setSelectedStatusesState([defaultStatus.code]);
@@ -146,18 +153,7 @@ export const useStatusSystem = (
         isDefault: false,
         sortOrder: 5
       },
-      archived: {
-        code: 'archived',
-        displayName: 'Arquivado',
-        colors: {
-          background: 'rgba(107, 114, 128, 0.15)',
-          border: '#6b7280',
-          text: '#374151',
-          headerBg: 'rgba(107, 114, 128, 0.1)'
-        },
-        isDefault: false,
-        sortOrder: 6
-      }
+      // Removed archived status as it's not needed
     };
 
     if (ctx.context === 'management') {
@@ -165,8 +161,7 @@ export const useStatusSystem = (
         baseStatuses.draft,
         baseStatuses.pending_approval,
         baseStatuses.published,
-        baseStatuses.rejected,
-        baseStatuses.archived
+        baseStatuses.rejected
       ];
     } else if (ctx.context === 'approval') {
       return [
@@ -182,10 +177,31 @@ export const useStatusSystem = (
   // Update selected statuses with persistence
   const setSelectedStatuses = useCallback((statuses: string[] | ((prev: string[]) => string[])) => {
     const newStatuses = typeof statuses === 'function' ? statuses(selectedStatuses) : statuses;
+    
+    // Always update state
     setSelectedStatusesState(newStatuses);
     
+    // Handle persistence
     if (persistSelection) {
-      localStorage.setItem(storageKey, JSON.stringify(newStatuses));
+      if (!newStatuses || newStatuses.length === 0) {
+        // For empty selection, clear localStorage and mark as explicitly cleared
+        console.log('Removing persistence for status selection:', storageKey);
+        localStorage.removeItem(storageKey);
+        localStorage.setItem(`${storageKey}-cleared`, "true");
+      } else {
+        // For non-empty selection, update localStorage
+        localStorage.setItem(storageKey, JSON.stringify(newStatuses));
+        // Remove the cleared flag
+        localStorage.removeItem(`${storageKey}-cleared`);
+      }
+    }
+    
+    // Ensure empty array stays empty
+    if (!newStatuses || newStatuses.length === 0) {
+      console.log('Ensuring empty status selection stays empty');
+      setTimeout(() => {
+        setSelectedStatusesState([]);
+      }, 10);
     }
   }, [persistSelection, storageKey, selectedStatuses]);
 
@@ -193,17 +209,45 @@ export const useStatusSystem = (
   const toggleStatus = useCallback((statusCode: string) => {
     setSelectedStatuses((prev: string[]) => {
       if (prev.includes(statusCode)) {
+        // Mark as explicitly cleared if we're removing the last status
+        if (prev.length === 1 && persistSelection) {
+          console.log(`Marking ${storageKey} as explicitly cleared`);
+          localStorage.setItem(`${storageKey}-cleared`, "true");
+        }
         return prev.filter((s: string) => s !== statusCode);
       } else {
         return [...prev, statusCode];
       }
     });
-  }, [setSelectedStatuses]);
+  }, [setSelectedStatuses, persistSelection, storageKey]);
 
-  // Clear all selected statuses
+  // Clear all selected statuses - ensure all statuses are really deselected
   const clearAll = useCallback(() => {
-    setSelectedStatuses([]);
-  }, [setSelectedStatuses]);
+    console.log("CLEARING ALL STATUSES");
+    
+    // Set explicit flag in localStorage to prevent auto-selection of defaults
+    if (persistSelection) {
+      console.log(`Setting explicit clear flag for ${storageKey}`);
+      localStorage.setItem(`${storageKey}-cleared`, "true");
+      localStorage.removeItem(storageKey);
+    }
+    
+    // Force direct state update with empty array
+    setSelectedStatusesState([]);
+    
+    // Ensure state remains empty
+    setTimeout(() => {
+      console.log("Confirming all statuses remain cleared");
+      // Direct state update again to ensure it's empty
+      setSelectedStatusesState(current => {
+        if (current.length > 0) {
+          console.log(`Found ${current.length} statuses still selected, forcing clear`);
+          return [];
+        }
+        return current;
+      });
+    }, 50);
+  }, [persistSelection, storageKey]);
 
   // Select all available statuses
   const selectAll = useCallback(() => {

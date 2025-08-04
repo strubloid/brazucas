@@ -3,8 +3,7 @@ export enum BaseStatus {
   DRAFT = 'draft',
   PENDING = 'pending_approval', 
   PUBLISHED = 'published',
-  REJECTED = 'rejected',
-  ARCHIVED = 'archived'
+  REJECTED = 'rejected'
 }
 
 // News-specific statuses
@@ -12,8 +11,7 @@ export enum NewsStatus {
   DRAFT = 'draft',
   PENDING_APPROVAL = 'pending_approval',
   PUBLISHED = 'published', 
-  REJECTED = 'rejected',
-  ARCHIVED = 'archived'
+  REJECTED = 'rejected'
 }
 
 // Advertisement-specific statuses  
@@ -23,8 +21,7 @@ export enum AdStatus {
   APPROVED = 'approved',
   PUBLISHED = 'published',
   REJECTED = 'rejected',
-  EXPIRED = 'expired',
-  ARCHIVED = 'archived'
+  EXPIRED = 'expired'
 }
 
 // Status color mapping
@@ -80,14 +77,6 @@ export const STATUS_COLORS: Record<string, StatusColor> = {
     border: '#a855f7',
     text: '#6b21a8',
     headerBackground: 'rgba(168, 85, 247, 0.1)'
-  },
-  
-  // Archived - Neutral theme
-  archived: {
-    background: 'rgba(75, 85, 99, 0.15)',
-    border: '#4b5563',
-    text: '#1f2937',
-    headerBackground: 'rgba(75, 85, 99, 0.1)'
   }
 };
 
@@ -98,8 +87,7 @@ export const STATUS_LABELS: Record<string, string> = {
   published: 'Publicado',
   approved: 'Aprovado',
   rejected: 'Rejeitado', 
-  expired: 'Expirado',
-  archived: 'Arquivado'
+  expired: 'Expirado'
 };
 
 // Status utility class
@@ -107,7 +95,8 @@ export class StatusManager {
   // Convert legacy status to new system
   static getNewsStatus(post: { published?: boolean; approved?: boolean | null; archived?: boolean }): NewsStatus {
     if (!post || typeof post !== 'object') return NewsStatus.DRAFT;
-    if (post.archived === true) return NewsStatus.ARCHIVED;
+    // Archived posts are now treated as rejected
+    if (post.archived === true) return NewsStatus.REJECTED;
     if (post.approved === false) return NewsStatus.REJECTED;
     if (post.approved === null || post.approved === undefined) {
       // If explicitly marked as draft, keep as draft
@@ -121,7 +110,8 @@ export class StatusManager {
   
   static getAdStatus(ad: { published?: boolean; approved?: boolean | null; archived?: boolean; expired?: boolean }): AdStatus {
     if (!ad || typeof ad !== 'object') return AdStatus.DRAFT;
-    if (ad.archived === true) return AdStatus.ARCHIVED;
+    // Archived posts are now treated as rejected
+    if (ad.archived === true) return AdStatus.REJECTED;
     if (ad.expired === true) return AdStatus.EXPIRED;
     if (ad.approved === false) return AdStatus.REJECTED;
     if (ad.approved === null || ad.approved === undefined) {
