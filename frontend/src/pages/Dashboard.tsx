@@ -763,284 +763,52 @@ const Dashboard: React.FC = () => {
   // Carousel functions for Pokemon card effect
   const nextCard = () => {
     if (!news || news.length === 0) return;
-    
-    const currentCard = cardRefs.current[currentCardIndex];
     const nextIndex = (currentCardIndex + 1) % news.length;
-    const nextCard = cardRefs.current[nextIndex];
-    
-    if (currentCard && nextCard) {
-      // Animate current card out (to the left)
-      anime({
-        targets: currentCard,
-        translateX: [-300, -600],
-        rotateY: [0, -90],
-        opacity: [1, 0],
-        scale: [1, 0.7],
-        duration: 400,
-        easing: 'easeInBack'
-      });
-      
-      // Animate next card in (from the right)
-      anime({
-        targets: nextCard,
-        translateX: [600, 0],
-        rotateY: [90, 0],
-        opacity: [0, 1],
-        scale: [0.7, 1],
-        duration: 600,
-        delay: 200,
-        easing: 'easeOutExpo'
-      });
-    }
-    
     setCurrentCardIndex(nextIndex);
   };
 
   const prevCard = () => {
     if (!news || news.length === 0) return;
-    
-    const currentCard = cardRefs.current[currentCardIndex];
     const prevIndex = (currentCardIndex - 1 + news.length) % news.length;
-    const prevCard = cardRefs.current[prevIndex];
-    
-    if (currentCard && prevCard) {
-      // Animate current card out (to the right)
-      anime({
-        targets: currentCard,
-        translateX: [0, 600],
-        rotateY: [0, 90],
-        opacity: [1, 0],
-        scale: [1, 0.7],
-        duration: 400,
-        easing: 'easeInBack'
-      });
-      
-      // Animate previous card in (from the left)
-      anime({
-        targets: prevCard,
-        translateX: [-600, 0],
-        rotateY: [-90, 0],
-        opacity: [0, 1],
-        scale: [0.7, 1],
-        duration: 600,
-        delay: 200,
-        easing: 'easeOutExpo'
-      });
-    }
-    
     setCurrentCardIndex(prevIndex);
   };
 
   // Carousel functions for Ads Pokemon card effect
   const nextAdCard = () => {
     if (!ads || ads.length === 0) return;
-    
-    const currentCard = adCardRefs.current[currentAdCardIndex];
     const nextIndex = (currentAdCardIndex + 1) % ads.length;
-    const nextCard = adCardRefs.current[nextIndex];
-    
-    if (currentCard && nextCard) {
-      // Animate current card out (to the left)
-      anime({
-        targets: currentCard,
-        translateX: [-300, -600],
-        rotateY: [0, -90],
-        opacity: [1, 0],
-        scale: [1, 0.7],
-        duration: 400,
-        easing: 'easeInBack'
-      });
-      
-      // Animate next card in (from the right)
-      anime({
-        targets: nextCard,
-        translateX: [600, 0],
-        rotateY: [90, 0],
-        opacity: [0, 1],
-        scale: [0.7, 1],
-        duration: 600,
-        delay: 200,
-        easing: 'easeOutExpo'
-      });
-    }
-    
     setCurrentAdCardIndex(nextIndex);
   };
 
   const prevAdCard = () => {
     if (!ads || ads.length === 0) return;
-    
-    const currentCard = adCardRefs.current[currentAdCardIndex];
     const prevIndex = (currentAdCardIndex - 1 + ads.length) % ads.length;
-    const prevCard = adCardRefs.current[prevIndex];
-    
-    if (currentCard && prevCard) {
-      // Animate current card out (to the right)
-      anime({
-        targets: currentCard,
-        translateX: [0, 600],
-        rotateY: [0, 90],
-        opacity: [1, 0],
-        scale: [1, 0.7],
-        duration: 400,
-        easing: 'easeInBack'
-      });
-      
-      // Animate previous card in (from the left)
-      anime({
-        targets: prevCard,
-        translateX: [-600, 0],
-        rotateY: [-90, 0],
-        opacity: [0, 1],
-        scale: [0.7, 1],
-        duration: 600,
-        delay: 200,
-        easing: 'easeOutExpo'
-      });
-    }
-    
     setCurrentAdCardIndex(prevIndex);
   };
 
   // Carousel functions for Pending Posts approval
   const nextPendingPost = () => {
     if (!pendingNews || pendingNews.length === 0) return;
-    
-    const currentCard = pendingPostCardRefs.current[currentPendingPostIndex];
     const nextIndex = (currentPendingPostIndex + 1) % pendingNews.length;
-    const nextCard = pendingPostCardRefs.current[nextIndex];
-    
-    if (currentCard && nextCard) {
-      // Animate current card out (to the left)
-      anime({
-        targets: currentCard,
-        translateX: [-300, -600],
-        rotateY: [0, -90],
-        opacity: [1, 0],
-        scale: [1, 0.7],
-        duration: 400,
-        easing: 'easeInBack'
-      });
-      
-      // Animate next card in (from the right)
-      anime({
-        targets: nextCard,
-        translateX: [600, 0],
-        rotateY: [90, 0],
-        opacity: [0, 1],
-        scale: [0.7, 1],
-        duration: 600,
-        delay: 200,
-        easing: 'easeOutExpo'
-      });
-    }
-    
     setCurrentPendingPostIndex(nextIndex);
   };
 
   const prevPendingPost = () => {
     if (!pendingNews || pendingNews.length === 0) return;
-    
-    const currentCard = pendingPostCardRefs.current[currentPendingPostIndex];
     const prevIndex = (currentPendingPostIndex - 1 + pendingNews.length) % pendingNews.length;
-    const prevCard = pendingPostCardRefs.current[prevIndex];
-    
-    if (currentCard && prevCard) {
-      // Animate current card out (to the right)
-      anime({
-        targets: currentCard,
-        translateX: [0, 600],
-        rotateY: [0, 90],
-        opacity: [1, 0],
-        scale: [1, 0.7],
-        duration: 400,
-        easing: 'easeInBack'
-      });
-      
-      // Animate previous card in (from the left)
-      anime({
-        targets: prevCard,
-        translateX: [-600, 0],
-        rotateY: [-90, 0],
-        opacity: [0, 1],
-        scale: [0.7, 1],
-        duration: 600,
-        delay: 200,
-        easing: 'easeOutExpo'
-      });
-    }
-    
     setCurrentPendingPostIndex(prevIndex);
   };
 
   // Carousel functions for Pending Ads approval
   const nextPendingAd = () => {
     if (!pendingAds || pendingAds.length === 0) return;
-    
-    const currentCard = pendingAdCardRefs.current[currentPendingAdIndex];
     const nextIndex = (currentPendingAdIndex + 1) % pendingAds.length;
-    const nextCard = pendingAdCardRefs.current[nextIndex];
-    
-    if (currentCard && nextCard) {
-      // Animate current card out (to the left)
-      anime({
-        targets: currentCard,
-        translateX: [-300, -600],
-        rotateY: [0, -90],
-        opacity: [1, 0],
-        scale: [1, 0.7],
-        duration: 400,
-        easing: 'easeInBack'
-      });
-      
-      // Animate next card in (from the right)
-      anime({
-        targets: nextCard,
-        translateX: [600, 0],
-        rotateY: [90, 0],
-        opacity: [0, 1],
-        scale: [0.7, 1],
-        duration: 600,
-        delay: 200,
-        easing: 'easeOutExpo'
-      });
-    }
-    
     setCurrentPendingAdIndex(nextIndex);
   };
 
   const prevPendingAd = () => {
     if (!pendingAds || pendingAds.length === 0) return;
-    
-    const currentCard = pendingAdCardRefs.current[currentPendingAdIndex];
     const prevIndex = (currentPendingAdIndex - 1 + pendingAds.length) % pendingAds.length;
-    const prevCard = pendingAdCardRefs.current[prevIndex];
-    
-    if (currentCard && prevCard) {
-      // Animate current card out (to the right)
-      anime({
-        targets: currentCard,
-        translateX: [0, 600],
-        rotateY: [0, 90],
-        opacity: [1, 0],
-        scale: [1, 0.7],
-        duration: 400,
-        easing: 'easeInBack'
-      });
-      
-      // Animate previous card in (from the left)
-      anime({
-        targets: prevCard,
-        translateX: [-600, 0],
-        rotateY: [-90, 0],
-        opacity: [0, 1],
-        scale: [0.7, 1],
-        duration: 600,
-        delay: 200,
-        easing: 'easeOutExpo'
-      });
-    }
-    
     setCurrentPendingAdIndex(prevIndex);
   };
 
