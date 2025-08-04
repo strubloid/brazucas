@@ -16,7 +16,9 @@ import ListView from '../components/common/ListView';
 import { NewsCard } from '../components/common/NewsCard';
 import { AdCard } from '../components/common/AdCard';
 import { StatusFilter } from '../components/common/StatusFilter';
+import { EnhancedStatusFilter } from '../components/common/EnhancedStatusFilter';
 import { StatusManager, NewsStatus, AdStatus } from '../types/status';
+import { StatusSystemContext } from '../types/statusSystem';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faHome, 
@@ -53,8 +55,8 @@ const Dashboard: React.FC = () => {
   const [showAdDetailsModal, setShowAdDetailsModal] = useState(false);
   
   // Status filtering states - Initialize with default statuses to prevent empty state
-  const [selectedNewsStatuses, setSelectedNewsStatuses] = useState<string[]>(['draft', 'pending', 'published', 'rejected', 'archived']);
-  const [selectedAdStatuses, setSelectedAdStatuses] = useState<string[]>(['draft', 'pending', 'approved', 'published', 'rejected']);
+  const [selectedNewsStatuses, setSelectedNewsStatuses] = useState<string[]>(['draft', 'pending_approval', 'published', 'rejected', 'archived']);
+  const [selectedAdStatuses, setSelectedAdStatuses] = useState<string[]>(['draft', 'pending_approval', 'approved', 'published', 'rejected', 'archived']);
 
   // Initialize status filters after component mounts
   useEffect(() => {
@@ -1053,11 +1055,20 @@ const Dashboard: React.FC = () => {
                   <LoadingSpinner text="Carregando notícias..." />
                 ) : (
                   <>
-                    <StatusFilter
-                      type="news"
-                      selectedStatuses={selectedNewsStatuses}
-                      onStatusChange={setSelectedNewsStatuses}
+                    <EnhancedStatusFilter
+                      context={{
+                        contentType: 'news',
+                        context: 'management',
+                        userId: user?.id ? parseInt(user.id) : undefined,
+                        userRole: user?.role === 'admin' ? 'admin' : 'user'
+                      }}
+                      onSelectionChange={setSelectedNewsStatuses}
                       className="dashboard-status-filter"
+                      options={{
+                        initialStatuses: selectedNewsStatuses,
+                        persistSelection: true,
+                        storageKey: 'dashboard-news-status-filter'
+                      }}
                     />
                     {filteredNews && filteredNews.length > 0 ? (
                       <div className="pokemon-carousel-container">
@@ -1177,11 +1188,20 @@ const Dashboard: React.FC = () => {
                   <LoadingSpinner text="Carregando anúncios..." />
                 ) : (
                   <>
-                    <StatusFilter
-                      type="ads"
-                      selectedStatuses={selectedAdStatuses}
-                      onStatusChange={setSelectedAdStatuses}
+                    <EnhancedStatusFilter
+                      context={{
+                        contentType: 'ads',
+                        context: 'management',
+                        userId: user?.id ? parseInt(user.id) : undefined,
+                        userRole: user?.role === 'admin' ? 'admin' : 'user'
+                      }}
+                      onSelectionChange={setSelectedAdStatuses}
                       className="dashboard-status-filter"
+                      options={{
+                        initialStatuses: selectedAdStatuses,
+                        persistSelection: true,
+                        storageKey: 'dashboard-ads-status-filter'
+                      }}
                     />
                     {filteredAds && filteredAds.length > 0 ? (
                       <div className="pokemon-carousel-container">
@@ -1553,6 +1573,20 @@ const Dashboard: React.FC = () => {
                   <LoadingSpinner text="Carregando posts pendentes..." />
                 ) : (
                   <>
+                    <EnhancedStatusFilter
+                      context={{
+                        contentType: 'news',
+                        context: 'approval',
+                        userId: user?.id ? parseInt(user.id) : undefined,
+                        userRole: 'admin'
+                      }}
+                      className="dashboard-status-filter approval-filter"
+                      compact={true}
+                      options={{
+                        persistSelection: true,
+                        storageKey: 'dashboard-approval-news-filter'
+                      }}
+                    />
                     {pendingNews && pendingNews.length > 0 ? (
                       <div className="pokemon-carousel-container">
                         <ViewModeControls
@@ -1667,6 +1701,20 @@ const Dashboard: React.FC = () => {
                   <LoadingSpinner text="Carregando anúncios pendentes..." />
                 ) : (
                   <>
+                    <EnhancedStatusFilter
+                      context={{
+                        contentType: 'ads',
+                        context: 'approval',
+                        userId: user?.id ? parseInt(user.id) : undefined,
+                        userRole: 'admin'
+                      }}
+                      className="dashboard-status-filter approval-filter"
+                      compact={true}
+                      options={{
+                        persistSelection: true,
+                        storageKey: 'dashboard-approval-ads-filter'
+                      }}
+                    />
                     {pendingAds && pendingAds.length > 0 ? (
                       <div className="pokemon-carousel-container">
                         <ViewModeControls

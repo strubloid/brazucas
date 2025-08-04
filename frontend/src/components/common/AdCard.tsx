@@ -43,7 +43,7 @@ export const AdCard: React.FC<AdCardProps> = ({
   });
   
   // Status-based logic variables for consistent behavior
-  const isActuallyPending = adStatus === 'pending' || adStatus === 'draft';
+  const isActuallyPending = adStatus === 'pending_approval' || adStatus === 'draft';
   const isPublished = adStatus === 'published';
   const isDraft = adStatus === 'draft';
 

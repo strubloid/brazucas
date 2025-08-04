@@ -152,7 +152,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({
   });
 
   // Determine if this is actually pending based on data, not just isPending prop
-  const isActuallyPending = newsStatus === 'pending' || post.approved === null;
+  const isActuallyPending = newsStatus === 'pending_approval' || post.approved === null;
   const isPublished = post.published && post.approved === true;
   const isDraft = !post.published && post.approved !== true;
 

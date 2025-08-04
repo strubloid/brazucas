@@ -1,7 +1,7 @@
 // Base Status System
 export enum BaseStatus {
   DRAFT = 'draft',
-  PENDING = 'pending', 
+  PENDING = 'pending_approval', 
   PUBLISHED = 'published',
   REJECTED = 'rejected',
   ARCHIVED = 'archived'
@@ -10,7 +10,7 @@ export enum BaseStatus {
 // News-specific statuses
 export enum NewsStatus {
   DRAFT = 'draft',
-  PENDING_APPROVAL = 'pending',
+  PENDING_APPROVAL = 'pending_approval',
   PUBLISHED = 'published', 
   REJECTED = 'rejected',
   ARCHIVED = 'archived'
@@ -19,7 +19,7 @@ export enum NewsStatus {
 // Advertisement-specific statuses  
 export enum AdStatus {
   DRAFT = 'draft',
-  PENDING_APPROVAL = 'pending',
+  PENDING_APPROVAL = 'pending_approval',
   APPROVED = 'approved',
   PUBLISHED = 'published',
   REJECTED = 'rejected',
@@ -105,18 +105,31 @@ export const STATUS_LABELS: Record<string, string> = {
 // Status utility class
 export class StatusManager {
   // Convert legacy status to new system
-  static getNewsStatus(post: { published?: boolean; approved?: boolean | null }): NewsStatus {
+  static getNewsStatus(post: { published?: boolean; approved?: boolean | null; archived?: boolean }): NewsStatus {
     if (!post || typeof post !== 'object') return NewsStatus.DRAFT;
+    if (post.archived === true) return NewsStatus.ARCHIVED;
     if (post.approved === false) return NewsStatus.REJECTED;
-    if (post.approved === null || post.approved === undefined) return NewsStatus.PENDING_APPROVAL;
+    if (post.approved === null || post.approved === undefined) {
+      // If explicitly marked as draft, keep as draft
+      if (post.published === false) return NewsStatus.DRAFT;
+      // Otherwise, consider it pending approval
+      return NewsStatus.PENDING_APPROVAL;
+    }
     if (post.published && post.approved === true) return NewsStatus.PUBLISHED;
     return NewsStatus.DRAFT;
   }
   
-  static getAdStatus(ad: { published?: boolean; approved?: boolean | null }): AdStatus {
+  static getAdStatus(ad: { published?: boolean; approved?: boolean | null; archived?: boolean; expired?: boolean }): AdStatus {
     if (!ad || typeof ad !== 'object') return AdStatus.DRAFT;
+    if (ad.archived === true) return AdStatus.ARCHIVED;
+    if (ad.expired === true) return AdStatus.EXPIRED;
     if (ad.approved === false) return AdStatus.REJECTED;
-    if (ad.approved === null || ad.approved === undefined) return AdStatus.PENDING_APPROVAL;
+    if (ad.approved === null || ad.approved === undefined) {
+      // If explicitly marked as draft, keep as draft
+      if (ad.published === false) return AdStatus.DRAFT;
+      // Otherwise, consider it pending approval
+      return AdStatus.PENDING_APPROVAL;
+    }
     if (ad.approved === true && ad.published) return AdStatus.PUBLISHED;
     if (ad.approved === true && !ad.published) return AdStatus.APPROVED;
     return AdStatus.DRAFT;
