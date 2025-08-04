@@ -46,10 +46,19 @@ export const useStatusSystem = (
     setError(null);
     
     try {
-      const response = await statusSystemService.getContextualStatuses(context);
+      // Wrap the API call in a try-catch to handle network errors
+      let response;
+      try {
+        response = await statusSystemService.getContextualStatuses(context);
+      } catch (apiError) {
+        console.error('API call failed:', apiError);
+        throw new Error('Failed to connect to API');
+      }
       
-      // Check if response and availableStatuses exist
-      if (response && response.availableStatuses && Array.isArray(response.availableStatuses)) {
+      // Safe check for response structure before using it
+      if (response && typeof response === 'object' && 
+          'availableStatuses' in response && 
+          Array.isArray(response.availableStatuses)) {
         setAvailableStatuses(response.availableStatuses);
         
         // ONLY auto-select default on first initialization, not on subsequent fetches
@@ -64,23 +73,43 @@ export const useStatusSystem = (
         }
       } else {
         // Invalid API response, use fallback
+        console.warn('Invalid API response structure:', response);
         throw new Error('Invalid API response structure');
       }
     } catch (err) {
       console.warn('Failed to fetch statuses from API, using fallback data:', err);
       
-      // Fallback mock data based on context
-      const fallbackStatuses = getFallbackStatuses(context);
-      setAvailableStatuses(fallbackStatuses);
-      
-      // ONLY auto-select default on first initialization, not on subsequent fetches
-      // Also check if there's a flag indicating explicit clear was performed
-      const wasExplicitlyCleared = localStorage.getItem(`${storageKey}-cleared`) === "true";
-      if (!wasExplicitlyCleared && selectedStatuses.length === 0 && fallbackStatuses.length > 0 && initialStatuses.length === 0) {
-        console.log("Auto-selecting default status from fallback on first load only");
-        const defaultStatus = fallbackStatuses.find(s => s.isDefault);
-        if (defaultStatus) {
-          setSelectedStatusesState([defaultStatus.code]);
+      try {
+        // Try to use the service's built-in mock data
+        const mockResponse = await statusSystemService.getContextualStatuses(context);
+        setAvailableStatuses(mockResponse.availableStatuses);
+        
+        // Handle default selection logic
+        const wasExplicitlyCleared = localStorage.getItem(`${storageKey}-cleared`) === "true";
+        if (!wasExplicitlyCleared && selectedStatuses.length === 0 && initialStatuses.length === 0) {
+          const defaultStatus = mockResponse.availableStatuses.find(s => s.isDefault);
+          if (defaultStatus) {
+            console.log("Auto-selecting default status from mock data");
+            setSelectedStatusesState([defaultStatus.code]);
+          }
+        }
+      } catch (mockErr) {
+        // If even the mock data fails, use our local fallback
+        console.error('Even mock data failed, using local fallback:', mockErr);
+        
+        // Fallback mock data based on context
+        const fallbackStatuses = getFallbackStatuses(context);
+        setAvailableStatuses(fallbackStatuses);
+        
+        // ONLY auto-select default on first initialization, not on subsequent fetches
+        // Also check if there's a flag indicating explicit clear was performed
+        const wasExplicitlyCleared = localStorage.getItem(`${storageKey}-cleared`) === "true";
+        if (!wasExplicitlyCleared && selectedStatuses.length === 0 && fallbackStatuses.length > 0 && initialStatuses.length === 0) {
+          console.log("Auto-selecting default status from local fallback on first load only");
+          const defaultStatus = fallbackStatuses.find(s => s.isDefault);
+          if (defaultStatus) {
+            setSelectedStatusesState([defaultStatus.code]);
+          }
         }
       }
       
