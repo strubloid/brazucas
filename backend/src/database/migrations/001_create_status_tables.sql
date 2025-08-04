@@ -72,6 +72,8 @@ INSERT INTO status_contexts (name, display_name, description) VALUES
 ('public', 'Público', 'Contexto para visualização pública');
 
 -- Insert status definitions
+-- Note: "archived" status has been removed as per system design changes. 
+-- Previously archived content should now use "rejected" status instead.
 INSERT INTO status_definitions (code, display_name, description, color_background, color_border, color_text, color_header_bg, sort_order) VALUES
 -- Draft statuses
 ('draft', 'Rascunho', 'Conteúdo em elaboração', 'rgba(156, 163, 175, 0.15)', '#9ca3af', '#374151', 'rgba(156, 163, 175, 0.1)', 1),
@@ -87,9 +89,8 @@ INSERT INTO status_definitions (code, display_name, description, color_backgroun
 -- Rejected statuses
 ('rejected', 'Rejeitado', 'Conteúdo rejeitado', 'rgba(239, 68, 68, 0.15)', '#ef4444', '#dc2626', 'rgba(239, 68, 68, 0.1)', 6),
 
--- Archive/Special statuses
-('archived', 'Arquivado', 'Conteúdo arquivado', 'rgba(107, 114, 128, 0.15)', '#6b7280', '#374151', 'rgba(107, 114, 128, 0.1)', 7),
-('expired', 'Expirado', 'Conteúdo expirado', 'rgba(107, 114, 128, 0.15)', '#6b7280', '#374151', 'rgba(107, 114, 128, 0.1)', 8);
+-- Special statuses
+('expired', 'Expirado', 'Conteúdo expirado', 'rgba(107, 114, 128, 0.15)', '#6b7280', '#374151', 'rgba(107, 114, 128, 0.1)', 7);
 
 -- Status context mappings for NEWS
 -- Management context (for news creators/editors)
@@ -105,7 +106,7 @@ CROSS JOIN status_contexts sc
 CROSS JOIN status_definitions sd
 WHERE ct.name = 'news' 
   AND sc.name = 'management'
-  AND sd.code IN ('draft', 'pending_approval', 'published', 'rejected', 'archived');
+  AND sd.code IN ('draft', 'pending_approval', 'published', 'rejected');
 
 -- Approval context (for admins approving news)
 INSERT INTO status_context_mappings (content_type_id, context_id, status_id, is_default, is_visible)
@@ -136,7 +137,7 @@ CROSS JOIN status_contexts sc
 CROSS JOIN status_definitions sd
 WHERE ct.name = 'ads' 
   AND sc.name = 'management'
-  AND sd.code IN ('draft', 'pending_approval', 'approved', 'published', 'rejected', 'expired', 'archived');
+  AND sd.code IN ('draft', 'pending_approval', 'approved', 'published', 'rejected', 'expired');
 
 -- Approval context (for admins approving ads)
 INSERT INTO status_context_mappings (content_type_id, context_id, status_id, is_default, is_visible)

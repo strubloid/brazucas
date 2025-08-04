@@ -114,7 +114,7 @@ class StatusSystemService {
     return this.changeContentStatus({
       contentType,
       contentId,
-      newStatusCode: 'archived',
+      newStatusCode: 'rejected',
       reason,
       metadata: { action: 'archive' }
     });

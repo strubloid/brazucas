@@ -82,18 +82,6 @@ export class MongoStatusSystemRepository {
           createdAt: new Date().toISOString()
         },
         {
-          code: 'archived',
-          displayName: 'Arquivado',
-          description: 'Conteúdo arquivado',
-          colorBackground: 'rgba(107, 114, 128, 0.15)',
-          colorBorder: '#6b7280',
-          colorText: '#374151',
-          colorHeaderBg: 'rgba(107, 114, 128, 0.1)',
-          sortOrder: 6,
-          isActive: true,
-          createdAt: new Date().toISOString()
-        },
-        {
           code: 'expired',
           displayName: 'Expirado',
           description: 'Conteúdo expirado',
@@ -101,7 +89,7 @@ export class MongoStatusSystemRepository {
           colorBorder: '#6b7280',
           colorText: '#374151',
           colorHeaderBg: 'rgba(107, 114, 128, 0.1)',
-          sortOrder: 7,
+          sortOrder: 6,
           isActive: true,
           createdAt: new Date().toISOString()
         }
@@ -119,7 +107,6 @@ export class MongoStatusSystemRepository {
         { contentType: 'news', context: 'management', statusCode: 'pending_approval', isDefault: false, isVisible: true, createdAt: new Date().toISOString() },
         { contentType: 'news', context: 'management', statusCode: 'published', isDefault: false, isVisible: true, createdAt: new Date().toISOString() },
         { contentType: 'news', context: 'management', statusCode: 'rejected', isDefault: false, isVisible: true, createdAt: new Date().toISOString() },
-        { contentType: 'news', context: 'management', statusCode: 'archived', isDefault: false, isVisible: true, createdAt: new Date().toISOString() },
         
         // News approval context
         { contentType: 'news', context: 'approval', statusCode: 'pending_approval', isDefault: true, isVisible: true, createdAt: new Date().toISOString() },
@@ -133,7 +120,6 @@ export class MongoStatusSystemRepository {
         { contentType: 'ads', context: 'management', statusCode: 'published', isDefault: false, isVisible: true, createdAt: new Date().toISOString() },
         { contentType: 'ads', context: 'management', statusCode: 'rejected', isDefault: false, isVisible: true, createdAt: new Date().toISOString() },
         { contentType: 'ads', context: 'management', statusCode: 'expired', isDefault: false, isVisible: true, createdAt: new Date().toISOString() },
-        { contentType: 'ads', context: 'management', statusCode: 'archived', isDefault: false, isVisible: true, createdAt: new Date().toISOString() },
         
         // Ads approval context
         { contentType: 'ads', context: 'approval', statusCode: 'pending_approval', isDefault: true, isVisible: true, createdAt: new Date().toISOString() },

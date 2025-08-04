@@ -110,8 +110,8 @@ export interface StatusChangeRequest {
 }
 
 // Legacy compatibility types (for gradual migration)
-export type NewsStatus = 'draft' | 'pending_approval' | 'published' | 'rejected' | 'archived';
-export type AdStatus = 'draft' | 'pending_approval' | 'approved' | 'published' | 'rejected' | 'expired' | 'archived';
+export type NewsStatus = 'draft' | 'pending_approval' | 'published' | 'rejected';
+export type AdStatus = 'draft' | 'pending_approval' | 'approved' | 'published' | 'rejected' | 'expired';
 export type BaseStatus = NewsStatus | AdStatus;
 
 // Status color utilities

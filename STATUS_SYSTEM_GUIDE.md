@@ -44,7 +44,7 @@ Draft → Pending Approval → Approved → Published
 #### Advertisement Workflow  
 ```
 Draft → Pending Approval → Approved → Published → Expired
-                      ↘ Rejected ↗              ↘ Archived
+                      ↘ Rejected ↗              
 ```
 
 ## Frontend Integration
@@ -89,7 +89,7 @@ The Dashboard now uses context-aware status filtering:
 
 #### Management Context
 - **Purpose**: Content creators managing their own content
-- **Available Statuses**: Draft, Pending Approval, Published, Rejected, Archived
+- **Available Statuses**: Draft, Pending Approval, Published, Rejected
 - **Default**: Draft
 
 #### Approval Context  
@@ -156,17 +156,15 @@ await statusSystemService.batchApprove([
 - **pending_approval**: Pendente Aprovação (orange) - Submitted for review
 - **approved**: Aprovado (green) - Approved but not yet published
 - **published**: Publicado (green) - Live and public
-- **rejected**: Rejeitado (red) - Rejected by admin
-- **archived**: Arquivado (gray) - No longer active
+- **rejected**: Rejeitado (red) - Rejected by admin or archived content
 
 ### Advertisement Statuses
 - **draft**: Rascunho (gray) - Content being created
 - **pending_approval**: Pendente Aprovação (orange) - Submitted for review
 - **approved**: Aprovado (green) - Approved but not yet live
 - **published**: Publicado (green) - Live and running
-- **rejected**: Rejeitado (red) - Rejected by admin
+- **rejected**: Rejeitado (red) - Rejected by admin or archived content
 - **expired**: Expirado (gray) - Ad campaign ended
-- **archived**: Arquivado (gray) - No longer relevant
 
 ## Migration Path
 
