@@ -9,15 +9,22 @@ interface ThreeXViewProps {
   renderCard: (item: any, index: number) => React.ReactNode;
   className?: string;
   itemsPerPage?: number;
+  currentPage?: number;
+  onPageChange?: (page: number) => void;
 }
 
 const ThreeXView: React.FC<ThreeXViewProps> = ({
   items,
   renderCard,
   className = '',
-  itemsPerPage = 3  // Changed from 9 to 3 for 3x1 layout (3 cards per row)
+  itemsPerPage = 3,  // Changed from 9 to 3 for 3x1 layout (3 cards per row)
+  currentPage: propCurrentPage,
+  onPageChange
 }) => {
-  const [currentPage, setCurrentPage] = useState(0);
+  const [internalCurrentPage, setInternalCurrentPage] = useState(propCurrentPage || 0);
+  
+  // Use either controlled or uncontrolled current page
+  const currentPage = propCurrentPage !== undefined ? propCurrentPage : internalCurrentPage;
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const totalPages = Math.ceil(items.length / itemsPerPage);
   
@@ -45,8 +52,15 @@ const ThreeXView: React.FC<ThreeXViewProps> = ({
       delay: anime.stagger(50),
       easing: 'easeInBack',
       complete: () => {
-        // Update page after animation
-        setCurrentPage(direction === 'next' ? currentPage + 1 : currentPage - 1);
+        // Update page after animation, but only for uncontrolled mode
+        if (propCurrentPage === undefined) {
+          const newPage = direction === 'next' ? currentPage + 1 : currentPage - 1;
+          setInternalCurrentPage(newPage);
+          if (onPageChange) {
+            onPageChange(newPage);
+          }
+        }
+        // For controlled mode, parent will update the prop
       }
     });
   };
@@ -75,15 +89,30 @@ const ThreeXView: React.FC<ThreeXViewProps> = ({
     });
   }, [currentPage]);
 
+  const updatePage = (newPage: number) => {
+    setInternalCurrentPage(newPage);
+    if (onPageChange) {
+      onPageChange(newPage);
+    }
+  };
+  
   const handleNext = () => {
     if (currentPage < totalPages - 1) {
       animatePageTransition('next');
+      // If using controlled mode, also notify parent
+      if (propCurrentPage !== undefined && onPageChange) {
+        onPageChange(currentPage + 1);
+      }
     }
   };
 
   const handlePrev = () => {
     if (currentPage > 0) {
       animatePageTransition('prev');
+      // If using controlled mode, also notify parent
+      if (propCurrentPage !== undefined && onPageChange) {
+        onPageChange(currentPage - 1);
+      }
     }
   };
 
@@ -91,8 +120,14 @@ const ThreeXView: React.FC<ThreeXViewProps> = ({
     if (pageIndex !== currentPage) {
       const direction = pageIndex > currentPage ? 'next' : 'prev';
       animatePageTransition(direction);
-      // Note: setCurrentPage is called in the animation complete callback
-      setCurrentPage(pageIndex);
+      
+      if (propCurrentPage !== undefined && onPageChange) {
+        // Notify parent immediately
+        onPageChange(pageIndex);
+      } else {
+        // For uncontrolled component, we update our internal state
+        setInternalCurrentPage(pageIndex);
+      }
     }
   };
 

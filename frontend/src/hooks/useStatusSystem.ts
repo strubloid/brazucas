@@ -177,10 +177,7 @@ export const useStatusSystem = (
   const setSelectedStatuses = useCallback((statuses: string[] | ((prev: string[]) => string[])) => {
     const newStatuses = typeof statuses === 'function' ? statuses(selectedStatuses) : statuses;
     
-    // Always update state
-    setSelectedStatusesState(newStatuses);
-    
-    // Handle persistence
+    // Handle persistence before state update
     if (persistSelection) {
       if (!newStatuses || newStatuses.length === 0) {
         // For empty selection, clear localStorage and mark as explicitly cleared
@@ -195,12 +192,26 @@ export const useStatusSystem = (
       }
     }
     
-    // Ensure empty array stays empty
+    // If setting to empty, ensure we mark as explicitly cleared
+    if (!newStatuses || newStatuses.length === 0) {
+      console.log('Setting explicitly empty status selection');
+      localStorage.setItem(`${storageKey}-cleared`, "true");
+    }
+    
+    // Always update state
+    setSelectedStatusesState(newStatuses);
+    
+    // Ensure empty array stays empty with multiple checks
     if (!newStatuses || newStatuses.length === 0) {
       console.log('Ensuring empty status selection stays empty');
       setTimeout(() => {
         setSelectedStatusesState([]);
       }, 10);
+      
+      // Double-check again after a longer delay
+      setTimeout(() => {
+        setSelectedStatusesState(current => current.length > 0 ? [] : current);
+      }, 50);
     }
   }, [persistSelection, storageKey, selectedStatuses]);
 
@@ -212,12 +223,30 @@ export const useStatusSystem = (
         if (prev.length === 1 && persistSelection) {
           console.log(`Marking ${storageKey} as explicitly cleared`);
           localStorage.setItem(`${storageKey}-cleared`, "true");
+          
+          // For last status removal, ensure we return empty array and don't auto-select anything
+          console.log("Last status being removed, ensuring empty selection");
+          return [];
         }
         return prev.filter((s: string) => s !== statusCode);
       } else {
         return [...prev, statusCode];
       }
     });
+    
+    // For deselection, verify the state actually changed after a short delay
+    setTimeout(() => {
+      setSelectedStatusesState(current => {
+        if (!current.includes(statusCode)) {
+          // If status was removed, make sure we don't have unexpected auto-selection
+          if (current.length === 0) {
+            // Keep it empty
+            return [];
+          }
+        }
+        return current;
+      });
+    }, 10);
   }, [setSelectedStatuses, persistSelection, storageKey]);
 
   // Clear all selected statuses - ensure all statuses are really deselected
@@ -234,10 +263,8 @@ export const useStatusSystem = (
     // Force direct state update with empty array
     setSelectedStatusesState([]);
     
-    // Ensure state remains empty
-    setTimeout(() => {
-      console.log("Confirming all statuses remain cleared");
-      // Direct state update again to ensure it's empty
+    // Multiple checks to ensure state remains empty
+    const verifyEmptySelection = () => {
       setSelectedStatusesState(current => {
         if (current.length > 0) {
           console.log(`Found ${current.length} statuses still selected, forcing clear`);
@@ -245,7 +272,23 @@ export const useStatusSystem = (
         }
         return current;
       });
-    }, 50);
+    };
+    
+    // Check multiple times to ensure it stays cleared
+    setTimeout(verifyEmptySelection, 10);
+    setTimeout(verifyEmptySelection, 50);
+    setTimeout(verifyEmptySelection, 100);
+    
+    // Final verification
+    setTimeout(() => {
+      const currentSelection = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      if (currentSelection.length > 0) {
+        console.log('Final verification found persisted selection, forcing clear');
+        localStorage.removeItem(storageKey);
+        localStorage.setItem(`${storageKey}-cleared`, "true");
+        setSelectedStatusesState([]);
+      }
+    }, 150);
   }, [persistSelection, storageKey]);
 
   // Select all available statuses

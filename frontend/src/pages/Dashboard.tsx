@@ -96,6 +96,12 @@ const Dashboard: React.FC = () => {
   const [adsViewMode, setAdsViewMode] = useState<ViewMode>('card');
   const [pendingPostsViewMode, setPendingPostsViewMode] = useState<ViewMode>('card');
   const [pendingAdsViewMode, setPendingAdsViewMode] = useState<ViewMode>('card');
+  
+  // 3x view pagination state
+  const [currentPage3x, setCurrentPage3x] = useState<number>(0);
+  const [currentAdsPage3x, setCurrentAdsPage3x] = useState<number>(0);
+  const [currentPendingPostsPage3x, setCurrentPendingPostsPage3x] = useState<number>(0);
+  const [currentPendingAdsPage3x, setCurrentPendingAdsPage3x] = useState<number>(0);
 
   // Statistics state
   const [statistics, setStatistics] = useState<DashboardStatistics>({
@@ -1076,8 +1082,12 @@ const Dashboard: React.FC = () => {
                           viewMode={newsViewMode}
                           onViewModeChange={setNewsViewMode}
                           totalItems={filteredNews.length}
-                          currentPage={newsViewMode === 'list' ? undefined : newsViewMode === 'card' ? currentCardIndex + 1 : undefined}
-                          totalPages={newsViewMode === 'list' ? undefined : newsViewMode === 'card' ? filteredNews.length : undefined}
+                          currentPage={newsViewMode === 'list' ? undefined : newsViewMode === 'card' ? 
+                            Math.min(currentCardIndex + 1, filteredNews.length) : 
+                            Math.min(currentPage3x + 1, Math.ceil(filteredNews.length / 3))}
+                          totalPages={newsViewMode === 'list' ? undefined : newsViewMode === 'card' ? 
+                            filteredNews.length > 0 ? filteredNews.length : 1 : 
+                            Math.max(1, Math.ceil(filteredNews.length / 3))}
                         />
                         
                         {newsViewMode === 'card' ? (
@@ -1134,6 +1144,8 @@ const Dashboard: React.FC = () => {
                         ) : newsViewMode === '3x' ? (
                           <ThreeXView
                             items={filteredNews}
+                            currentPage={currentPage3x}
+                            onPageChange={setCurrentPage3x}
                             renderCard={(newsPost, index) => (
                               <NewsCard
                                 post={newsPost}
@@ -1209,8 +1221,12 @@ const Dashboard: React.FC = () => {
                           viewMode={adsViewMode}
                           onViewModeChange={setAdsViewMode}
                           totalItems={filteredAds.length}
-                          currentPage={adsViewMode === 'list' ? undefined : adsViewMode === 'card' ? currentAdCardIndex + 1 : undefined}
-                          totalPages={adsViewMode === 'list' ? undefined : adsViewMode === 'card' ? filteredAds.length : undefined}
+                          currentPage={adsViewMode === 'list' ? undefined : adsViewMode === 'card' ? 
+                            Math.min(currentAdCardIndex + 1, filteredAds.length) : 
+                            Math.min(currentAdsPage3x + 1, Math.ceil(filteredAds.length / 3))}
+                          totalPages={adsViewMode === 'list' ? undefined : adsViewMode === 'card' ? 
+                            filteredAds.length > 0 ? filteredAds.length : 1 : 
+                            Math.max(1, Math.ceil(filteredAds.length / 3))}
                         />
                         
                         {adsViewMode === 'card' ? (
@@ -1593,8 +1609,12 @@ const Dashboard: React.FC = () => {
                           viewMode={pendingPostsViewMode}
                           onViewModeChange={setPendingPostsViewMode}
                           totalItems={pendingNews.length}
-                          currentPage={pendingPostsViewMode === 'list' ? undefined : pendingPostsViewMode === 'card' ? currentPendingPostIndex + 1 : undefined}
-                          totalPages={pendingPostsViewMode === 'list' ? undefined : pendingPostsViewMode === 'card' ? pendingNews.length : undefined}
+                          currentPage={pendingPostsViewMode === 'list' ? undefined : pendingPostsViewMode === 'card' ? 
+                            Math.min(currentPendingPostIndex + 1, pendingNews.length) : 
+                            Math.min(currentPendingPostsPage3x + 1, Math.ceil(pendingNews.length / 3))}
+                          totalPages={pendingPostsViewMode === 'list' ? undefined : pendingPostsViewMode === 'card' ? 
+                            pendingNews.length > 0 ? pendingNews.length : 1 : 
+                            Math.max(1, Math.ceil(pendingNews.length / 3))}
                         />
                         
                         {pendingPostsViewMode === 'card' ? (
@@ -1721,8 +1741,12 @@ const Dashboard: React.FC = () => {
                           viewMode={pendingAdsViewMode}
                           onViewModeChange={setPendingAdsViewMode}
                           totalItems={pendingAds.length}
-                          currentPage={pendingAdsViewMode === 'list' ? undefined : pendingAdsViewMode === 'card' ? currentPendingAdIndex + 1 : undefined}
-                          totalPages={pendingAdsViewMode === 'list' ? undefined : pendingAdsViewMode === 'card' ? pendingAds.length : undefined}
+                          currentPage={pendingAdsViewMode === 'list' ? undefined : pendingAdsViewMode === 'card' ? 
+                            Math.min(currentPendingAdIndex + 1, pendingAds.length) : 
+                            Math.min(currentPendingAdsPage3x + 1, Math.ceil(pendingAds.length / 3))}
+                          totalPages={pendingAdsViewMode === 'list' ? undefined : pendingAdsViewMode === 'card' ? 
+                            pendingAds.length > 0 ? pendingAds.length : 1 : 
+                            Math.max(1, Math.ceil(pendingAds.length / 3))}
                         />
                         
                         {pendingAdsViewMode === 'card' ? (

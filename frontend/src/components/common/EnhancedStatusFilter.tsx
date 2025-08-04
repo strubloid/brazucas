@@ -55,21 +55,19 @@ export const EnhancedStatusFilter: React.FC<EnhancedStatusFilterProps> = ({
     } else {
       // Multi select mode: toggle status
       
-      // Special handling for "draft" status
-      if (statusCode === 'draft' && selectedStatuses.includes('draft')) {
-        console.log("Special handling for draft status deselection");
+      // Special handling for any status being deselected when it's the only one selected
+      if (selectedStatuses.includes(statusCode) && selectedStatuses.length === 1) {
+        console.log(`Special handling for ${statusCode} status deselection when it's the only selected status`);
         
         // If this is the only selected status and it's being deselected, force empty selection
-        if (selectedStatuses.length === 1) {
-          clearAll();
-          if (onSelectionChange) {
-            onSelectionChange([]);
-          }
-          return;
+        clearAll();
+        if (onSelectionChange) {
+          onSelectionChange([]);
         }
+        return;
       }
       
-      // Normal toggle for other statuses
+      // Normal toggle for all other cases
       toggleStatus(statusCode);
     }
   };
@@ -93,12 +91,16 @@ export const EnhancedStatusFilter: React.FC<EnhancedStatusFilterProps> = ({
       console.log("EnhancedStatusFilter: Notifying parent of empty selection");
       onSelectionChange([]);
       
-      // Use forceful approach with a longer delay
-      setTimeout(() => {
-        // This will reset both our internal state and notify parent component
+      // Use multiple notifications to ensure the parent gets the empty selection
+      const notifyParentOfEmptySelection = () => {
         setSelectedStatuses([]);
         onSelectionChange([]);
-      }, 100);
+      };
+      
+      // Multiple attempts to ensure parent gets updated
+      setTimeout(notifyParentOfEmptySelection, 50);
+      setTimeout(notifyParentOfEmptySelection, 100);
+      setTimeout(notifyParentOfEmptySelection, 200);
     }
   };
 
