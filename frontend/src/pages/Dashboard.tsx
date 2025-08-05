@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import anime from 'animejs';
+import ScrollReveal from 'scrollreveal';
 import { useAnimateOnMount } from '../hooks/useAnimateOnMount';
 import { useAsync } from '../hooks/useAsync';
 import { useAuth } from '../context/AuthContext';
@@ -74,6 +75,60 @@ const Dashboard: React.FC = () => {
       setSelectedAdStatuses([]);
     }
   }, []);
+
+  // Initialize ScrollReveal animations
+  useEffect(() => {
+    const sr = ScrollReveal({
+      reset: true,
+      distance: '60px',
+      duration: 800,
+      delay: 100,
+      easing: 'cubic-bezier(0.5, 0, 0, 1)',
+    });
+
+    // Animate the stats table container
+    sr.reveal('.stats-table-container', {
+      origin: 'top',
+      duration: 1000,
+      delay: 200,
+    });
+
+    // Animate table rows sequentially
+    sr.reveal('.stats-table tbody tr', {
+      origin: 'left',
+      duration: 600,
+      delay: 100,
+      interval: 150,
+    });
+
+    // Animate admin extra stats cards
+    sr.reveal('.admin-extra-stats .stat-card', {
+      origin: 'bottom',
+      duration: 800,
+      delay: 300,
+      interval: 200,
+    });
+
+    // Animate approval cards
+    sr.reveal('.approval-card', {
+      origin: 'bottom',
+      duration: 600,
+      delay: 100,
+      interval: 100,
+    });
+
+    // Animate news cards
+    sr.reveal('.dashboard__news-item', {
+      origin: 'right',
+      duration: 700,
+      delay: 150,
+      interval: 120,
+    });
+
+    return () => {
+      sr.destroy();
+    };
+  }, [activeTab]);
   
   // Carousel state for news
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
