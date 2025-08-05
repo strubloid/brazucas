@@ -19,6 +19,7 @@ import { StatusFilter } from '../components/common/StatusFilter';
 import { EnhancedStatusFilter } from '../components/common/EnhancedStatusFilter';
 import { StatusManager, NewsStatus, AdStatus } from '../types/status';
 import { StatusSystemContext } from '../types/statusSystem';
+import { UserRole } from '../types/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faHome, 
@@ -31,7 +32,9 @@ import {
   faClock,
   faEye,
   faEdit,
-  faSpinner
+  faSpinner,
+  faChartBar,
+  faFileAlt
 } from '@fortawesome/free-solid-svg-icons';
 import './Dashboard.scss';
 import './PokemonCarousel.scss';
@@ -128,7 +131,7 @@ const Dashboard: React.FC = () => {
 
   // Fetch pending news for admin
   const { data: pendingNews, loading: pendingLoading, refetch: refetchPending } = useAsync<NewsPost[]>(
-    () => user?.role === 'admin' ? NewsService.getPendingNews() : Promise.resolve([]),
+    () => user?.role === UserRole.ADMIN ? NewsService.getPendingNews() : Promise.resolve([]),
     [user?.role]
   );
 
@@ -144,7 +147,7 @@ const Dashboard: React.FC = () => {
 
   // Fetch pending advertisements for admin
   const { data: pendingAds, loading: pendingAdsLoading, refetch: refetchPendingAds } = useAsync<Advertisement[]>(
-    () => user?.role === 'admin' ? AdService.getPendingAds() : Promise.resolve([]),
+    () => user?.role === UserRole.ADMIN ? AdService.getPendingAds() : Promise.resolve([]),
     [user?.role]
   );
 
@@ -211,7 +214,7 @@ const Dashboard: React.FC = () => {
 
   // Fetch statistics for admin dashboard
   const fetchStatistics = React.useCallback(async () => {
-    if (user?.role === 'admin') {
+    if (user?.role === UserRole.ADMIN) {
       try {
         console.log('Fetching fresh statistics...');
         const stats = await StatisticsService.getDashboardStatistics();
@@ -273,7 +276,7 @@ const Dashboard: React.FC = () => {
     // Update last refresh time
     setLastRefreshTime(now);
     
-    if (user?.role === 'admin') {
+    if (user?.role === UserRole.ADMIN) {
       try {
         // Set loading state once
         setLoadingStats(true);
@@ -320,7 +323,7 @@ const Dashboard: React.FC = () => {
   
   // Fetch statistics on component mount, but only once
   React.useEffect(() => {
-    if (user?.role === 'admin' && !loadingStats && !hasInitialFetchRunRef.current) {
+    if (user?.role === UserRole.ADMIN && !loadingStats && !hasInitialFetchRunRef.current) {
       console.log('Initial statistics fetch on component mount');
       hasInitialFetchRunRef.current = true;
       setLoadingStats(true);
@@ -964,7 +967,7 @@ const Dashboard: React.FC = () => {
             </button>
 
             {/* Anunciante Section - Only for advertisers and admins */}
-            {(user?.role === 'advertiser' || user?.role === 'admin') && (
+            {(user?.role === UserRole.ADVERTISER || user?.role === UserRole.ADMIN) && (
               <>
                 <div className="nav-divider">
                   <span>Anunciante</span>
@@ -992,7 +995,7 @@ const Dashboard: React.FC = () => {
               </>
             )}
 
-            {user?.role === 'admin' && (
+            {user?.role === UserRole.ADMIN && (
               <>
                 <div className="nav-divider">
                   <span>Aprovações</span>
@@ -1049,7 +1052,7 @@ const Dashboard: React.FC = () => {
                 marginBottom: '20px' 
               }}>
                 <div>
-                  {user?.role === 'admin' && (
+                  {user?.role === UserRole.ADMIN && (
                     <>
                       <h2>Dashboard Administrativo</h2>
                       <small style={{ 
@@ -1063,7 +1066,7 @@ const Dashboard: React.FC = () => {
                     </>
                   )}
                 </div>
-                {user?.role === 'admin' && (
+                {user?.role === UserRole.ADMIN && (
                   <button 
                     onClick={(e) => {
                       e.preventDefault(); // Prevent any default actions
@@ -1094,133 +1097,233 @@ const Dashboard: React.FC = () => {
                 )}
               </div>
               <div className="overview-grid">
-                <div className="stat-card">
-                  <div className="stat-icon">
-                    <FontAwesomeIcon icon={faNewspaper} />
-                  </div>
-                  <div className="stat-content">
-                    <h3 className="stat-number">
-                      {user?.role === 'admin' 
-                        ? (statistics.totalNews !== undefined ? statistics.totalNews : 0)
-                        : (news?.length || 0)}
-                    </h3>
-                    <p className="stat-label">Total de Notícias</p>
-                  </div>
-                </div>
-                
-                <div className="stat-card">
-                  <div className="stat-icon published">
-                    <FontAwesomeIcon icon={faEye} />
-                  </div>
-                  <div className="stat-content">
-                    <h3 className="stat-number">
-                      {user?.role === 'admin' 
-                        ? (statistics.publishedNews !== undefined ? statistics.publishedNews : 0) 
-                        : (news?.filter(n => n.published && n.approved === true).length || 0)}
-                    </h3>
-                    <p className="stat-label">Notícias Publicadas</p>
-                  </div>
-                </div>
-                
-                <div className="stat-card">
-                  <div className="stat-icon draft">
-                    <FontAwesomeIcon icon={faClock} />
-                  </div>
-                  <div className="stat-content">
-                    <h3 className="stat-number">
-                      {user?.role === 'admin' 
-                        ? (statistics.draftNews !== undefined ? statistics.draftNews : 0)
-                        : (news?.filter(n => !n.published || n.approved !== true).length || 0)}
-                    </h3>
-                    <p className="stat-label">Rascunhos</p>
-                  </div>
-                </div>
-
-                {/* Advertisement stats for advertisers and admins */}
-                {(user?.role === 'advertiser' || user?.role === 'admin') && (
-                  <>
-                    <div className="stat-card">
-                      <div className="stat-icon">
-                        <FontAwesomeIcon icon={faAd} />
-                      </div>
-                      <div className="stat-content">
-                        <h3 className="stat-number">
-                          {user?.role === 'admin' 
-                            ? (statistics.totalAds !== undefined ? statistics.totalAds : 0)
-                            : (ads?.length || 0)}
-                        </h3>
-                        <p className="stat-label">Total de Anúncios</p>
-                      </div>
-                    </div>
+                {user?.role === UserRole.ADMIN ? (
+                  // Admin Dashboard with comprehensive stats table
+                  <div className="stats-table-container">
+                    <table className="stats-table">
+                      <thead className="stats-header">
+                        <tr className="stats-row">
+                          <th className="stats-cell header-cell"></th>
+                          <th className="stats-cell header-cell">
+                            <FontAwesomeIcon icon={faNewspaper} />
+                            <span>Notícias</span>
+                          </th>
+                          <th className="stats-cell header-cell">
+                            <FontAwesomeIcon icon={faAd} />
+                            <span>Anúncios</span>
+                          </th>
+                          <th className="stats-cell header-cell">
+                            <FontAwesomeIcon icon={faChartBar} />
+                            <span>Total</span>
+                          </th>
+                        </tr>
+                      </thead>
+                      
+                      <tbody>
+                        <tr className="stats-row">
+                          <td className="stats-cell row-label">
+                            <FontAwesomeIcon icon={faFileAlt} />
+                            <span>Total</span>
+                          </td>
+                          <td className="stats-cell stat-number">
+                            {statistics.totalNews !== undefined ? statistics.totalNews : 0}
+                          </td>
+                          <td className="stats-cell stat-number">
+                            {statistics.totalAds !== undefined ? statistics.totalAds : 0}
+                          </td>
+                          <td className="stats-cell stat-number total">
+                            {(statistics.totalNews || 0) + (statistics.totalAds || 0)}
+                          </td>
+                        </tr>
+                        
+                        <tr className="stats-row">
+                          <td className="stats-cell row-label">
+                            <FontAwesomeIcon icon={faClock} />
+                            <span>Rascunhos</span>
+                          </td>
+                          <td className="stats-cell stat-number draft">
+                            {statistics.draftNews !== undefined ? statistics.draftNews : 0}
+                          </td>
+                          <td className="stats-cell stat-number draft">
+                            {statistics.draftAds !== undefined ? statistics.draftAds : 0}
+                          </td>
+                          <td className="stats-cell stat-number total">
+                            {(statistics.draftNews || 0) + (statistics.draftAds || 0)}
+                          </td>
+                        </tr>
+                        
+                        <tr className="stats-row">
+                          <td className="stats-cell row-label">
+                            <FontAwesomeIcon icon={faEye} />
+                            <span>Publicados</span>
+                          </td>
+                          <td className="stats-cell stat-number published">
+                            {statistics.publishedNews !== undefined ? statistics.publishedNews : 0}
+                          </td>
+                          <td className="stats-cell stat-number published">
+                            {statistics.publishedAds !== undefined ? statistics.publishedAds : 0}
+                          </td>
+                          <td className="stats-cell stat-number total">
+                            {(statistics.publishedNews || 0) + (statistics.publishedAds || 0)}
+                          </td>
+                        </tr>
+                        
+                        <tr className="stats-row">
+                          <td className="stats-cell row-label">
+                            <FontAwesomeIcon icon={faCheckCircle} />
+                            <span>Pendentes</span>
+                          </td>
+                          <td className="stats-cell stat-number pending">
+                            {statistics.pendingPosts !== undefined ? statistics.pendingPosts : 0}
+                          </td>
+                          <td className="stats-cell stat-number pending">
+                            {statistics.pendingAds !== undefined ? statistics.pendingAds : 0}
+                          </td>
+                          <td className="stats-cell stat-number total">
+                            {(statistics.pendingPosts || 0) + (statistics.pendingAds || 0)}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                     
-                    <div className="stat-card">
-                      <div className="stat-icon published">
-                        <FontAwesomeIcon icon={faEye} />
-                      </div>
-                      <div className="stat-content">
-                        <h3 className="stat-number">
-                          {user?.role === 'admin'
-                            ? (statistics.publishedAds !== undefined ? statistics.publishedAds : 0)
-                            : (ads?.filter(a => a.published && a.approved === true).length || 0)}
-                        </h3>
-                        <p className="stat-label">Anúncios Publicados</p>
-                      </div>
-                    </div>
-                    
-                    <div className="stat-card">
-                      <div className="stat-icon draft">
-                        <FontAwesomeIcon icon={faClock} />
-                      </div>
-                      <div className="stat-content">
-                        <h3 className="stat-number">
-                          {user?.role === 'admin'
-                            ? (statistics.draftAds !== undefined ? statistics.draftAds : 0)
-                            : (ads?.filter(a => !a.published || a.approved !== true).length || 0)}
-                        </h3>
-                        <p className="stat-label">Anúncios Rascunho</p>
+                    {/* Additional admin stats */}
+                    <div className="admin-extra-stats">
+                      <div className="stat-card">
+                        <div className="stat-icon users">
+                          <FontAwesomeIcon icon={faUsers} />
+                        </div>
+                        <div className="stat-content">
+                          <h3 className="stat-number">
+                            {statistics.totalUsers !== undefined ? statistics.totalUsers : 0}
+                          </h3>
+                          <p className="stat-label">Usuários Registrados</p>
+                        </div>
                       </div>
                     </div>
-                  </>
-                )}
-
-                {user?.role === 'admin' && (
-                  <>
-                    <div className="stat-card">
-                      <div className="stat-icon pending">
-                        <FontAwesomeIcon icon={faCheckCircle} />
-                      </div>
-                      <div className="stat-content">
-                        <h3 className="stat-number">
-                          {statistics.pendingPosts !== undefined ? statistics.pendingPosts : 0}
-                        </h3>
-                        <p className="stat-label">Posts Pendentes</p>
-                      </div>
-                    </div>
-                    
-                    <div className="stat-card">
-                      <div className="stat-icon pending">
-                        <FontAwesomeIcon icon={faAd} />
-                      </div>
-                      <div className="stat-content">
-                        <h3 className="stat-number">
-                          {statistics.pendingAds !== undefined ? statistics.pendingAds : 0}
-                        </h3>
-                        <p className="stat-label">Anúncios Pendentes</p>
-                      </div>
-                    </div>
-                    
-                    <div className="stat-card">
-                      <div className="stat-icon users">
-                        <FontAwesomeIcon icon={faUsers} />
-                      </div>
-                      <div className="stat-content">
-                        <h3 className="stat-number">
-                          {statistics.totalUsers !== undefined ? statistics.totalUsers : 0}
-                        </h3>
-                        <p className="stat-label">Usuários Registrados</p>
-                      </div>
-                    </div>
-                  </>
+                  </div>
+                ) : (
+                  // Regular user dashboard - show only their content
+                  <div className="user-stats-container">
+                    {user && [UserRole.ADVERTISER, UserRole.ADMIN].includes(user.role) ? (
+                      // Advertiser/Admin user can see both news and ads
+                      <table className="stats-table">
+                        <thead className="stats-header">
+                          <tr className="stats-row">
+                            <th className="stats-cell header-cell"></th>
+                            <th className="stats-cell header-cell">
+                              <FontAwesomeIcon icon={faNewspaper} />
+                              <span>Notícias</span>
+                            </th>
+                            <th className="stats-cell header-cell">
+                              <FontAwesomeIcon icon={faAd} />
+                              <span>Anúncios</span>
+                            </th>
+                            <th className="stats-cell header-cell">
+                              <FontAwesomeIcon icon={faChartBar} />
+                              <span>Total</span>
+                            </th>
+                          </tr>
+                        </thead>
+                        
+                        <tbody>
+                          <tr className="stats-row">
+                            <td className="stats-cell row-label">
+                              <FontAwesomeIcon icon={faFileAlt} />
+                              <span>Total</span>
+                            </td>
+                            <td className="stats-cell stat-number">
+                              {news?.length || 0}
+                            </td>
+                            <td className="stats-cell stat-number">
+                              {ads?.length || 0}
+                            </td>
+                            <td className="stats-cell stat-number total">
+                              {(news?.length || 0) + (ads?.length || 0)}
+                            </td>
+                          </tr>
+                          
+                          <tr className="stats-row">
+                            <td className="stats-cell row-label">
+                              <FontAwesomeIcon icon={faClock} />
+                              <span>Rascunhos</span>
+                            </td>
+                            <td className="stats-cell stat-number draft">
+                              {news?.filter(n => !n.published || n.approved !== true).length || 0}
+                            </td>
+                            <td className="stats-cell stat-number draft">
+                              {ads?.filter(a => !a.published || a.approved !== true).length || 0}
+                            </td>
+                            <td className="stats-cell stat-number total">
+                              {(news?.filter(n => !n.published || n.approved !== true).length || 0) + 
+                               (ads?.filter(a => !a.published || a.approved !== true).length || 0)}
+                            </td>
+                          </tr>
+                          
+                          <tr className="stats-row">
+                            <td className="stats-cell row-label">
+                              <FontAwesomeIcon icon={faEye} />
+                              <span>Publicados</span>
+                            </td>
+                            <td className="stats-cell stat-number published">
+                              {news?.filter(n => n.published && n.approved === true).length || 0}
+                            </td>
+                            <td className="stats-cell stat-number published">
+                              {ads?.filter(a => a.published && a.approved === true).length || 0}
+                            </td>
+                            <td className="stats-cell stat-number total">
+                              {(news?.filter(n => n.published && n.approved === true).length || 0) + 
+                               (ads?.filter(a => a.published && a.approved === true).length || 0)}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    ) : (
+                      // Regular user can only see news
+                      <table className="stats-table single-content">
+                        <thead className="stats-header">
+                          <tr className="stats-row">
+                            <th className="stats-cell header-cell"></th>
+                            <th className="stats-cell header-cell">
+                              <FontAwesomeIcon icon={faNewspaper} />
+                              <span>Notícias</span>
+                            </th>
+                          </tr>
+                        </thead>
+                        
+                        <tbody>
+                          <tr className="stats-row">
+                            <td className="stats-cell row-label">
+                              <FontAwesomeIcon icon={faFileAlt} />
+                              <span>Total</span>
+                            </td>
+                            <td className="stats-cell stat-number">
+                              {news?.length || 0}
+                            </td>
+                          </tr>
+                          
+                          <tr className="stats-row">
+                            <td className="stats-cell row-label">
+                              <FontAwesomeIcon icon={faClock} />
+                              <span>Rascunhos</span>
+                            </td>
+                            <td className="stats-cell stat-number draft">
+                              {news?.filter(n => !n.published || n.approved !== true).length || 0}
+                            </td>
+                          </tr>
+                          
+                          <tr className="stats-row">
+                            <td className="stats-cell row-label">
+                              <FontAwesomeIcon icon={faEye} />
+                              <span>Publicados</span>
+                            </td>
+                            <td className="stats-cell stat-number published">
+                              {news?.filter(n => n.published && n.approved === true).length || 0}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
                 )}
               </div>
               </>
@@ -1238,7 +1341,7 @@ const Dashboard: React.FC = () => {
                         contentType: 'news',
                         context: 'management',
                         userId: user?.id ? parseInt(user.id) : undefined,
-                        userRole: user?.role === 'admin' ? 'admin' : 'user'
+                        userRole: user?.role === UserRole.ADMIN ? 'admin' : 'user'
                       }}
                       onSelectionChange={setSelectedNewsStatuses}
                       className="dashboard-status-filter"
@@ -1377,7 +1480,7 @@ const Dashboard: React.FC = () => {
                         contentType: 'ads',
                         context: 'management',
                         userId: user?.id ? parseInt(user.id) : undefined,
-                        userRole: user?.role === 'admin' ? 'admin' : 'user'
+                        userRole: user?.role === UserRole.ADMIN ? 'admin' : 'user'
                       }}
                       onSelectionChange={setSelectedAdStatuses}
                       className="dashboard-status-filter"
@@ -1755,7 +1858,7 @@ const Dashboard: React.FC = () => {
             )}
 
             {/* Approve Posts Tab - Admin Only */}
-            {activeTab === 'approve-posts' && user?.role === 'admin' && (
+            {activeTab === 'approve-posts' && user?.role === UserRole.ADMIN && (
               <div className="approval-section">
                 {pendingLoading ? (
                   <LoadingSpinner text="Carregando posts pendentes..." />
@@ -1887,7 +1990,7 @@ const Dashboard: React.FC = () => {
             )}
 
             {/* Approve Ads Tab - Admin Only */}
-            {activeTab === 'approve-ads' && user?.role === 'admin' && (
+            {activeTab === 'approve-ads' && user?.role === UserRole.ADMIN && (
               <div className="approval-section">
                 {pendingAdsLoading ? (
                   <LoadingSpinner text="Carregando anúncios pendentes..." />
