@@ -14,7 +14,7 @@ const ListView: React.FC<ListViewProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
-  const itemHeight = 220; // Increased for better spacing
+  const itemHeight = 350; // Increased for better spacing
   
   useEffect(() => {
     const container = containerRef.current;
@@ -22,11 +22,11 @@ const ListView: React.FC<ListViewProps> = ({
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      
-      // Very smooth continuous scrolling
+      const removingExtra = 250;
+      // Very smooth continuous scrolling - allow scrolling to the very last item
+      const maxScroll = Math.max(0, (items.length - 1) * itemHeight);
       const newPosition = Math.max(0, 
-        Math.min(scrollPosition + e.deltaY * 0.6, 
-        Math.max(0, (items.length - 2.5) * itemHeight)));
+        Math.min(scrollPosition + e.deltaY * 0.6, maxScroll - removingExtra));
       
       setScrollPosition(newPosition);
     };
@@ -77,7 +77,7 @@ const ListView: React.FC<ListViewProps> = ({
       {/* Continuous scroll progress */}
       <div className="scroll-indicator">
         <div className="scroll-progress" style={{
-          height: `${items.length > 3 ? (scrollPosition / ((items.length - 3) * itemHeight)) * 100 : 100}%`
+          height: `${items.length > 1 ? (scrollPosition / ((items.length - 1) * itemHeight)) * 100 : 100}%`
         }} />
       </div>
     </div>

@@ -9,7 +9,7 @@
     position: relative;
     margin: 0 auto;
     max-width: 900px;
-    height: 600px; // Larger height for better flow
+    height: 850px; // Larger height for better flow
     overflow: hidden;
   }
   
@@ -178,6 +178,7 @@
       line-height: 1.5;
       color: rgba(255, 255, 255, 0.8);
       margin-bottom: 1rem;
+      min-height: 120px;;
     }
 
     .list-item-details {
