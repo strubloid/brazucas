@@ -1063,7 +1063,12 @@ const Dashboard: React.FC = () => {
                 </div>
                 {user?.role === 'admin' && (
                   <button 
-                    onClick={refreshAllData}
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent any default actions
+                      if (!loadingStats && !isRefreshingRef.current) {
+                        refreshAllData();
+                      }
+                    }}
                     disabled={loadingStats}
                     style={{
                       background: loadingStats ? '#95a5a6' : '#2ecc71',
