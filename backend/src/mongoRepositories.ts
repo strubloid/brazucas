@@ -1,6 +1,7 @@
 import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
 import { User, NewsPost, Advertisement } from './types';
-import { IUserRepository, INewsRepository, IAdRepository } from './repositories';
+import { ServiceCategory } from './types/serviceCategory';
+import { IUserRepository, INewsRepository, IAdRepository, IServiceCategoryRepository } from './repositories';
 
 export class MongoUserRepository implements IUserRepository {
   private collection: Collection<User>;
@@ -146,6 +147,95 @@ export class MongoNewsRepository implements INewsRepository {
       ...result,
       id: result._id.toString(),
     } as NewsPost;
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const result = await this.collection.deleteOne({ _id: new ObjectId(id) });
+    return result.deletedCount > 0;
+  }
+}
+
+export class MongoServiceCategoryRepository implements IServiceCategoryRepository {
+  private collection: Collection<ServiceCategory>;
+
+  constructor(db: Db) {
+    this.collection = db.collection<ServiceCategory>('serviceCategories');
+    // Create unique index on name
+    this.collection.createIndex({ name: 1 }, { unique: true });
+  }
+
+  async findAll(): Promise<ServiceCategory[]> {
+    const categories = await this.collection.find({}).sort({ name: 1 }).toArray();
+    return categories.map(category => ({
+      ...category,
+      id: category._id.toString(),
+    })) as ServiceCategory[];
+  }
+
+  async findById(id: string): Promise<ServiceCategory | null> {
+    const category = await this.collection.findOne({ _id: new ObjectId(id) });
+    if (!category) return null;
+    
+    return {
+      ...category,
+      id: category._id.toString(),
+    } as ServiceCategory;
+  }
+
+  async findByName(name: string): Promise<ServiceCategory | null> {
+    const category = await this.collection.findOne({ name });
+    if (!category) return null;
+    
+    return {
+      ...category,
+      id: category._id.toString(),
+    } as ServiceCategory;
+  }
+
+  async findActive(): Promise<ServiceCategory[]> {
+    const categories = await this.collection.find({ active: true }).sort({ name: 1 }).toArray();
+    return categories.map(category => ({
+      ...category,
+      id: category._id.toString(),
+    })) as ServiceCategory[];
+  }
+
+  async create(categoryData: Omit<ServiceCategory, 'id' | 'createdAt' | 'updatedAt'>): Promise<ServiceCategory> {
+    const category = {
+      ...categoryData,
+      active: categoryData.active !== false, // Default to active if not specified
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const result = await this.collection.insertOne(category as any);
+    
+    return {
+      ...category,
+      id: result.insertedId.toString(),
+    } as ServiceCategory;
+  }
+
+  async update(id: string, updates: Partial<ServiceCategory>): Promise<ServiceCategory> {
+    const result = await this.collection.findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { 
+        $set: { 
+          ...updates, 
+          updatedAt: new Date() 
+        } 
+      },
+      { returnDocument: 'after' }
+    );
+
+    if (!result) {
+      throw new Error('Service category not found');
+    }
+
+    return {
+      ...result,
+      id: result._id.toString(),
+    } as ServiceCategory;
   }
 
   async delete(id: string): Promise<boolean> {

@@ -94,7 +94,7 @@ export const AdCard: React.FC<AdCardProps> = ({
         </div>
         
         <div className="list-item-content">
-          <p className="list-item-description">{ad.description}</p>
+          <p className="list-item-description">{ad.description && ad.description.length > 500 ? ad.description.substring(0, 500) + '...' : ad.description}</p>
           <div className="list-item-details">
             <div className="detail-item category">
               <span className="label">Categoria:</span>
@@ -232,7 +232,7 @@ export const AdCard: React.FC<AdCardProps> = ({
             </div>
             
             <h3 className={titleClass}>{ad.title}</h3>
-            <p className={descriptionClass}>{ad.description}</p>
+            <p className={descriptionClass}>{ad.description && ad.description.length > 500 ? ad.description.substring(0, 500) + '...' : ad.description}</p>
             
             {viewType === '3x' && (
               <div className={detailsClass}>

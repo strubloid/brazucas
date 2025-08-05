@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAnimateOnMount } from '../hooks/useAnimateOnMount';
 import { useAsync } from '../hooks/useAsync';
 import { AdService } from '../services/adService';
+import { ServiceCategoryService } from '../services/serviceCategoryService';
 import { CreateAdvertisementRequest, Advertisement } from '../types/ads';
+import { ServiceCategory } from '../types/serviceCategory';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import './AdSubmission.scss';
 
@@ -11,6 +13,11 @@ const AdSubmission: React.FC = () => {
   
   const { data: existingAds, loading: adsLoading, refetch } = useAsync<Advertisement[]>(
     () => AdService.getMyAds(),
+    []
+  );
+  
+  const { data: serviceCategories, loading: categoriesLoading } = useAsync<ServiceCategory[]>(
+    () => ServiceCategoryService.getActiveCategories(),
     []
   );
 
@@ -113,7 +120,8 @@ const AdSubmission: React.FC = () => {
     }
   };
 
-  const categories = [
+  // Use the hardcoded categories as fallback if API fails
+  const fallbackCategories = [
     'Serviços Domésticos',
     'Limpeza',
     'Jardinagem',
@@ -137,7 +145,7 @@ const AdSubmission: React.FC = () => {
     }
   };
 
-  if (adsLoading) {
+  if (adsLoading || categoriesLoading) {
     return <LoadingSpinner />;
   }
 
@@ -179,11 +187,18 @@ const AdSubmission: React.FC = () => {
                   required
                 >
                   <option value="">Selecione uma categoria</option>
-                  {categories.map(category => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
+                  {(serviceCategories && serviceCategories.length > 0
+                    ? serviceCategories.map(category => (
+                        <option key={category.id} value={category.name}>
+                          {category.name}
+                        </option>
+                      ))
+                    : fallbackCategories.map(category => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))
+                  )}
                 </select>
               </div>
 

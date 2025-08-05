@@ -12,6 +12,7 @@ import NewsDetail from './pages/NewsDetail';
 import Ads from './pages/Ads';
 import Dashboard from './pages/Dashboard';
 import AdSubmission from './pages/AdSubmission';
+import ServiceCategories from './pages/ServiceCategories';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 // import ProtectedRoute from './components/auth/ProtectedRoute';
 // import { UserRole } from './types/auth';
@@ -36,6 +37,7 @@ const App: React.FC = () => {
               {/* Temporarily simplified routes - re-enable auth later */}
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/submit-ad" element={<AdSubmission />} />
+              <Route path="/admin/service-categories" element={<ServiceCategories />} />
             </Routes>
           </Layout>
         </Router>

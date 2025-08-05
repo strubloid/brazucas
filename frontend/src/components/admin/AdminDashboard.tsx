@@ -102,6 +102,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = () => {
       <div className="admin-header">
         <h1>Admin Dashboard</h1>
         <p>Manage pending news posts</p>
+        
+        <div className="admin-navigation">
+          <a href="/admin/dashboard" className="nav-link active">Dashboard</a>
+          <a href="/admin/service-categories" className="nav-link">Categorias de Serviços</a>
+        </div>
+        
         <button 
           onClick={() => {
             loadPendingNews();

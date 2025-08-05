@@ -1,4 +1,5 @@
 import { User, NewsPost, Advertisement, UserRole } from './types';
+import { ServiceCategory } from './types/serviceCategory';
 
 // Repository interfaces (Dependency Inversion Principle)
 export interface IUserRepository {
@@ -25,6 +26,16 @@ export interface IAdRepository {
   findByAdvertiser(authorId: string): Promise<Advertisement[]>;
   create(ad: Omit<Advertisement, 'id' | 'createdAt' | 'updatedAt'>): Promise<Advertisement>;
   update(id: string, updates: Partial<Advertisement>): Promise<Advertisement>;
+  delete(id: string): Promise<boolean>;
+}
+
+export interface IServiceCategoryRepository {
+  findAll(): Promise<ServiceCategory[]>;
+  findById(id: string): Promise<ServiceCategory | null>;
+  findByName(name: string): Promise<ServiceCategory | null>;
+  findActive(): Promise<ServiceCategory[]>;
+  create(category: Omit<ServiceCategory, 'id' | 'createdAt' | 'updatedAt'>): Promise<ServiceCategory>;
+  update(id: string, updates: Partial<ServiceCategory>): Promise<ServiceCategory>;
   delete(id: string): Promise<boolean>;
 }
 
