@@ -1535,7 +1535,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(16, 185, 129, 0.1),
+      rgba(139, 92, 246, 0.1),
       transparent
     );
     transition: left 0.5s ease;
@@ -1551,15 +1551,16 @@
     border-spacing: 0;
     border-radius: 1rem;
     overflow: hidden;
-    background: rgba(5, 150, 105, 0.2);
+    background: rgba(17, 24, 39, 0.3);
     position: relative;
     z-index: 1;
 
     th, td {
       padding: 1.5rem 1.25rem;
       text-align: center;
-      border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+      border-bottom: 1px solid rgba(75, 85, 99, 0.3);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
     }
 
     thead {
@@ -1571,12 +1572,28 @@
         letter-spacing: 0.025em;
         text-transform: uppercase;
         border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        position: relative;
 
         &:first-child {
           background: linear-gradient(135deg, #1f2937, #374151);
           text-align: left;
           text-transform: none;
           font-size: 1rem;
+        }
+
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 0;
+          height: 2px;
+          background: linear-gradient(90deg, #f59e0b, #ef4444);
+          transition: width 0.3s ease;
+        }
+
+        &:hover::after {
+          width: 100%;
         }
 
         svg {
@@ -1589,13 +1606,13 @@
     tbody {
       tr {
         &:nth-child(even) td {
-          background: rgba(6, 95, 70, 0.2);
+          background: rgba(31, 41, 55, 0.3);
         }
 
         &:hover td {
-          background: rgba(16, 185, 129, 0.15);
+          background: rgba(79, 70, 229, 0.1);
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+          box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
         }
 
         td {
@@ -1604,6 +1621,23 @@
             font-weight: 600;
             color: #f9fafb;
             background: linear-gradient(135deg, rgba(55, 65, 81, 0.8), rgba(75, 85, 99, 0.6));
+            position: relative;
+
+            &::before {
+              content: '';
+              position: absolute;
+              left: 0;
+              top: 0;
+              bottom: 0;
+              width: 4px;
+              background: linear-gradient(180deg, #8b5cf6, #3b82f6);
+              opacity: 0;
+              transition: opacity 0.3s ease;
+            }
+
+            &:hover::before {
+              opacity: 1;
+            }
 
             svg {
               margin-right: 0.75rem;
@@ -1617,6 +1651,21 @@
             font-weight: 800;
             color: #f8fafc;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+
+            &::before {
+              content: '';
+              position: absolute;
+              inset: 0;
+              background: radial-gradient(circle at center, rgba(139, 92, 246, 0.1), transparent);
+              border-radius: 0.5rem;
+              opacity: 0;
+              transition: opacity 0.3s ease;
+            }
+
+            &:hover::before {
+              opacity: 1;
+            }
 
             &.draft {
               color: #fbbf24;
@@ -1624,18 +1673,23 @@
             }
 
             &.published {
-              color: #34d399;
-              text-shadow: 0 0 20px rgba(52, 211, 153, 0.3);
+              color: #10b981;
+              text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+            }
+
+            &.pending {
+              color: #f87171;
+              text-shadow: 0 0 20px rgba(248, 113, 113, 0.3);
             }
 
             &.total {
-              background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.2)) !important;
-              color: #6ee7b7;
+              background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)) !important;
+              color: #a5b4fc;
               font-weight: 900;
               font-size: 2rem;
-              text-shadow: 0 0 30px rgba(110, 231, 183, 0.5);
+              text-shadow: 0 0 30px rgba(165, 180, 252, 0.5);
               border-radius: 0.75rem;
-              border: 1px solid rgba(16, 185, 129, 0.3);
+              border: 1px solid rgba(99, 102, 241, 0.3);
             }
           }
         }
