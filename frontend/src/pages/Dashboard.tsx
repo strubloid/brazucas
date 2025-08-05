@@ -30,7 +30,8 @@ import {
   faTrash,
   faClock,
   faEye,
-  faEdit
+  faEdit,
+  faSpinner
 } from '@fortawesome/free-solid-svg-icons';
 import './Dashboard.scss';
 import './PokemonCarousel.scss';
@@ -147,18 +148,6 @@ const Dashboard: React.FC = () => {
     [user?.role]
   );
 
-  // Debug logging
-  React.useEffect(() => {
-    if (user && news) {
-      console.log('Debug - User:', user);
-      console.log('Debug - News:', news);
-      news.forEach(newsPost => {
-        console.log(`News "${newsPost.title}": authorId=${newsPost.authorId}, user.id=${user.id}, match=${newsPost.authorId === user.id}`);
-        console.log(`News ID format: "${newsPost.id}" (length: ${newsPost.id.length})`);
-      });
-    }
-  }, [user, news]);
-
   // Filter data based on selected statuses
   const filteredNews = React.useMemo(() => {
     if (!news || !Array.isArray(news)) return [];
@@ -207,37 +196,139 @@ const Dashboard: React.FC = () => {
         return selectedAdStatuses.includes(status);
       });
     } catch (error) {
-      console.error('Error filtering ads:', error);
       return [];
     }
   }, [ads, selectedAdStatuses]);
 
-  // Debug ads logging
-  React.useEffect(() => {
-    if (ads) {
-      console.log('Debug - Ads array:', ads);
-      ads.forEach((ad, index) => {
-        console.log(`Ad ${index}: "${ad.title}", id="${ad.id}", type=${typeof ad.id}`);
-      });
-    }
-  }, [ads]);
+  // State for statistics loading
+  const [loadingStats, setLoadingStats] = useState<boolean>(false);
+  
+  // Debounce mechanism - Track last refresh time to prevent rapid clicks
+  const [lastRefreshTime, setLastRefreshTime] = useState<number>(0);
+  
+  // Stats debug state to verify updates
+  const [statsUpdated, setStatsUpdated] = useState<number>(0);
 
   // Fetch statistics for admin dashboard
-  React.useEffect(() => {
-    const fetchStatistics = async () => {
-      if (user?.role === 'admin') {
-        try {
-          const stats = await StatisticsService.getDashboardStatistics();
-          setStatistics(stats);
-        } catch (error) {
-          console.warn('Failed to fetch statistics:', error);
-          // Keep default statistics (all zeros)
+  const fetchStatistics = React.useCallback(async () => {
+    if (user?.role === 'admin') {
+      try {
+        console.log('Fetching fresh statistics...');
+        const stats = await StatisticsService.getDashboardStatistics();
+        
+        console.log('Statistics received:', stats);
+        
+        if (stats && typeof stats === 'object') {
+          // Force a rerender by creating a new object with a timestamp
+          setStatistics({
+            ...stats,
+            // This ensures the object is different from the previous one
+            _updatedAt: Date.now() 
+          });
+          
+          // Update stats counter to verify refresh
+          setStatsUpdated(prev => prev + 1);
+          
+          return stats;
+        } else {
+          console.error('Invalid statistics format received:', stats);
+          return null;
         }
+      } catch (error) {
+        console.error('Error fetching statistics:', error);
+        // Keep default statistics (all zeros)
+        return null;
       }
-    };
-
-    fetchStatistics();
+    }
+    return null;
   }, [user?.role]);
+  
+  // Reference to track if a refresh is in progress
+  const isRefreshingRef = React.useRef(false);
+  
+  // Function to refresh all data with debouncing
+  const refreshAllData = React.useCallback(async () => {
+    console.log('Refresh clicked. Current state:', { 
+      isRefreshing: isRefreshingRef.current, 
+      loadingStats: loadingStats 
+    });
+    
+    // Strong protection against concurrent refreshes
+    if (isRefreshingRef.current || loadingStats) {
+      console.log('Refresh already in progress, ignoring click');
+      return;
+    }
+    
+    // Set the refreshing flag immediately to prevent any race conditions
+    isRefreshingRef.current = true;
+    
+    // Prevent multiple rapid clicks (debouncing)
+    const now = Date.now();
+    if (now - lastRefreshTime < 3000) { // 3 second cooldown
+      console.log('Refresh too soon, ignoring click');
+      isRefreshingRef.current = false; // Reset flag if we're not proceeding
+      return;
+    }
+    
+    // Update last refresh time
+    setLastRefreshTime(now);
+    
+    if (user?.role === 'admin') {
+      try {
+        // Set loading state once
+        setLoadingStats(true);
+        console.log('Starting refresh process...');
+        
+        // First get statistics to ensure it's fresh
+        console.log('Fetching statistics...');
+        const newStats = await StatisticsService.getDashboardStatistics();
+        console.log('Statistics received in refreshAllData:', newStats);
+        
+        // Only update if we have valid stats
+        if (newStats && typeof newStats === 'object') {
+          console.log('Updating statistics state with new data');
+          // No need to call setStatistics twice, the fetchStatistics already does it
+        }
+        
+        // Then refresh other data in parallel
+        console.log('Refreshing other data sources...');
+        await Promise.all([
+          refetch(),
+          refetchPending(),
+          refetchAds(),
+          refetchPendingAds()
+        ]);
+        
+        console.log('All data refreshed successfully');
+        
+      } catch (error) {
+        console.error('Error refreshing data:', error);
+      } finally {
+        console.log('Refresh process complete, resetting state');
+        setLoadingStats(false);
+        // Reset the refreshing flag after operation completes
+        isRefreshingRef.current = false;
+      }
+    } else {
+      // Make sure to reset the flag even if not an admin
+      isRefreshingRef.current = false;
+    }
+  }, [user?.role, loadingStats, lastRefreshTime, fetchStatistics, refetch, refetchPending, refetchAds, refetchPendingAds]);
+  
+  // Reference to track if initial fetch has run
+  const hasInitialFetchRunRef = React.useRef(false);
+  
+  // Fetch statistics on component mount, but only once
+  React.useEffect(() => {
+    if (user?.role === 'admin' && !loadingStats && !hasInitialFetchRunRef.current) {
+      console.log('Initial statistics fetch on component mount');
+      hasInitialFetchRunRef.current = true;
+      setLoadingStats(true);
+      fetchStatistics().finally(() => {
+        setLoadingStats(false);
+      });
+    }
+  }, [user?.role, loadingStats, fetchStatistics]);
 
   const [formData, setFormData] = useState<CreateNewsRequest>({
     title: '',
@@ -951,13 +1042,61 @@ const Dashboard: React.FC = () => {
             {/* Overview Tab */}
             {activeTab === 'overview' && (
               <>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                marginBottom: '20px' 
+              }}>
+                <div>
+                  <h2>Dashboard Administrativo</h2>
+                  {user?.role === 'admin' && (
+                    <small style={{ 
+                      color: '#7f8c8d', 
+                      fontSize: '12px',
+                      marginTop: '5px',
+                      display: 'block'
+                    }}>
+                      Stats atualizado: {statsUpdated} vezes | Última atualização: {lastRefreshTime ? new Date(lastRefreshTime).toLocaleTimeString() : 'Nunca'}
+                    </small>
+                  )}
+                </div>
+                {user?.role === 'admin' && (
+                  <button 
+                    onClick={refreshAllData}
+                    disabled={loadingStats}
+                    style={{
+                      background: loadingStats ? '#95a5a6' : '#2ecc71',
+                      color: 'white',
+                      border: 'none',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '4px',
+                      cursor: loadingStats ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={loadingStats ? faSpinner : faNewspaper} spin={loadingStats} />
+                    {loadingStats ? 'Atualizando dados...' : 'Atualizar Dashboard'}
+                  </button>
+                )}
+              </div>
               <div className="overview-grid">
                 <div className="stat-card">
                   <div className="stat-icon">
                     <FontAwesomeIcon icon={faNewspaper} />
                   </div>
                   <div className="stat-content">
-                    <h3 className="stat-number">{news?.length || 0}</h3>
+                    <h3 className="stat-number">
+                      {user?.role === 'admin' 
+                        ? (statistics.totalNews !== undefined ? statistics.totalNews : 0)
+                        : (news?.length || 0)}
+                    </h3>
                     <p className="stat-label">Total de Notícias</p>
                   </div>
                 </div>
@@ -967,7 +1106,11 @@ const Dashboard: React.FC = () => {
                     <FontAwesomeIcon icon={faEye} />
                   </div>
                   <div className="stat-content">
-                    <h3 className="stat-number">{user?.role === 'admin' ? statistics.publishedNews : (news?.filter(n => n.published && n.approved === true).length || 0)}</h3>
+                    <h3 className="stat-number">
+                      {user?.role === 'admin' 
+                        ? (statistics.publishedNews !== undefined ? statistics.publishedNews : 0) 
+                        : (news?.filter(n => n.published && n.approved === true).length || 0)}
+                    </h3>
                     <p className="stat-label">Notícias Publicadas</p>
                   </div>
                 </div>
@@ -977,7 +1120,11 @@ const Dashboard: React.FC = () => {
                     <FontAwesomeIcon icon={faClock} />
                   </div>
                   <div className="stat-content">
-                    <h3 className="stat-number">{user?.role === 'admin' ? statistics.draftNews : (news?.filter(n => !n.published || n.approved !== true).length || 0)}</h3>
+                    <h3 className="stat-number">
+                      {user?.role === 'admin' 
+                        ? (statistics.draftNews !== undefined ? statistics.draftNews : 0)
+                        : (news?.filter(n => !n.published || n.approved !== true).length || 0)}
+                    </h3>
                     <p className="stat-label">Rascunhos</p>
                   </div>
                 </div>
@@ -990,7 +1137,11 @@ const Dashboard: React.FC = () => {
                         <FontAwesomeIcon icon={faAd} />
                       </div>
                       <div className="stat-content">
-                        <h3 className="stat-number">{user?.role === 'admin' ? statistics.totalAds : (ads?.length || 0)}</h3>
+                        <h3 className="stat-number">
+                          {user?.role === 'admin' 
+                            ? (statistics.totalAds !== undefined ? statistics.totalAds : 0)
+                            : (ads?.length || 0)}
+                        </h3>
                         <p className="stat-label">Total de Anúncios</p>
                       </div>
                     </div>
@@ -1000,7 +1151,11 @@ const Dashboard: React.FC = () => {
                         <FontAwesomeIcon icon={faEye} />
                       </div>
                       <div className="stat-content">
-                        <h3 className="stat-number">{user?.role === 'admin' ? statistics.publishedAds : (ads?.filter(a => a.published && a.approved === true).length || 0)}</h3>
+                        <h3 className="stat-number">
+                          {user?.role === 'admin'
+                            ? (statistics.publishedAds !== undefined ? statistics.publishedAds : 0)
+                            : (ads?.filter(a => a.published && a.approved === true).length || 0)}
+                        </h3>
                         <p className="stat-label">Anúncios Publicados</p>
                       </div>
                     </div>
@@ -1010,7 +1165,11 @@ const Dashboard: React.FC = () => {
                         <FontAwesomeIcon icon={faClock} />
                       </div>
                       <div className="stat-content">
-                        <h3 className="stat-number">{user?.role === 'admin' ? statistics.draftAds : (ads?.filter(a => !a.published || a.approved !== true).length || 0)}</h3>
+                        <h3 className="stat-number">
+                          {user?.role === 'admin'
+                            ? (statistics.draftAds !== undefined ? statistics.draftAds : 0)
+                            : (ads?.filter(a => !a.published || a.approved !== true).length || 0)}
+                        </h3>
                         <p className="stat-label">Anúncios Rascunho</p>
                       </div>
                     </div>
@@ -1024,7 +1183,9 @@ const Dashboard: React.FC = () => {
                         <FontAwesomeIcon icon={faCheckCircle} />
                       </div>
                       <div className="stat-content">
-                        <h3 className="stat-number">{statistics.pendingPosts}</h3>
+                        <h3 className="stat-number">
+                          {statistics.pendingPosts !== undefined ? statistics.pendingPosts : 0}
+                        </h3>
                         <p className="stat-label">Posts Pendentes</p>
                       </div>
                     </div>
@@ -1034,7 +1195,9 @@ const Dashboard: React.FC = () => {
                         <FontAwesomeIcon icon={faAd} />
                       </div>
                       <div className="stat-content">
-                        <h3 className="stat-number">{statistics.pendingAds}</h3>
+                        <h3 className="stat-number">
+                          {statistics.pendingAds !== undefined ? statistics.pendingAds : 0}
+                        </h3>
                         <p className="stat-label">Anúncios Pendentes</p>
                       </div>
                     </div>
@@ -1044,7 +1207,9 @@ const Dashboard: React.FC = () => {
                         <FontAwesomeIcon icon={faUsers} />
                       </div>
                       <div className="stat-content">
-                        <h3 className="stat-number">{statistics.totalUsers}</h3>
+                        <h3 className="stat-number">
+                          {statistics.totalUsers !== undefined ? statistics.totalUsers : 0}
+                        </h3>
                         <p className="stat-label">Usuários Registrados</p>
                       </div>
                     </div>

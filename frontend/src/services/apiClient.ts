@@ -79,6 +79,48 @@ class ApiClient {
     const response = await this.instance.get<ApiResponse<T>>(url, config);
     return response.data;
   }
+  
+  // Special method for fetching data with cache-busting
+  public async getWithCacheBusting<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+    try {
+      console.log(`ApiClient: Cache-busting request to ${url}`);
+      
+      // Add timestamp to URL for cache busting - use unique value for each request
+      const timestamp = Date.now();
+      const randomValue = Math.random().toString(36).substring(2, 15);
+      const separator = url.includes('?') ? '&' : '?';
+      const urlWithTimestamp = `${url}${separator}_t=${timestamp}&_r=${randomValue}`;
+      
+      // Add cache headers
+      const configWithHeaders = {
+        ...config,
+        headers: {
+          ...config?.headers,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        // Set timeout to ensure request doesn't hang
+        timeout: 10000
+      };
+      
+      console.log(`ApiClient: Making request to ${urlWithTimestamp} with headers:`, configWithHeaders.headers);
+      
+      const response = await this.instance.get<ApiResponse<T>>(urlWithTimestamp, configWithHeaders);
+      
+      if (!response.data) {
+        console.error(`ApiClient: Empty response from ${url}`);
+        throw new Error('Empty response received');
+      }
+      
+      console.log(`ApiClient: Response from ${url}:`, response.data);
+      
+      return response.data;
+    } catch (error) {
+      console.error(`ApiClient: Error making cache-busting request to ${url}:`, error);
+      throw error;
+    }
+  }
 
   public async post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     const response = await this.instance.post<ApiResponse<T>>(url, data, config);

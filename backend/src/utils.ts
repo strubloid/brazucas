@@ -96,8 +96,9 @@ export function parseRequestBody<T>(event: HandlerEvent): T {
 export function handleCors(event: HandlerEvent): Record<string, string> {
   return {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cache-Control, Pragma, Expires',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Max-Age': '86400', // 24 hours
   };
 }
 

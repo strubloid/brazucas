@@ -51,34 +51,59 @@ export const handler = async (event: HandlerEvent, context: HandlerContext) => {
     const allAds = await adService.getAllAds();
 
     // Calculate statistics
-    const publishedNews = allNews.filter((news: NewsPost) => news.published && news.approved);
+    const publishedNews = allNews.filter((news: NewsPost) => news.published && news.approved === true);
     const draftNews = allNews.filter((news: NewsPost) => !news.published || news.approved !== true);
     
-    const publishedAds = allAds.filter((ad: Advertisement) => ad.published && ad.approved);
+    // Further separate drafts from posts pending approval
+    const pendingApprovalNews = draftNews.filter((news: NewsPost) => news.published && news.approved === null);
+    
+    const publishedAds = allAds.filter((ad: Advertisement) => ad.published && ad.approved === true);
     const draftAds = allAds.filter((ad: Advertisement) => !ad.published || ad.approved !== true);
+    
+    // Further separate drafts from ads pending approval
+    const pendingApprovalAds = draftAds.filter((ad: Advertisement) => ad.published && ad.approved === null);
 
     const stats = {
       users: userCount,
       news: {
         published: publishedNews.length,
         draft: draftNews.length,
-        total: allNews.length
+        total: allNews.length,
+        pendingApproval: pendingApprovalNews.length
       },
       ads: {
         published: publishedAds.length,
         draft: draftAds.length,
-        total: allAds.length
+        total: allAds.length,
+        pendingApproval: pendingApprovalAds.length
       }
     };
 
+    // Add timestamp to ensure clients always see it as fresh data
+    const statsWithTimestamp = {
+      ...stats,
+      timestamp: Date.now()
+    };
+    
+    console.log('[admin-stats] Returning statistics:', statsWithTimestamp);
+
     return {
       statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify(stats),
+      headers: {
+        ...corsHeaders,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        success: true,
+        data: statsWithTimestamp,
+        error: null
+      }),
     };
 
   } catch (error) {
-    console.error('Admin stats error:', error);
     return {
       statusCode: 500,
       headers: corsHeaders,

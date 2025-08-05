@@ -18,12 +18,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Fetching pending news...');
       const news = await NewsService.getPendingNews();
-      console.log('Received pending news:', news);
       setPendingNews(news);
     } catch (err) {
-      console.error('Error loading pending news:', err);
       setError(err instanceof Error ? err.message : 'Failed to load pending news');
     } finally {
       setLoading(false);
@@ -107,7 +104,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = () => {
         <p>Manage pending news posts</p>
         <button 
           onClick={() => {
-            console.log('Loading pending news...');
             loadPendingNews();
           }}
           style={{
