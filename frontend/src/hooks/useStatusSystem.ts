@@ -169,8 +169,7 @@ export const useStatusSystem = (
         },
         isDefault: false,
         sortOrder: 4
-      },
-      // Removed archived status as it's not needed
+      }
     };
 
     if (ctx.context === 'management') {

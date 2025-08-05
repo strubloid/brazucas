@@ -1049,16 +1049,18 @@ const Dashboard: React.FC = () => {
                 marginBottom: '20px' 
               }}>
                 <div>
-                  <h2>Dashboard Administrativo</h2>
                   {user?.role === 'admin' && (
-                    <small style={{ 
-                      color: '#7f8c8d', 
-                      fontSize: '12px',
-                      marginTop: '5px',
-                      display: 'block'
-                    }}>
-                      Stats atualizado: {statsUpdated} vezes | Última atualização: {lastRefreshTime ? new Date(lastRefreshTime).toLocaleTimeString() : 'Nunca'}
-                    </small>
+                    <>
+                      <h2>Dashboard Administrativo</h2>
+                      <small style={{ 
+                        color: '#7f8c8d', 
+                        fontSize: '12px',
+                        marginTop: '5px',
+                        display: 'block'
+                      }}>
+                        Stats atualizado: {statsUpdated} vezes | Última atualização: {lastRefreshTime ? new Date(lastRefreshTime).toLocaleTimeString() : 'Nunca'}
+                      </small>
+                    </>
                   )}
                 </div>
                 {user?.role === 'admin' && (

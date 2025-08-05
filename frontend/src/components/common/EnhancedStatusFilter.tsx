@@ -184,7 +184,7 @@ export const EnhancedStatusFilter: React.FC<EnhancedStatusFilterProps> = ({
         )}
 
         <div className="status-options">
-            {availableStatuses.map((status: AvailableStatus) => {
+            {availableStatuses.filter(status => status && status.code).map((status: AvailableStatus) => {
             const isSelected = selectedStatuses.includes(status.code);
             const isDefault = status.isDefault;
 

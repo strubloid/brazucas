@@ -144,7 +144,6 @@ class StatusSystemService {
         availableStatuses = [
           baseStatuses.draft,
           baseStatuses.pending_approval,
-          baseStatuses.approved,
           baseStatuses.published,
           baseStatuses.rejected
         ];
@@ -152,10 +151,8 @@ class StatusSystemService {
         availableStatuses = [
           baseStatuses.draft,
           baseStatuses.pending_approval,
-          baseStatuses.approved,
           baseStatuses.published,
-          baseStatuses.rejected,
-          baseStatuses.expired
+          baseStatuses.rejected
         ];
       }
     } else if (context.context === 'approval') {
@@ -210,7 +207,7 @@ class StatusSystemService {
   ): Promise<{ results: StatusChangeResult[] }> {
     return this.bulkChangeStatus({
       items,
-      newStatusCode: 'approved',
+      newStatusCode: 'published',
       reason,
       metadata: { action: 'batch_approve' }
     });
@@ -232,7 +229,7 @@ class StatusSystemService {
   }
 
   /**
-   * Publish content (move from approved to published)
+   * Publish content (move from pending to published)
    */
   async publishContent(
     contentType: string,
