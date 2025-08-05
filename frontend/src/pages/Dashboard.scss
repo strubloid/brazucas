@@ -110,7 +110,7 @@
   }
 
   .dashboard-sidebar {
-    width: 280px;
+    width: 230px;
     background: #1f2937;
     color: white;
     flex-shrink: 0;
@@ -1222,11 +1222,12 @@
 
 // New table-based statistics layout with modern design
 .stats-table-container {
-  background: linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(31, 41, 55, 0.9));
+  background: linear-gradient(135deg, rgb(32 41 57), rgb(36 48 69));
   backdrop-filter: blur(20px);
   border: 1px solid rgba(156, 163, 175, 0.2);
   border-radius: 1.5rem;
-  padding: 3rem;
+  padding: 1.5rem;
+  margin: 1em;
   box-shadow: 
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04),
@@ -1276,7 +1277,7 @@
 
     thead {
       th {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        background: linear-gradient(135deg, #27313f, #1f2835);
         color: white;
         font-weight: 700;
         font-size: 0.925rem;
@@ -1511,9 +1512,10 @@
 .user-stats-container {
   background: linear-gradient(135deg, rgb(32 41 57), rgb(36 48 69));
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(156, 163, 175, 0.2);
   border-radius: 1.5rem;
-  padding: 3rem;
+  padding: 1.5rem;
+  margin: 1em;
   box-shadow: 
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04),
@@ -1562,7 +1564,7 @@
 
     thead {
       th {
-        background: linear-gradient(135deg, #059669, #10b981);
+        background: linear-gradient(135deg, #27313f, #1f2835);
         color: white;
         font-weight: 700;
         font-size: 0.925rem;

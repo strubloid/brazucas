@@ -13,12 +13,9 @@ const ListView: React.FC<ListViewProps> = ({
   className = ''
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const itemHeight = 220; // Increased for better spacing
   
-  const itemsPerView = 3;
-  const maxIndex = Math.max(0, items.length - itemsPerView);
-
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -26,19 +23,12 @@ const ListView: React.FC<ListViewProps> = ({
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
       
-      if (isAnimating) return;
+      // Very smooth continuous scrolling
+      const newPosition = Math.max(0, 
+        Math.min(scrollPosition + e.deltaY * 0.6, 
+        Math.max(0, (items.length - 2.5) * itemHeight)));
       
-      const delta = e.deltaY > 0 ? 1 : -1;
-      const newIndex = Math.max(0, Math.min(currentIndex + delta, maxIndex));
-      
-      if (newIndex !== currentIndex) {
-        setIsAnimating(true);
-        setCurrentIndex(newIndex);
-        
-        setTimeout(() => {
-          setIsAnimating(false);
-        }, 600);
-      }
+      setScrollPosition(newPosition);
     };
 
     container.addEventListener('wheel', handleWheel, { passive: false });
@@ -46,28 +36,37 @@ const ListView: React.FC<ListViewProps> = ({
     return () => {
       container.removeEventListener('wheel', handleWheel);
     };
-  }, [currentIndex, maxIndex, isAnimating]);
+  }, [scrollPosition, items.length, itemHeight]);
 
-  // Get the items to display
-  const visibleItems = items.slice(currentIndex, currentIndex + itemsPerView);
-  const hasMoreAbove = currentIndex > 0;
-  const hasMoreBelow = currentIndex < maxIndex;
+  // Calculate visible items based on scroll position
+  const startIndex = Math.floor(scrollPosition / itemHeight);
+  const endIndex = Math.min(startIndex + 5, items.length); // Show 5 items for smooth overlap
+  const visibleItems = items.slice(Math.max(0, startIndex), endIndex);
 
   return (
     <div 
       ref={containerRef}
-      className={`list-view-container scrollable-list ${className}`}
+      className={`list-view-container continuous-scroll ${className}`}
     >
-      <div className="news-list-grid">
+      <div 
+        className="news-list-grid"
+        style={{
+          transform: `translateY(-${scrollPosition % itemHeight}px)`,
+          transition: 'transform 0.1s ease-out'
+        }}
+      >
         {visibleItems.map((item, index) => {
-          const actualIndex = currentIndex + index;
+          const actualIndex = startIndex + index;
           const isFromLeft = actualIndex % 2 === 0;
           
           return (
             <div 
               key={item.id || `item-${actualIndex}`} 
-              className={`news-list-item reveal-${isFromLeft ? 'left' : 'right'}`}
-              data-index={actualIndex}
+              className={`news-list-item smooth-reveal ${isFromLeft ? 'from-left' : 'from-right'}`}
+              style={{
+                height: `${itemHeight}px`,
+                animationDelay: `${index * 0.05}s`
+              }}
             >
               {renderListItem(item, actualIndex)}
             </div>
@@ -75,23 +74,10 @@ const ListView: React.FC<ListViewProps> = ({
         })}
       </div>
       
-      {/* Scroll indicators */}
-      {hasMoreAbove && (
-        <div className="scroll-hint scroll-hint-up">
-          <span>↑ Scroll up for more</span>
-        </div>
-      )}
-      
-      {hasMoreBelow && (
-        <div className="scroll-hint scroll-hint-down">
-          <span>↓ Scroll down for more</span>
-        </div>
-      )}
-      
-      {/* Progress indicator */}
+      {/* Continuous scroll progress */}
       <div className="scroll-indicator">
         <div className="scroll-progress" style={{
-          height: `${maxIndex > 0 ? (currentIndex / maxIndex) * 100 : 100}%`
+          height: `${items.length > 3 ? (scrollPosition / ((items.length - 3) * itemHeight)) * 100 : 100}%`
         }} />
       </div>
     </div>

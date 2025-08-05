@@ -1,124 +1,97 @@
-// ListView.scss - Simplified scroll list view
+// ListView.scss - Free-flowing natural scroll
 .list-view-container {
   width: 100%;
-  padding: 1rem;
+  padding: 0;
   position: relative;
   
-  &.scrollable-list {
-    border-radius: 1rem;
-    background: rgba(0, 0, 0, 0.05);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  &.continuous-scroll {
+    background: transparent;
     position: relative;
     margin: 0 auto;
-    max-width: 800px;
-    min-height: 500px;
+    max-width: 900px;
+    height: 600px; // Larger height for better flow
+    overflow: hidden;
   }
   
   .news-list-grid {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    padding: 1rem 0;
+    gap: 1.5rem;
+    padding: 2rem 1rem;
+    will-change: transform;
   }
-  
-  // Scroll hints
-  .scroll-hint {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    z-index: 20;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    opacity: 0.8;
-    animation: pulse 2s infinite;
-    
-    &.scroll-hint-up {
-      top: 10px;
-    }
-    
-    &.scroll-hint-down {
-      bottom: 10px;
-    }
-  }
-  
-  // Scroll indicator
+  // Minimal scroll indicator (optional)
   .scroll-indicator {
     position: absolute;
-    right: 12px;
-    top: 1rem;
-    bottom: 1rem;
-    width: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
-    z-index: 15;
+    right: 4px;
+    top: 3rem;
+    bottom: 3rem;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0.5px;
+    z-index: 5;
+    opacity: 0.7;
     
     .scroll-progress {
       width: 100%;
-      background: linear-gradient(180deg, #3b82f6, #8b5cf6);
-      border-radius: 2px;
-      transition: height 0.6s ease;
-      min-height: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 0.5px;
+      transition: height 0.1s ease-out;
+      min-height: 8px;
     }
   }
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
-}
-
-// Reveal animations
-@keyframes revealLeft {
+// Smooth reveal animations
+@keyframes smoothRevealLeft {
   from {
     opacity: 0;
-    transform: translateX(-60px) translateY(20px);
+    transform: translateX(-15px) translateY(10px) scale(0.99);
   }
   to {
     opacity: 1;
-    transform: translateX(0) translateY(0);
+    transform: translateX(0) translateY(0) scale(1);
   }
 }
 
-@keyframes revealRight {
+@keyframes smoothRevealRight {
   from {
     opacity: 0;
-    transform: translateX(60px) translateY(20px);
+    transform: translateX(15px) translateY(10px) scale(0.99);
   }
   to {
     opacity: 1;
-    transform: translateX(0) translateY(0);
+    transform: translateX(0) translateY(0) scale(1);
   }
 }
 
 .news-list-item {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  padding: 1.5rem;
+  border: none;
+  border-radius: 20px;
+  padding: 2rem;
   color: white;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-out;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
-  animation-duration: 0.6s;
-  animation-fill-mode: both;
-  animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform, opacity;
+  margin: 0 1rem;
 
-  &.reveal-left {
-    animation-name: revealLeft;
-  }
-  
-  &.reveal-right {
-    animation-name: revealRight;
+  &.smooth-reveal {
+    animation-duration: 0.3s;
+    animation-fill-mode: both;
+    animation-timing-function: ease-out;
+
+    &.from-left {
+      animation-name: smoothRevealLeft;
+    }
+    
+    &.from-right {
+      animation-name: smoothRevealRight;
+    }
   }
 
   &::before {
@@ -135,9 +108,8 @@
   }
 
   &:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 
     &::before {
       opacity: 1;
