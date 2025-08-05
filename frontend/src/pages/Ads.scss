@@ -129,10 +129,14 @@
     margin-bottom: 1.5rem;
 
     .ad-description {
+      max-width: 400px;
       color: #4b5563;
       line-height: 1.6;
       margin-bottom: 1rem;
       font-size: 0.95rem;
+      word-wrap: break-word;
+      max-height: 150px;
+      min-height: 150px;
     }
 
     .ad-price {

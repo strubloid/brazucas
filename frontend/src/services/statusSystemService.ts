@@ -99,18 +99,6 @@ class StatusSystemService {
         isDefault: false,
         sortOrder: 2
       },
-      approved: {
-        code: 'approved',
-        displayName: 'Aprovado',
-        colors: {
-          background: 'rgba(34, 197, 94, 0.15)',
-          border: '#22c55e',
-          text: '#166534',
-          headerBg: 'rgba(34, 197, 94, 0.1)'
-        },
-        isDefault: false,
-        sortOrder: 3
-      },
       published: {
         code: 'published',
         displayName: 'Publicado',
@@ -121,7 +109,7 @@ class StatusSystemService {
           headerBg: 'rgba(34, 197, 94, 0.1)'
         },
         isDefault: false,
-        sortOrder: 4
+        sortOrder: 3
       },
       rejected: {
         code: 'rejected',
@@ -133,19 +121,7 @@ class StatusSystemService {
           headerBg: 'rgba(239, 68, 68, 0.1)'
         },
         isDefault: false,
-        sortOrder: 5
-      },
-      expired: {
-        code: 'expired',
-        displayName: 'Expirado',
-        colors: {
-          background: 'rgba(107, 114, 128, 0.15)',
-          border: '#6b7280',
-          text: '#787893',
-          headerBg: 'rgba(107, 114, 128, 0.1)'
-        },
-        isDefault: false,
-        sortOrder: 6
+        sortOrder: 4
       }
     };
 

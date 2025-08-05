@@ -46,18 +46,6 @@ export class MongoStatusSystemRepository {
           createdAt: new Date().toISOString()
         },
         {
-          code: 'approved',
-          displayName: 'Aprovado',
-          description: 'Conteúdo aprovado mas não publicado',
-          colorBackground: 'rgba(34, 197, 94, 0.15)',
-          colorBorder: '#22c55e',
-          colorText: '#166534',
-          colorHeaderBg: 'rgba(34, 197, 94, 0.1)',
-          sortOrder: 3,
-          isActive: true,
-          createdAt: new Date().toISOString()
-        },
-        {
           code: 'published',
           displayName: 'Publicado',
           description: 'Conteúdo público e visível',
@@ -65,7 +53,7 @@ export class MongoStatusSystemRepository {
           colorBorder: '#22c55e',
           colorText: '#166534',
           colorHeaderBg: 'rgba(34, 197, 94, 0.1)',
-          sortOrder: 4,
+          sortOrder: 3,
           isActive: true,
           createdAt: new Date().toISOString()
         },
@@ -77,19 +65,7 @@ export class MongoStatusSystemRepository {
           colorBorder: '#ef4444',
           colorText: '#dc2626',
           colorHeaderBg: 'rgba(239, 68, 68, 0.1)',
-          sortOrder: 5,
-          isActive: true,
-          createdAt: new Date().toISOString()
-        },
-        {
-          code: 'expired',
-          displayName: 'Expirado',
-          description: 'Conteúdo expirado',
-          colorBackground: 'rgba(107, 114, 128, 0.15)',
-          colorBorder: '#6b7280',
-          colorText: '#374151',
-          colorHeaderBg: 'rgba(107, 114, 128, 0.1)',
-          sortOrder: 6,
+          sortOrder: 4,
           isActive: true,
           createdAt: new Date().toISOString()
         }

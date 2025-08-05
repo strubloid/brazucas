@@ -18,10 +18,8 @@ export enum NewsStatus {
 export enum AdStatus {
   DRAFT = 'draft',
   PENDING_APPROVAL = 'pending_approval',
-  APPROVED = 'approved',
   PUBLISHED = 'published',
-  REJECTED = 'rejected',
-  EXPIRED = 'expired'
+  REJECTED = 'rejected'
 }
 
 // Status color mapping
@@ -33,17 +31,11 @@ export interface StatusColor {
 }
 
 export const STATUS_COLORS: Record<string, StatusColor> = {
-  // Published/Approved - Green theme
+  // Published - Green theme
   published: {
     background: 'rgba(34, 197, 94, 0.15)',
     border: '#22c55e',
     text: '#166534', 
-    headerBackground: 'rgba(34, 197, 94, 0.1)'
-  },
-  approved: {
-    background: 'rgba(34, 197, 94, 0.15)',
-    border: '#22c55e', 
-    text: '#166534',
     headerBackground: 'rgba(34, 197, 94, 0.1)'
   },
   
@@ -69,14 +61,6 @@ export const STATUS_COLORS: Record<string, StatusColor> = {
     border: '#ef4444',
     text: '#991b1b',
     headerBackground: 'rgba(239, 68, 68, 0.1)'
-  },
-  
-  // Expired - Purple theme (for ads)
-  expired: {
-    background: 'rgba(168, 85, 247, 0.15)',
-    border: '#a855f7',
-    text: '#6b21a8',
-    headerBackground: 'rgba(168, 85, 247, 0.1)'
   }
 };
 
@@ -85,9 +69,7 @@ export const STATUS_LABELS: Record<string, string> = {
   draft: 'Rascunho',
   pending_approval: 'Aguardando Aprovação',
   published: 'Publicado',
-  approved: 'Aprovado',
-  rejected: 'Rejeitado', 
-  expired: 'Expirado'
+  rejected: 'Rejeitado'
 };
 
 // Status utility class
@@ -112,7 +94,6 @@ export class StatusManager {
     if (!ad || typeof ad !== 'object') return AdStatus.DRAFT;
     // Archived posts are now treated as rejected
     if (ad.archived === true) return AdStatus.REJECTED;
-    if (ad.expired === true) return AdStatus.EXPIRED;
     if (ad.approved === false) return AdStatus.REJECTED;
     if (ad.approved === null || ad.approved === undefined) {
       // If explicitly marked as draft, keep as draft
@@ -120,8 +101,10 @@ export class StatusManager {
       // Otherwise, consider it pending approval
       return AdStatus.PENDING_APPROVAL;
     }
+    // If approved and published, it's published
     if (ad.approved === true && ad.published) return AdStatus.PUBLISHED;
-    if (ad.approved === true && !ad.published) return AdStatus.APPROVED;
+    // If approved but not published, still pending
+    if (ad.approved === true && !ad.published) return AdStatus.PENDING_APPROVAL;
     return AdStatus.DRAFT;
   }
   

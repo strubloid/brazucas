@@ -1826,8 +1826,8 @@
 
 // Dynamic status-based header styling
 .pokemon-card, .pokemon-card-3x {
-  // Published/Approved status
-  &.published, &.approved {
+  // Published status
+  &.published {
     --header-bg: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1));
     --header-border: #22c55e;
     --header-accent: linear-gradient(90deg, #16a34a, #22c55e, #16a34a);
@@ -1852,13 +1852,6 @@
     --header-bg: linear-gradient(135deg, rgb(239 68 68 / 66%), rgba(239, 68, 68, 0.1));
     --header-border: #ef4444;
     --header-accent: linear-gradient(90deg, #dc2626, #ef4444, #dc2626);
-  }
-  
-  // Expired status (for ads)
-  &.expired {
-    --header-bg: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.1));
-    --header-border: #a855f7;
-    --header-accent: linear-gradient(90deg, #9333ea, #a855f7, #9333ea);
   }
   
   // Archived status

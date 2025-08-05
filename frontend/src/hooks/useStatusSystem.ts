@@ -146,18 +146,6 @@ export const useStatusSystem = (
         isDefault: false,
         sortOrder: 2
       },
-      approved: {
-        code: 'approved',
-        displayName: 'Aprovado',
-        colors: {
-          background: 'rgba(34, 197, 94, 0.15)',
-          border: '#22c55e',
-          text: '#166534',
-          headerBg: 'rgba(34, 197, 94, 0.1)'
-        },
-        isDefault: false,
-        sortOrder: 3
-      },
       published: {
         code: 'published',
         displayName: 'Publicado',
@@ -168,7 +156,7 @@ export const useStatusSystem = (
           headerBg: 'rgba(34, 197, 94, 0.1)'
         },
         isDefault: false,
-        sortOrder: 4
+        sortOrder: 3
       },
       rejected: {
         code: 'rejected',
@@ -180,7 +168,7 @@ export const useStatusSystem = (
           headerBg: 'rgba(239, 68, 68, 0.1)'
         },
         isDefault: false,
-        sortOrder: 5
+        sortOrder: 4
       },
       // Removed archived status as it's not needed
     };

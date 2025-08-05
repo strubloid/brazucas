@@ -811,7 +811,7 @@ const Dashboard: React.FC = () => {
     if (post.published && post.approved === true) {
       return { text: 'Publicada', class: 'published' };
     } else if (post.approved === true && !post.published) {
-      return { text: 'Aprovado', class: 'approved' };
+      return { text: 'Aguardando Aprovação', class: 'pending' };
     } else if (post.approved === false) {
       return { text: 'Rejeitado', class: 'rejected' };
     } else if (post.approved === null && post.published) {
@@ -827,7 +827,7 @@ const Dashboard: React.FC = () => {
     if (ad.published && ad.approved === true) {
       return { text: 'Publicado', class: 'published' };
     } else if (ad.approved === true && !ad.published) {
-      return { text: 'Aprovado', class: 'approved' };
+      return { text: 'Aguardando Aprovação', class: 'pending' };
     } else if (ad.approved === false) {
       return { text: 'Rejeitado', class: 'rejected' };
     } else if (ad.approved === null && ad.published) {
@@ -843,7 +843,7 @@ const Dashboard: React.FC = () => {
     if (post.published && post.approved === true) {
       return `Publicado em ${new Date(post.updatedAt).toLocaleDateString('pt-BR')}`;
     } else if (post.approved !== null && post.approvedAt) {
-      const action = post.approved ? 'Aprovado' : 'Rejeitado';
+      const action = post.approved ? 'Publicado' : 'Rejeitado';
       return `${action} em ${new Date(post.approvedAt).toLocaleDateString('pt-BR')}`;
     } else if (post.approved === null && post.published) {
       return `Enviado para aprovação em ${new Date(post.createdAt).toLocaleDateString('pt-BR')}`;
@@ -856,7 +856,7 @@ const Dashboard: React.FC = () => {
     if (ad.published && ad.approved === true) {
       return `Publicado em ${new Date(ad.updatedAt).toLocaleDateString('pt-BR')}`;
     } else if (ad.approved !== null && ad.approvedAt) {
-      const action = ad.approved ? 'Aprovado' : 'Rejeitado';
+      const action = ad.approved ? 'Publicado' : 'Rejeitado';
       return `${action} em ${new Date(ad.approvedAt).toLocaleDateString('pt-BR')}`;
     } else if (ad.approved === null && ad.published) {
       return `Enviado para aprovação em ${new Date(ad.createdAt).toLocaleDateString('pt-BR')}`;
@@ -2040,7 +2040,7 @@ const Dashboard: React.FC = () => {
                     </span>
                   </p>
                   {selectedPost.approved !== null && selectedPost.approvedAt && (
-                    <p><strong>{selectedPost.approved ? 'Aprovado' : 'Rejeitado'} em:</strong> {formatDate(selectedPost.approvedAt)}</p>
+                    <p><strong>{selectedPost.approved ? 'Publicado' : 'Rejeitado'} em:</strong> {formatDate(selectedPost.approvedAt)}</p>
                   )}
                 </div>
                 

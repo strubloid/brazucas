@@ -139,7 +139,7 @@ const AdSubmission: React.FC = () => {
     if (ad.approved === null) {
       return <span className="status-badge pending">Pendente</span>;
     } else if (ad.approved === true) {
-      return <span className="status-badge approved">Aprovado</span>;
+      return <span className="status-badge published">Publicado</span>;
     } else {
       return <span className="status-badge rejected">Rejeitado</span>;
     }
