@@ -1690,6 +1690,7 @@ const Dashboard: React.FC = () => {
                         ) : (
                           <ListView
                             items={filteredAds}
+                            listType="ads"
                             renderListItem={(ad, index) => (
                               <AdCard
                                 ad={ad}
@@ -2212,6 +2213,7 @@ const Dashboard: React.FC = () => {
                         ) : (
                           <ListView
                             items={pendingAds}
+                            listType="ads"
                             renderListItem={(ad, index) => (
                               <AdCard
                                 ad={ad}

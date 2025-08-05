@@ -5,16 +5,21 @@ interface ListViewProps {
   items: any[];
   renderListItem: (item: any, index: number) => React.ReactNode;
   className?: string;
+  listType?: 'news' | 'ads'; // Add listType prop to differentiate
 }
 
 const ListView: React.FC<ListViewProps> = ({
-  items,
+  items = [], // Default to empty array
   renderListItem,
-  className = ''
+  className = '',
+  listType = 'news' // Default to news type
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
-  const itemHeight = 350; // Increased for better spacing
+  const itemHeight = listType === 'ads' ? 550 : 350; // Much larger height for ads
+  
+  // Safety check - ensure items is a valid array
+  const safeItems = Array.isArray(items) ? items.filter(item => item != null) : [];
   
   useEffect(() => {
     const container = containerRef.current;
@@ -22,9 +27,9 @@ const ListView: React.FC<ListViewProps> = ({
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const removingExtra = 250;
+      const removingExtra = 0;
       // Very smooth continuous scrolling - allow scrolling to the very last item
-      const maxScroll = Math.max(0, (items.length - 1) * itemHeight);
+      const maxScroll = Math.max(0, (safeItems.length - 1) * itemHeight);
       const newPosition = Math.max(0, 
         Math.min(scrollPosition + e.deltaY * 0.6, maxScroll - removingExtra));
       
@@ -36,12 +41,27 @@ const ListView: React.FC<ListViewProps> = ({
     return () => {
       container.removeEventListener('wheel', handleWheel);
     };
-  }, [scrollPosition, items.length, itemHeight]);
+  }, [scrollPosition, safeItems.length, itemHeight]);
 
   // Calculate visible items based on scroll position
   const startIndex = Math.floor(scrollPosition / itemHeight);
-  const endIndex = Math.min(startIndex + 5, items.length); // Show 5 items for smooth overlap
-  const visibleItems = items.slice(Math.max(0, startIndex), endIndex);
+  const endIndex = Math.min(startIndex + 5, safeItems.length); // Show 5 items for smooth overlap
+  const visibleItems = safeItems.slice(Math.max(0, startIndex), endIndex);
+
+  // Determine CSS classes based on listType
+  const gridClass = listType === 'ads' ? 'ads-list-grid' : 'news-list-grid';
+  const itemClass = listType === 'ads' ? 'ads-list-item' : 'news-list-item';
+
+  // If no items, show empty state
+  if (safeItems.length === 0) {
+    return (
+      <div className={`list-view-container ${className}`}>
+        <div className="empty-state">
+          <p>Nenhum item para exibir</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -49,7 +69,7 @@ const ListView: React.FC<ListViewProps> = ({
       className={`list-view-container continuous-scroll ${className}`}
     >
       <div 
-        className="news-list-grid"
+        className={gridClass}
         style={{
           transform: `translateY(-${scrollPosition % itemHeight}px)`,
           transition: 'transform 0.1s ease-out'
@@ -59,10 +79,15 @@ const ListView: React.FC<ListViewProps> = ({
           const actualIndex = startIndex + index;
           const isFromLeft = actualIndex % 2 === 0;
           
+          // Safety check - skip if item is null/undefined
+          if (!item) {
+            return null;
+          }
+          
           return (
             <div 
               key={item.id || `item-${actualIndex}`} 
-              className={`news-list-item smooth-reveal ${isFromLeft ? 'from-left' : 'from-right'}`}
+              className={`${itemClass} smooth-reveal ${isFromLeft ? 'from-left' : 'from-right'}`}
               style={{
                 height: `${itemHeight}px`,
                 animationDelay: `${index * 0.05}s`
@@ -77,7 +102,7 @@ const ListView: React.FC<ListViewProps> = ({
       {/* Continuous scroll progress */}
       <div className="scroll-indicator">
         <div className="scroll-progress" style={{
-          height: `${items.length > 1 ? (scrollPosition / ((items.length - 1) * itemHeight)) * 100 : 100}%`
+          height: `${safeItems.length > 1 ? (scrollPosition / ((safeItems.length - 1) * itemHeight)) * 100 : 100}%`
         }} />
       </div>
     </div>
