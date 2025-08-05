@@ -248,7 +248,7 @@ const CardView: React.FC<CardViewProps> = ({
       <div className="cards-container">
         {visibleItems.map(({ item, index }) => (
           <div
-            key={`${index}-${animationState.isAnimating ? animationState.direction : 'static'}`}
+            key={item.id || `${index}-${animationState.isAnimating ? animationState.direction : 'static'}`}
             className={getCardClasses(index)}
             onAnimationEnd={handleAnimationEnd}
             ref={cardRefs ? el => {

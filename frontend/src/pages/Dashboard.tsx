@@ -79,18 +79,20 @@ const Dashboard: React.FC = () => {
   // Initialize ScrollReveal animations
   useEffect(() => {
     const sr = ScrollReveal({
-      reset: true,
-      distance: '60px',
+      reset: true, // Changed back to true for the alternating effect
+      distance: '80px',
       duration: 800,
       delay: 100,
       easing: 'cubic-bezier(0.5, 0, 0, 1)',
-    });
+    }) as any; // Type assertion to bypass any remaining type conflicts
 
     // Animate the stats table container
-    sr.reveal('.stats-table-container', {
+    sr.reveal('.stats-table-container, .user-stats-container', {
       origin: 'top',
       duration: 1000,
       delay: 200,
+      scale: 0.9,
+      reset: false, // Keep stats visible once shown
     });
 
     // Animate table rows sequentially
@@ -99,6 +101,7 @@ const Dashboard: React.FC = () => {
       duration: 600,
       delay: 100,
       interval: 150,
+      reset: false, // Keep table rows visible
     });
 
     // Animate admin extra stats cards
@@ -107,6 +110,8 @@ const Dashboard: React.FC = () => {
       duration: 800,
       delay: 300,
       interval: 200,
+      scale: 0.8,
+      reset: false, // Keep stats cards visible
     });
 
     // Animate approval cards
@@ -115,6 +120,7 @@ const Dashboard: React.FC = () => {
       duration: 600,
       delay: 100,
       interval: 100,
+      reset: false,
     });
 
     // Animate news cards
@@ -123,6 +129,125 @@ const Dashboard: React.FC = () => {
       duration: 700,
       delay: 150,
       interval: 120,
+      reset: false,
+    });
+
+    // Animate CardView items (Pokemon cards and ad cards)
+    sr.reveal('.pokemon-card, .pokemon-card-3x', {
+      origin: 'bottom',
+      duration: 800,
+      delay: 200,
+      scale: 0.85,
+      interval: 100,
+      reset: false, // Keep cards visible once shown
+    });
+
+    // Animate ThreeXView items with staggered effect
+    sr.reveal('.pokemon-card-3x', {
+      origin: 'left',
+      duration: 700,
+      delay: 100,
+      interval: 150,
+      distance: '80px',
+      reset: false, // Keep 3x view cards visible
+    });
+
+    // Enhanced ListView items with alternating left/right reveal
+    // Odd items (1st, 3rd, 5th...) come from left when scrolling down, exit to right when scrolling up
+    sr.reveal('.news-list-item:nth-child(odd)', {
+      origin: 'left',
+      duration: 600,
+      delay: 100,
+      distance: '120px',
+      reset: true, // Allow reset for dynamic scroll behavior
+      opacity: 0,
+      easing: 'ease-out',
+      beforeReveal: function(domEl: Element) {
+        if (domEl instanceof HTMLElement) {
+          // Coming from left when scrolling down
+          domEl.style.transform = 'translateX(-120px)';
+          domEl.style.opacity = '0';
+        }
+      },
+      afterReveal: function(domEl: Element) {
+        if (domEl instanceof HTMLElement) {
+          // Center position when visible
+          domEl.style.transform = 'translateX(0)';
+          domEl.style.opacity = '1';
+        }
+      },
+      beforeReset: function(domEl: Element) {
+        if (domEl instanceof HTMLElement) {
+          // Exit to right when scrolling up (opposite direction)
+          domEl.style.transform = 'translateX(120px)';
+          domEl.style.opacity = '0';
+        }
+      }
+    });
+
+    // Even items (2nd, 4th, 6th...) come from right when scrolling down, exit to left when scrolling up
+    sr.reveal('.news-list-item:nth-child(even)', {
+      origin: 'right',
+      duration: 600,
+      delay: 100,
+      distance: '120px',
+      reset: true, // Allow reset for dynamic scroll behavior
+      opacity: 0,
+      easing: 'ease-out',
+      beforeReveal: function(domEl: Element) {
+        if (domEl instanceof HTMLElement) {
+          // Coming from right when scrolling down
+          domEl.style.transform = 'translateX(120px)';
+          domEl.style.opacity = '0';
+        }
+      },
+      afterReveal: function(domEl: Element) {
+        if (domEl instanceof HTMLElement) {
+          // Center position when visible
+          domEl.style.transform = 'translateX(0)';
+          domEl.style.opacity = '1';
+        }
+      },
+      beforeReset: function(domEl: Element) {
+        if (domEl instanceof HTMLElement) {
+          // Exit to left when scrolling up (opposite direction)
+          domEl.style.transform = 'translateX(-120px)';
+          domEl.style.opacity = '0';
+        }
+      }
+    });
+
+    // Animate ViewModeControls
+    sr.reveal('.view-mode-controls', {
+      origin: 'top',
+      duration: 600,
+      delay: 150,
+      reset: false,
+    });
+
+    // Animate status filters
+    sr.reveal('.dashboard-status-filter', {
+      origin: 'top',
+      duration: 600,
+      delay: 100,
+      reset: false,
+    });
+
+    // Animate pokemon-carousel-container
+    sr.reveal('.pokemon-carousel-container', {
+      origin: 'bottom',
+      duration: 800,
+      delay: 200,
+      reset: false,
+    });
+
+    // Animate empty state messages
+    sr.reveal('.dashboard__empty, .no-pending-posts, .no-pending-content', {
+      origin: 'bottom',
+      duration: 600,
+      delay: 200,
+      scale: 0.9,
+      reset: false,
     });
 
     return () => {

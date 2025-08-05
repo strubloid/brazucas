@@ -153,7 +153,7 @@ const ThreeXView: React.FC<ThreeXViewProps> = ({
       <div className={`cards-3x-grid ${getCurrentPageItems().length === 1 ? 'cards-1' : getCurrentPageItems().length === 2 ? 'cards-2' : ''}`}>
         {getCurrentPageItems().map((item, index) => (
           <div
-            key={`${currentPage}-${index}`}
+            key={item.id || `${currentPage}-${index}`}
             ref={el => cardRefs.current[index] = el}
             className="card-3x-wrapper"
           >

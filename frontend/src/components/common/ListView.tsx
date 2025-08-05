@@ -15,7 +15,11 @@ const ListView: React.FC<ListViewProps> = ({
   return (
     <div className={`list-view-container ${className}`}>
       <div className="news-list-grid">
-        {items.map((item, index) => renderListItem(item, index))}
+        {items.map((item, index) => (
+          <div key={item.id || `item-${index}`} className="news-list-item">
+            {renderListItem(item, index)}
+          </div>
+        ))}
       </div>
     </div>
   );

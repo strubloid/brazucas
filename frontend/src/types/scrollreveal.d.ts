@@ -1,5 +1,6 @@
+// Override the default ScrollReveal types completely
 declare module 'scrollreveal' {
-  interface ScrollRevealOptions {
+  export interface ScrollRevealOptions {
     delay?: number;
     distance?: string;
     duration?: number;
@@ -19,20 +20,45 @@ declare module 'scrollreveal' {
     viewOffset?: { top?: number; right?: number; bottom?: number; left?: number };
     afterReveal?: (domEl: Element) => void;
     afterReset?: (domEl: Element) => void;
+    beforeReveal?: (domEl: Element) => void;
+    beforeReset?: (domEl: Element) => void;
   }
 
-  interface ScrollRevealInstance {
-    reveal(target: string | Element | NodeList, options?: ScrollRevealOptions): ScrollRevealInstance;
-    clean(target: string | Element | NodeList): ScrollRevealInstance;
+  export interface ScrollRevealObject {
+    reveal(target: string | Element | NodeList, options?: ScrollRevealOptions): ScrollRevealObject;
+    clean(target: string | Element | NodeList): ScrollRevealObject;
     destroy(): void;
-    sync(): ScrollRevealInstance;
+    sync(): ScrollRevealObject;
   }
 
-  interface ScrollRevealConstructor {
-    (): ScrollRevealInstance;
-    (options?: ScrollRevealOptions): ScrollRevealInstance;
+  export interface ScrollRevealConstructor {
+    (): ScrollRevealObject;
+    (options?: ScrollRevealOptions): ScrollRevealObject;
   }
 
   const ScrollReveal: ScrollRevealConstructor;
   export default ScrollReveal;
 }
+
+// Also override any global types
+declare global {
+  interface Window {
+    ScrollReveal: any;
+  }
+}
+
+// Explicitly declare for module resolution
+declare const ScrollReveal: {
+  (): {
+    reveal(target: string | Element | NodeList, options?: any): any;
+    clean(target: string | Element | NodeList): any;
+    destroy(): void;
+    sync(): any;
+  };
+  (options?: any): {
+    reveal(target: string | Element | NodeList, options?: any): any;
+    clean(target: string | Element | NodeList): any;
+    destroy(): void;
+    sync(): any;
+  };
+};
