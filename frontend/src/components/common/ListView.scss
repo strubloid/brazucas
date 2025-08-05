@@ -1,14 +1,100 @@
-// ListView.scss - Glass morphism list view
+// ListView.scss - Simplified scroll list view
 .list-view-container {
   width: 100%;
   padding: 1rem;
+  position: relative;
+  
+  &.scrollable-list {
+    border-radius: 1rem;
+    background: rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    margin: 0 auto;
+    max-width: 800px;
+    min-height: 500px;
+  }
   
   .news-list-grid {
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    max-width: 800px;
-    margin: 0 auto;
+    padding: 1rem 0;
+  }
+  
+  // Scroll hints
+  .scroll-hint {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    z-index: 20;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    opacity: 0.8;
+    animation: pulse 2s infinite;
+    
+    &.scroll-hint-up {
+      top: 10px;
+    }
+    
+    &.scroll-hint-down {
+      bottom: 10px;
+    }
+  }
+  
+  // Scroll indicator
+  .scroll-indicator {
+    position: absolute;
+    right: 12px;
+    top: 1rem;
+    bottom: 1rem;
+    width: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    z-index: 15;
+    
+    .scroll-progress {
+      width: 100%;
+      background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+      border-radius: 2px;
+      transition: height 0.6s ease;
+      min-height: 20px;
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+// Reveal animations
+@keyframes revealLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-60px) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes revealRight {
+  from {
+    opacity: 0;
+    transform: translateX(60px) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
   }
 }
 
@@ -19,10 +105,21 @@
   border-radius: 16px;
   padding: 1.5rem;
   color: white;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
+  animation-duration: 0.6s;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  &.reveal-left {
+    animation-name: revealLeft;
+  }
+  
+  &.reveal-right {
+    animation-name: revealRight;
+  }
 
   &::before {
     content: '';
@@ -38,8 +135,8 @@
   }
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
     border-color: rgba(255, 255, 255, 0.3);
 
     &::before {

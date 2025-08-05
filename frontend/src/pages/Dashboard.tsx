@@ -152,70 +152,8 @@ const Dashboard: React.FC = () => {
       reset: false, // Keep 3x view cards visible
     });
 
-    // Enhanced ListView items with alternating left/right reveal
-    // Odd items (1st, 3rd, 5th...) come from left when scrolling down, exit to right when scrolling up
-    sr.reveal('.news-list-item:nth-child(odd)', {
-      origin: 'left',
-      duration: 600,
-      delay: 100,
-      distance: '120px',
-      reset: true, // Allow reset for dynamic scroll behavior
-      opacity: 0,
-      easing: 'ease-out',
-      beforeReveal: function(domEl: Element) {
-        if (domEl instanceof HTMLElement) {
-          // Coming from left when scrolling down
-          domEl.style.transform = 'translateX(-120px)';
-          domEl.style.opacity = '0';
-        }
-      },
-      afterReveal: function(domEl: Element) {
-        if (domEl instanceof HTMLElement) {
-          // Center position when visible
-          domEl.style.transform = 'translateX(0)';
-          domEl.style.opacity = '1';
-        }
-      },
-      beforeReset: function(domEl: Element) {
-        if (domEl instanceof HTMLElement) {
-          // Exit to right when scrolling up (opposite direction)
-          domEl.style.transform = 'translateX(120px)';
-          domEl.style.opacity = '0';
-        }
-      }
-    });
-
-    // Even items (2nd, 4th, 6th...) come from right when scrolling down, exit to left when scrolling up
-    sr.reveal('.news-list-item:nth-child(even)', {
-      origin: 'right',
-      duration: 600,
-      delay: 100,
-      distance: '120px',
-      reset: true, // Allow reset for dynamic scroll behavior
-      opacity: 0,
-      easing: 'ease-out',
-      beforeReveal: function(domEl: Element) {
-        if (domEl instanceof HTMLElement) {
-          // Coming from right when scrolling down
-          domEl.style.transform = 'translateX(120px)';
-          domEl.style.opacity = '0';
-        }
-      },
-      afterReveal: function(domEl: Element) {
-        if (domEl instanceof HTMLElement) {
-          // Center position when visible
-          domEl.style.transform = 'translateX(0)';
-          domEl.style.opacity = '1';
-        }
-      },
-      beforeReset: function(domEl: Element) {
-        if (domEl instanceof HTMLElement) {
-          // Exit to left when scrolling up (opposite direction)
-          domEl.style.transform = 'translateX(-120px)';
-          domEl.style.opacity = '0';
-        }
-      }
-    });
+    // Enhanced ListView items with alternating left/right reveal - Now handled by ListView component
+    // ListView component will handle its own ScrollReveal animations for better control
 
     // Animate ViewModeControls
     sr.reveal('.view-mode-controls', {
