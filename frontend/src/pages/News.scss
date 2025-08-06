@@ -36,8 +36,48 @@
     color: var(--text-secondary);
     font-size: var(--font-size-lg);
     max-width: 600px;
-    margin: 0 auto;
+    margin: 0 auto var(--spacing-xl);
     line-height: 1.6;
+  }
+
+  &__view-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: var(--spacing-xl);
+  }
+
+  .view-toggle__btn {
+    background: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &:hover {
+      background: var(--primary-color);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
+
+    &.active {
+      background: var(--primary-color);
+      color: white;
+      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+    }
+
+    @media (max-width: 480px) {
+      padding: 0.6rem 1.2rem;
+      font-size: 0.8rem;
+    }
   }
   
   &__grid {
