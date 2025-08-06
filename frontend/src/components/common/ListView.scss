@@ -77,9 +77,8 @@
 }
 
 .news-list-item {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(15px);
-  border: none;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   padding: 2rem;
   color: white;
@@ -90,40 +89,9 @@
   will-change: transform, opacity;
   margin: 0 1rem;
 
-  &.smooth-reveal {
-    animation-duration: 0.3s;
-    animation-fill-mode: both;
-    animation-timing-function: ease-out;
-
-    &.from-left {
-      animation-name: smoothRevealLeft;
-    }
-    
-    &.from-right {
-      animation-name: smoothRevealRight;
-    }
-  }
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
-
   &:hover {
     transform: translateY(-2px) scale(1.01);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-
-    &::before {
-      opacity: 1;
-    }
   }
 
   .list-item-header {
@@ -202,9 +170,7 @@
         justify-content: space-between;
         align-items: center;
         padding: 0.5rem;
-        background: rgba(255, 255, 255, 0.05);
         border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
 
         .label {
           font-weight: 600;
@@ -305,23 +271,75 @@
 
   // Special styling for different content types
   &.pending {
-    border-left: 4px solid #2196F3;
-    background: rgba(33, 150, 243, 0.05);
+    background: rgba(33, 150, 243, 0.15);
+    
+    &.smooth-reveal {
+      animation-duration: 0.3s;
+      animation-fill-mode: both;
+      animation-timing-function: ease-out;
+
+      &.from-left {
+        animation-name: smoothRevealLeft;
+      }
+      
+      &.from-right {
+        animation-name: smoothRevealRight;
+      }
+    }
   }
 
   &.published {
-    border-left: 4px solid #4CAF50;
-    background: rgba(76, 175, 80, 0.05);
+    background: rgba(76, 175, 80, 0.15);
+    
+    &.smooth-reveal {
+      animation-duration: 0.3s;
+      animation-fill-mode: both;
+      animation-timing-function: ease-out;
+
+      &.from-left {
+        animation-name: smoothRevealLeft;
+      }
+      
+      &.from-right {
+        animation-name: smoothRevealRight;
+      }
+    }
   }
 
   &.draft {
-    border-left: 4px solid #FF9800;
-    background: rgba(255, 152, 0, 0.05);
+    background: rgba(255, 152, 0, 0.15);
+    
+    &.smooth-reveal {
+      animation-duration: 0.3s;
+      animation-fill-mode: both;
+      animation-timing-function: ease-out;
+
+      &.from-left {
+        animation-name: smoothRevealLeft;
+      }
+      
+      &.from-right {
+        animation-name: smoothRevealRight;
+      }
+    }
   }
 
   &.ad {
-    border-left: 4px solid #9C27B0;
-    background: rgba(156, 39, 176, 0.05);
+    background: rgba(156, 39, 176, 0.15);
+    
+    &.smooth-reveal {
+      animation-duration: 0.3s;
+      animation-fill-mode: both;
+      animation-timing-function: ease-out;
+
+      &.from-left {
+        animation-name: smoothRevealLeft;
+      }
+      
+      &.from-right {
+        animation-name: smoothRevealRight;
+      }
+    }
 
     .list-item-details {
       .detail-item {
@@ -345,9 +363,8 @@
 
 // Ads list item - standalone class with bigger dimensions for ads
 .ads-list-item {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(15px);
-  border: none;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   padding: 3rem; // Even more padding for ads
   color: white;
@@ -359,40 +376,9 @@
   margin: 0 1rem;
   min-height: 300px; // Much larger minimum height for ads content
 
-  &.smooth-reveal {
-    animation-duration: 0.3s;
-    animation-fill-mode: both;
-    animation-timing-function: ease-out;
-
-    &.from-left {
-      animation-name: smoothRevealLeft;
-    }
-    
-    &.from-right {
-      animation-name: smoothRevealRight;
-    }
-  }
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
-
   &:hover {
     transform: translateY(-2px) scale(1.01);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-
-    &::before {
-      opacity: 1;
-    }
   }
   
   .list-item-header {
@@ -458,6 +444,7 @@
       color: rgba(255, 255, 255, 0.8);
       margin-bottom: 1.5rem; // Increased margin
       min-height: 80px; // Reduced min-height since ads might have shorter descriptions
+      word-break: break-word;
     }
 
     .list-item-details {
@@ -471,9 +458,7 @@
         justify-content: space-between;
         align-items: center;
         padding: 0.75rem; // Increased padding
-        background: rgba(255, 255, 255, 0.05);
         border-radius: 10px; // Slightly larger border radius
-        border: 1px solid rgba(255, 255, 255, 0.1);
 
         .label {
           font-weight: 600;
@@ -598,24 +583,59 @@
     }
   }
 
-  // Special border styling for ads
-  border-left: 4px solid #9C27B0;
-  background: rgba(156, 39, 176, 0.05);
-
   // Special styling for different content types
   &.pending {
-    border-left: 4px solid #2196F3;
-    background: rgba(33, 150, 243, 0.05);
+    background: rgba(33, 150, 243, 0.15);
+    
+    &.smooth-reveal {
+      animation-duration: 0.3s;
+      animation-fill-mode: both;
+      animation-timing-function: ease-out;
+
+      &.from-left {
+        animation-name: smoothRevealLeft;
+      }
+      
+      &.from-right {
+        animation-name: smoothRevealRight;
+      }
+    }
   }
 
   &.published {
-    border-left: 4px solid #4CAF50;
-    background: rgba(76, 175, 80, 0.05);
+    background: rgba(76, 175, 80, 0.15);
+    
+    &.smooth-reveal {
+      animation-duration: 0.3s;
+      animation-fill-mode: both;
+      animation-timing-function: ease-out;
+
+      &.from-left {
+        animation-name: smoothRevealLeft;
+      }
+      
+      &.from-right {
+        animation-name: smoothRevealRight;
+      }
+    }
   }
 
   &.draft {
-    border-left: 4px solid #FF9800;
-    background: rgba(255, 152, 0, 0.05);
+    background: rgba(255, 152, 0, 0.15);
+    
+    &.smooth-reveal {
+      animation-duration: 0.3s;
+      animation-fill-mode: both;
+      animation-timing-function: ease-out;
+
+      &.from-left {
+        animation-name: smoothRevealLeft;
+      }
+      
+      &.from-right {
+        animation-name: smoothRevealRight;
+      }
+    }
   }
 }
 

@@ -1553,7 +1553,7 @@ const Dashboard: React.FC = () => {
                         ) : (
                           <ListView
                             items={filteredNews}
-                            renderListItem={(newsPost, index) => (
+                            renderListItem={(newsPost, index, listItemProps) => (
                               <NewsCard
                                 post={newsPost}
                                 index={index}
@@ -1561,6 +1561,7 @@ const Dashboard: React.FC = () => {
                                 onDelete={(post) => handleDeleteNews(post.id)}
                                 onPublish={(post) => handlePublishNews(post.id)}
                                 viewType="list"
+                                listItemProps={listItemProps}
                               />
                             )}
                           />
@@ -1691,7 +1692,7 @@ const Dashboard: React.FC = () => {
                           <ListView
                             items={filteredAds}
                             listType="ads"
-                            renderListItem={(ad, index) => (
+                            renderListItem={(ad, index, listItemProps) => (
                               <AdCard
                                 ad={ad}
                                 index={index}
@@ -1699,6 +1700,7 @@ const Dashboard: React.FC = () => {
                                 onDelete={(ad) => handleDeleteAd(ad.id)}
                                 onPublish={(ad) => handlePublishAd(ad.id)}
                                 viewType="list"
+                                listItemProps={listItemProps}
                               />
                             )}
                           />
@@ -2081,7 +2083,7 @@ const Dashboard: React.FC = () => {
                         ) : (
                           <ListView
                             items={pendingNews}
-                            renderListItem={(post, index) => (
+                            renderListItem={(post, index, listItemProps) => (
                               <NewsCard
                                 post={post}
                                 index={index}
@@ -2090,6 +2092,7 @@ const Dashboard: React.FC = () => {
                                 onView={handleViewDetails}
                                 viewType="list"
                                 isPending={true}
+                                listItemProps={listItemProps}
                               />
                             )}
                           />
@@ -2214,7 +2217,7 @@ const Dashboard: React.FC = () => {
                           <ListView
                             items={pendingAds}
                             listType="ads"
-                            renderListItem={(ad, index) => (
+                            renderListItem={(ad, index, listItemProps) => (
                               <AdCard
                                 ad={ad}
                                 index={index}
@@ -2223,6 +2226,7 @@ const Dashboard: React.FC = () => {
                                 onView={handleViewAdDetails}
                                 viewType="list"
                                 isPending={true}
+                                listItemProps={listItemProps}
                               />
                             )}
                           />

@@ -3,7 +3,7 @@ import './ListView.scss';
 
 interface ListViewProps {
   items: any[];
-  renderListItem: (item: any, index: number) => React.ReactNode;
+  renderListItem: (item: any, index: number, listItemProps?: any) => React.ReactNode;
   className?: string;
   listType?: 'news' | 'ads'; // Add listType prop to differentiate
 }
@@ -84,18 +84,17 @@ const ListView: React.FC<ListViewProps> = ({
             return null;
           }
           
-          return (
-            <div 
-              key={item.id || `item-${actualIndex}`} 
-              className={`${itemClass} smooth-reveal ${isFromLeft ? 'from-left' : 'from-right'}`}
-              style={{
-                height: `${itemHeight}px`,
-                animationDelay: `${index * 0.05}s`
-              }}
-            >
-              {renderListItem(item, actualIndex)}
-            </div>
-          );
+          // Pass the styling information to the renderListItem function
+          const listItemProps = {
+            key: item.id || `item-${actualIndex}`,
+            className: `${itemClass} smooth-reveal ${isFromLeft ? 'from-left' : 'from-right'}`,
+            style: {
+              height: `${itemHeight}px`,
+              animationDelay: `${index * 0.05}s`
+            }
+          };
+          
+          return renderListItem(item, actualIndex, listItemProps);
         })}
       </div>
       

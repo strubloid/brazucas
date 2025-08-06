@@ -15,6 +15,10 @@ export interface AdCardProps {
   onReject?: (ad: any) => void;
   viewType?: 'card' | '3x' | 'list';
   isPending?: boolean;
+  listItemProps?: {
+    className?: string;
+    style?: React.CSSProperties;
+  };
 }
 
 export const AdCard: React.FC<AdCardProps> = ({
@@ -28,7 +32,8 @@ export const AdCard: React.FC<AdCardProps> = ({
   onApprove,
   onReject,
   viewType = 'card',
-  isPending = false
+  isPending = false,
+  listItemProps
 }) => {
   // Safety check - if ad is undefined, return null to prevent crashes
   if (!ad || typeof ad !== 'object') {
@@ -76,8 +81,23 @@ export const AdCard: React.FC<AdCardProps> = ({
   };
 
   if (viewType === 'list') {
+    // Combine default classes with passed listItemProps
+    const combinedClassName = [
+      'news-list-item',
+      'ad',
+      adStatus,
+      isPending ? 'pending' : '',
+      listItemProps?.className || ''
+    ].filter(Boolean).join(' ');
+
+    const combinedStyle = listItemProps?.style || {};
+
     return (
-      <div className={`news-list-item ad ${adStatus} ${isPending ? 'pending' : ''}`}>
+      <div 
+        className={combinedClassName}
+        style={combinedStyle}
+        ref={cardRef}
+      >
         <div className="list-item-header">
           <h3 className="list-item-title">{ad.title}</h3>
           <div className="status-badges">

@@ -16,6 +16,10 @@ export interface NewsCardProps {
   onReject?: (post: NewsPost) => void;
   viewType?: 'card' | '3x' | 'list';
   isPending?: boolean;
+  listItemProps?: {
+    className?: string;
+    style?: React.CSSProperties;
+  };
 }
 
 export const NewsCard: React.FC<NewsCardProps> = ({
@@ -29,7 +33,8 @@ export const NewsCard: React.FC<NewsCardProps> = ({
   onApprove,
   onReject,
   viewType = 'card',
-  isPending = false
+  isPending = false,
+  listItemProps
 }) => {
   // Safety check - if post is undefined, return null to prevent crashes
   if (!post || typeof post !== 'object') {
@@ -64,8 +69,22 @@ export const NewsCard: React.FC<NewsCardProps> = ({
       approved: post.approved 
     });
 
+    // Combine default classes with passed listItemProps
+    const combinedClassName = [
+      'news-list-item',
+      newsStatus,
+      isPending ? 'pending' : '',
+      listItemProps?.className || ''
+    ].filter(Boolean).join(' ');
+
+    const combinedStyle = listItemProps?.style || {};
+
     return (
-      <div className={`news-list-item ${newsStatus} ${isPending ? 'pending' : ''}`}>
+      <div 
+        className={combinedClassName}
+        style={combinedStyle}
+        ref={cardRef}
+      >
         <div className="list-item-header">
           <h3 className="list-item-title">{post.title}</h3>
           <div className="status-badges">
