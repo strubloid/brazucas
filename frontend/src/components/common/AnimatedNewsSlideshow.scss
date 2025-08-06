@@ -3,16 +3,16 @@
 .animated-slideshow {
   position: relative;
   width: 100%;
-  height: 80vh;
-  min-height: 600px;
+  height: 90vh;
+  min-height: 700px;
   background: linear-gradient(135deg, 
     rgb(17, 24, 39) 0%, 
     rgb(30, 41, 59) 50%, 
     rgb(51, 65, 85) 100%);
   overflow: hidden;
-  margin: 2rem auto;
-  max-width: 1400px;
-  border-radius: 24px;
+  margin: 0 auto;
+  max-width: 100%;
+  border-radius: 0;
   box-shadow: 
     0 25px 50px -12px rgba(0, 0, 0, 0.25),
     0 0 0 1px rgba(255, 255, 255, 0.1);
@@ -146,18 +146,18 @@
   // Navigation
   .slideshow-nav {
     position: absolute;
-    bottom: 3rem;
+    bottom: 2rem;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     align-items: center;
     gap: 2rem;
     z-index: 20;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 60px;
-    padding: 1rem 2rem;
+    padding: 1.25rem 2.5rem;
   }
 
   .nav-btn {
@@ -231,20 +231,27 @@
   // Instructions
   .slideshow-instructions {
     position: absolute;
-    top: 2rem;
-    right: 2rem;
+    top: 1.5rem;
+    right: 1.5rem;
     z-index: 20;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 0.75rem 1.25rem;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+
+    &:hover {
+      opacity: 1;
+    }
 
     p {
       margin: 0;
-      font-size: 0.8rem;
-      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.9);
       font-style: italic;
+      white-space: nowrap;
     }
   }
 
