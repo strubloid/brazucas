@@ -31,11 +31,7 @@ export const createNewsSchema = z.object({
   content: z
     .string()
     .min(1, 'Content is required')
-    .max(10000, 'Content must be less than 10000 characters'),
-  excerpt: z
-    .string()
-    .min(1, 'Excerpt is required')
-    .max(300, 'Excerpt must be less than 300 characters'),
+    .max(500, 'Content must be less than 500 characters'),
   imageUrl: z.string().url('Invalid image URL').optional().or(z.literal('').transform(() => undefined)),
   published: z.boolean().optional().default(false),
 });
@@ -50,12 +46,7 @@ export const updateNewsSchema = z.object({
   content: z
     .string()
     .min(1, 'Content is required')
-    .max(10000, 'Content must be less than 10000 characters')
-    .optional(),
-  excerpt: z
-    .string()
-    .min(1, 'Excerpt is required')
-    .max(300, 'Excerpt must be less than 300 characters')
+    .max(500, 'Content must be less than 500 characters')
     .optional(),
   imageUrl: z.string().url('Invalid image URL').optional().or(z.literal('').transform(() => undefined)),
   published: z.boolean().optional(),

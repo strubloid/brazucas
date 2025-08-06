@@ -173,8 +173,14 @@ export class NewsService implements INewsService {
   }
 
   async createNews(authorId: string, newsData: CreateNewsRequest): Promise<NewsPost> {
+    // Generate excerpt from first 200 characters of content
+    const excerpt = newsData.content.length > 200 
+      ? newsData.content.substring(0, 200).trim() + '...'
+      : newsData.content;
+      
     return this.newsRepository.create({
       ...newsData,
+      excerpt,
       authorId,
       published: newsData.published ?? false,
       approved: null, // All new posts start as pending approval
@@ -229,7 +235,16 @@ export class NewsService implements INewsService {
     }
 
     const { id, ...updates } = newsData;
-    return this.newsRepository.update(id, updates);
+    
+    // Generate excerpt from content if content is being updated
+    const updateData: any = { ...updates };
+    if (updates.content) {
+      updateData.excerpt = updates.content.length > 200 
+        ? updates.content.substring(0, 200).trim() + '...'
+        : updates.content;
+    }
+    
+    return this.newsRepository.update(id, updateData);
   }
 
   async deleteNews(authorId: string, newsId: string): Promise<boolean> {

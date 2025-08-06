@@ -132,7 +132,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = () => {
               await NewsService.createNews({
                 title: 'Test Pending News',
                 content: 'This is a test news post to verify the approval system.',
-                excerpt: 'Test excerpt for approval system',
                 published: true
               });
               console.log('Test news created, refreshing...');

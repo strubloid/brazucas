@@ -454,7 +454,6 @@ const Dashboard: React.FC = () => {
   const [formData, setFormData] = useState<CreateNewsRequest>({
     title: '',
     content: '',
-    excerpt: '',
     imageUrl: '',
     published: false,
   });
@@ -606,7 +605,6 @@ const Dashboard: React.FC = () => {
     setFormData({
       title: '',
       content: '',
-      excerpt: '',
       imageUrl: '',
       published: false,
     });
@@ -648,7 +646,6 @@ const Dashboard: React.FC = () => {
     setFormData({
       title: newsPost.title,
       content: newsPost.content,
-      excerpt: newsPost.excerpt,
       imageUrl: newsPost.imageUrl || '',
       published: newsPost.published,
     });
@@ -1757,20 +1754,6 @@ const Dashboard: React.FC = () => {
                   </div>
 
                   <div className="dashboard__field">
-                    <label htmlFor="excerpt" className="dashboard__label">Resumo</label>
-                    <textarea
-                      id="excerpt"
-                      name="excerpt"
-                      value={formData.excerpt}
-                      onChange={handleInputChange}
-                      className="dashboard__textarea"
-                      rows={3}
-                      required
-                      maxLength={300}
-                    />
-                  </div>
-
-                  <div className="dashboard__field">
                     <label htmlFor="content" className="dashboard__label">Conteúdo</label>
                     <textarea
                       id="content"
@@ -1780,8 +1763,14 @@ const Dashboard: React.FC = () => {
                       className="dashboard__textarea dashboard__textarea--large"
                       rows={10}
                       required
-                      maxLength={10000}
+                      maxLength={500}
                     />
+                    <div className={`character-count ${
+                      formData.content.length > 450 ? 'at-limit' :
+                      formData.content.length > 400 ? 'approaching-limit' : ''
+                    }`}>
+                      {formData.content.length}/500 caracteres
+                    </div>
                   </div>
 
                   <div className="dashboard__field">
@@ -2272,13 +2261,6 @@ const Dashboard: React.FC = () => {
                     <p><strong>{selectedPost.approved ? 'Publicado' : 'Rejeitado'} em:</strong> {formatDate(selectedPost.approvedAt)}</p>
                   )}
                 </div>
-                
-                {selectedPost.excerpt && (
-                  <div className="post-section">
-                    <h3>Resumo:</h3>
-                    <p>{selectedPost.excerpt}</p>
-                  </div>
-                )}
                 
                 <div className="post-section">
                   <h3>Conteúdo Completo:</h3>

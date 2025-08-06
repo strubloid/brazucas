@@ -16,7 +16,7 @@ const ListView: React.FC<ListViewProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
-  const itemHeight = listType === 'ads' ? 550 : 350; // Much larger height for ads
+  const itemHeight = listType === 'ads' ? 500 : 300; // Much larger height for ads
   
   // Safety check - ensure items is a valid array
   const safeItems = Array.isArray(items) ? items.filter(item => item != null) : [];

@@ -2,9 +2,8 @@ import {
   createUserSchema, 
   loginSchema, 
   createNewsSchema, 
-  createAdSchema,
-  validateAdMedia 
-} from './validation';
+  createAdvertisementSchema
+} from '../validation';
 
 describe('Validation Schemas', () => {
   describe('createUserSchema', () => {
@@ -76,7 +75,6 @@ describe('Validation Schemas', () => {
       const validData = {
         title: 'Test News',
         content: 'This is test news content',
-        excerpt: 'Test excerpt',
         published: true,
       };
 
@@ -88,7 +86,6 @@ describe('Validation Schemas', () => {
       const dataWithoutPublished = {
         title: 'Test News',
         content: 'This is test news content',
-        excerpt: 'Test excerpt',
       };
 
       const result = createNewsSchema.parse(dataWithoutPublished);
@@ -99,79 +96,71 @@ describe('Validation Schemas', () => {
       const invalidData = {
         title: 'a'.repeat(201),
         content: 'This is test news content',
-        excerpt: 'Test excerpt',
+      };
+
+      expect(() => createNewsSchema.parse(invalidData)).toThrow();
+    });
+
+    it('should reject too long content', () => {
+      const invalidData = {
+        title: 'Test News',
+        content: 'a'.repeat(501),
       };
 
       expect(() => createNewsSchema.parse(invalidData)).toThrow();
     });
   });
 
-  describe('createAdSchema', () => {
+  describe('createAdvertisementSchema', () => {
     it('should validate valid ad data', () => {
       const validData = {
         title: 'Test Ad',
-        content: 'This is test ad content',
-        imageUrl: 'https://example.com/image.jpg',
+        description: 'This is test ad description',
+        category: 'Services',
+        price: '€50',
+        contactEmail: 'test@example.com',
+        published: false,
       };
 
-      const result = createAdSchema.parse(validData);
+      const result = createAdvertisementSchema.parse(validData);
       expect(result).toEqual(validData);
     });
 
-    it('should validate ad with YouTube URL', () => {
-      const validData = {
+    it('should set default published to false', () => {
+      const dataWithoutPublished = {
         title: 'Test Ad',
-        content: 'This is test ad content',
-        youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        description: 'This is test ad description',
+        category: 'Services',
+        price: '€50',
+        contactEmail: 'test@example.com',
       };
 
-      const result = createAdSchema.parse(validData);
-      expect(result).toEqual(validData);
+      const result = createAdvertisementSchema.parse(dataWithoutPublished);
+      expect(result.published).toBe(false);
     });
 
-    it('should reject invalid YouTube URL', () => {
+    it('should reject too long description', () => {
       const invalidData = {
         title: 'Test Ad',
-        content: 'This is test ad content',
-        youtubeUrl: 'https://invalid-youtube-url.com',
+        description: 'a'.repeat(501),
+        category: 'Services',
+        price: '€50',
+        contactEmail: 'test@example.com',
       };
 
-      expect(() => createAdSchema.parse(invalidData)).toThrow();
+      expect(() => createAdvertisementSchema.parse(invalidData)).toThrow();
     });
 
-    it('should reject too long content', () => {
+    it('should reject invalid email', () => {
       const invalidData = {
         title: 'Test Ad',
-        content: 'a'.repeat(501),
-        imageUrl: 'https://example.com/image.jpg',
+        description: 'This is test ad description',
+        category: 'Services',
+        price: '€50',
+        contactEmail: 'invalid-email',
       };
 
-      expect(() => createAdSchema.parse(invalidData)).toThrow();
-    });
-  });
-
-  describe('validateAdMedia', () => {
-    it('should return true when imageUrl is provided', () => {
-      const data = { imageUrl: 'https://example.com/image.jpg' };
-      expect(validateAdMedia(data)).toBe(true);
-    });
-
-    it('should return true when youtubeUrl is provided', () => {
-      const data = { youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' };
-      expect(validateAdMedia(data)).toBe(true);
-    });
-
-    it('should return false when neither is provided', () => {
-      const data = {};
-      expect(validateAdMedia(data)).toBe(false);
-    });
-
-    it('should return true when both are provided', () => {
-      const data = { 
-        imageUrl: 'https://example.com/image.jpg',
-        youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
-      };
-      expect(validateAdMedia(data)).toBe(true);
+      expect(() => createAdvertisementSchema.parse(invalidData)).toThrow();
     });
   });
 });

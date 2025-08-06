@@ -634,6 +634,23 @@
         }
       }
 
+      .character-count {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        text-align: right;
+        margin-top: 0.25rem;
+        font-style: italic;
+        
+        &.approaching-limit {
+          color: #f59e0b;
+        }
+        
+        &.at-limit {
+          color: #ef4444;
+          font-weight: bold;
+        }
+      }
+
       .dashboard__checkbox-label {
         display: flex;
         align-items: center;

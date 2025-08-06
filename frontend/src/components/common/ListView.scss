@@ -1,16 +1,19 @@
 // ListView.scss - Free-flowing natural scroll
 .list-view-container {
   width: 100%;
-  padding: 0;
+  padding: 2rem; // Add padding to avoid touching borders
   position: relative;
+  margin: 0 auto; // Center the container
+  max-width: 1200px; // Limit max width for better centering
   
   &.continuous-scroll {
     background: transparent;
     position: relative;
     margin: 0 auto;
-    max-width: 900px;
+    max-width: 1000px; // Slightly larger max-width for better content display
     height: 850px; // Larger height for better flow
     overflow: hidden;
+    padding: 2rem; // Ensure content doesn't touch edges
   }
   
   .news-list-grid {
@@ -18,7 +21,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    padding: 2rem 1rem;
+    padding: 1rem; // Additional inner padding
     will-change: transform;
   }
 
@@ -28,7 +31,7 @@
     display: flex;
     flex-direction: column;
     gap: 2rem; // Increased gap for ads
-    padding: 2rem 1rem;
+    padding: 1rem; // Additional inner padding
     will-change: transform;
   }
   // Minimal scroll indicator (optional)
@@ -80,15 +83,15 @@
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
-  padding: 2rem;
+  padding: 1.5rem;
   color: white;
   transition: all 0.2s ease-out;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
   will-change: transform, opacity;
-  margin: 0 1rem;
-
+  margin: 0 auto; // Center the items
+  width:  700px;
   &:hover {
     transform: translateY(-2px) scale(1.01);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
@@ -373,7 +376,8 @@
   position: relative;
   overflow: hidden;
   will-change: transform, opacity;
-  margin: 0 1rem;
+  margin: 0 auto; // Center the items
+  max-width: calc(100% - 2rem); // Ensure margin from edges
   min-height: 300px; // Much larger minimum height for ads content
 
   &:hover {
@@ -642,10 +646,12 @@
 // Responsive design
 @media (max-width: 768px) {
   .list-view-container {
-    padding: 0.5rem;
+    padding: 1rem; // Reduced padding for mobile but still avoiding edges
+    max-width: 100%;
 
     .news-list-grid {
       gap: 0.75rem;
+      padding: 0.5rem; // Reduced inner padding for mobile
     }
   }
 
