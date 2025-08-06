@@ -38,16 +38,15 @@ import {
   faFileAlt
 } from '@fortawesome/free-solid-svg-icons';
 import './Dashboard.scss';
-import './PokemonCarousel.scss';
-import '../components/common/CardView.scss';
-import '../components/common/ThreeXView.scss';
-import '../components/common/ListView.scss';
+
+import AdminCategories from './AdminCategories';
+import './AdminCategories.scss';
 
 const Dashboard: React.FC = () => {
   const dashboardRef = useAnimateOnMount('fadeIn');
   const { user } = useAuth();  
-  const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'create' | 'ads' | 'create-ad' | 'approve-posts' | 'approve-ads'>('overview');
-  const [previousTab, setPreviousTab] = useState<'overview' | 'news' | 'create' | 'ads' | 'create-ad' | 'approve-posts' | 'approve-ads'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'create' | 'ads' | 'create-ad' | 'approve-posts' | 'approve-ads' | 'categories'>('overview');
+  const [previousTab, setPreviousTab] = useState<'overview' | 'news' | 'create' | 'ads' | 'create-ad' | 'approve-posts' | 'approve-ads' | 'categories'>('overview');
   const [editingNews, setEditingNews] = useState<NewsPost | null>(null);
   const [editingAd, setEditingAd] = useState<Advertisement | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1069,6 +1068,7 @@ const Dashboard: React.FC = () => {
               <span>Notícias</span>
             </button>
             
+
             <button
               className={`nav-item ${activeTab === 'create' ? 'active' : ''} ${editingNews ? 'edit-mode' : ''}`}
               onClick={() => {
@@ -1080,6 +1080,18 @@ const Dashboard: React.FC = () => {
               <FontAwesomeIcon icon={editingNews ? faEdit : faPlus} className="nav-icon" />
               <span>{editingNews ? 'Editar Notícia' : 'Nova Notícia'}</span>
             </button>
+
+            {/* Admin: Add categories tab below Nova Notícia */}
+            {user?.role === UserRole.ADMIN && (
+              <button
+                className={`nav-item ${activeTab === 'categories' ? 'active' : ''}`}
+                onClick={() => handleTabChange('categories')}
+                style={{ backgroundColor: '#e6f9f0', color: '#009639' }}
+              >
+                <FontAwesomeIcon icon={faPlus} className="nav-icon" />
+                <span>Gerenciar Categorias</span>
+              </button>
+            )}
 
             {/* Anunciante Section - Only for advertisers and admins */}
             {(user?.role === UserRole.ADVERTISER || user?.role === UserRole.ADMIN) && (
@@ -1157,6 +1169,10 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="main-content">
+            {/* Admin Categories Tab */}
+            {activeTab === 'categories' && user?.role === UserRole.ADMIN && (
+              <AdminCategories />
+            )}
             {/* Overview Tab */}
             {activeTab === 'overview' && (
               <>

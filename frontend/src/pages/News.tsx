@@ -48,11 +48,7 @@ const News: React.FC = () => {
     <div className="news">
       <div className="news__container">
         <header ref={headerRef} className="news__header">
-          <h1 className="news__title">Notícias</h1>
-          <p className="news__subtitle">
-            Fique por dentro de tudo que acontece na comunidade brasileira em Cork
-          </p>
-          
+          <h1 className="news__title">Notícias</h1>          
           {/* View Mode Toggle */}
           <div className="news__view-toggle">
             <button 

@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAnimateOnMount } from '../hooks/useAnimateOnMount';
 import { useAsync } from '../hooks/useAsync';
 import { AdService } from '../services/adService';
 import { Advertisement } from '../types/ads';
+import { ServiceCategory } from '../types/serviceCategory';
+import { ServiceCategoryService } from '../services/serviceCategoryService';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import AnimatedAdsSlideshow from '../components/common/AnimatedAdsSlideshow';
 import './Ads.scss';
@@ -12,22 +14,29 @@ const Ads: React.FC = () => {
   const adsRef = useAnimateOnMount('fadeIn');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'slideshow' | 'grid'>('slideshow');
+  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
   const { data: ads, loading, error } = useAsync<Advertisement[]>(
     () => AdService.getPublishedAds(),
     []
   );
 
-  const categories = [
-    'all',
-    'Limpeza',
-    'Serviços',
-    'Produtos',
-    'Educação',
-    'Saúde',
-    'Tecnologia',
-    'Outros'
-  ];
+
+  // Fetch categories from backend
+  useEffect(() => {
+    setCategoriesLoading(true);
+    ServiceCategoryService.getActiveCategories()
+      .then(data => {
+        setCategories(data);
+        setCategoriesLoading(false);
+      })
+      .catch(err => {
+        setCategoriesError('Erro ao carregar categorias');
+        setCategoriesLoading(false);
+      });
+  }, []);
 
 
   const filteredAds = ads?.filter(ad => 
@@ -61,19 +70,19 @@ const Ads: React.FC = () => {
     return price;
   };
 
-  if (loading) {
+  if (loading || categoriesLoading) {
     return (
       <div className="ads-page">
-        <LoadingSpinner text="Carregando anúncios..." />
+        <LoadingSpinner text={loading ? "Carregando anúncios..." : "Carregando categorias..."} />
       </div>
     );
   }
 
-  if (error) {
+  if (error || categoriesError) {
     return (
       <div className="ads-page">
         <div className="error-message">
-          <h2>Erro ao carregar anúncios</h2>
+          <h2>Erro ao carregar {error ? 'anúncios' : 'categorias'}</h2>
           <p>Tente novamente mais tarde.</p>
         </div>
       </div>
@@ -105,6 +114,40 @@ const Ads: React.FC = () => {
 
 
 
+        {/* Category Filter (always visible above grid, overlay in slideshow) */}
+        {viewMode === 'grid' && (
+          categories.length > 0 ? (
+            <div className="category-filter">
+              <h3>Filtrar por categoria:</h3>
+              <div className="category-buttons">
+                <button
+                  key="all"
+                  className={`category-btn ${selectedCategory === 'all' ? 'active' : ''}`}
+                  onClick={() => setSelectedCategory('all')}
+                >
+                  Todas
+                </button>
+                {categories.map(category => (
+                  <button
+                    key={category.id}
+                    className={`category-btn ${selectedCategory === category.name ? 'active' : ''}`}
+                    onClick={() => setSelectedCategory(category.name)}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="category-filter">
+              <h3>Filtrar por categoria:</h3>
+              <div className="category-buttons">
+                <span style={{ color: '#6b7280', fontSize: '1rem' }}>Nenhuma categoria disponível</span>
+              </div>
+            </div>
+          )
+        )}
+
         {/* Ads Display */}
         <div className={`ads-display ${viewMode}`}>
           {filteredAds.length > 0 ? (
@@ -112,20 +155,36 @@ const Ads: React.FC = () => {
               <AnimatedAdsSlideshow 
                 ads={filteredAds}
                 filterHeader={
-                  <div className="category-filter slideshow-filter">
-                    <h3>Filtrar por categoria:</h3>
-                    <div className="category-buttons">
-                      {categories.map(category => (
+                  categories.length > 0 ? (
+                    <div className="category-filter slideshow-filter">
+                      <h3>Filtrar por categoria:</h3>
+                      <div className="category-buttons">
                         <button
-                          key={category}
-                          className={`category-btn ${selectedCategory === category ? 'active' : ''}`}
-                          onClick={() => setSelectedCategory(category)}
+                          key="all"
+                          className={`category-btn ${selectedCategory === 'all' ? 'active' : ''}`}
+                          onClick={() => setSelectedCategory('all')}
                         >
-                          {category === 'all' ? 'Todas' : category}
+                          Todas
                         </button>
-                      ))}
+                        {categories.map(category => (
+                          <button
+                            key={category.id}
+                            className={`category-btn ${selectedCategory === category.name ? 'active' : ''}`}
+                            onClick={() => setSelectedCategory(category.name)}
+                          >
+                            {category.name}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="category-filter slideshow-filter">
+                      <h3>Filtrar por categoria:</h3>
+                      <div className="category-buttons">
+                        <span style={{ color: '#6b7280', fontSize: '1rem' }}>Nenhuma categoria disponível</span>
+                      </div>
+                    </div>
+                  )
                 }
               />
             ) : (
