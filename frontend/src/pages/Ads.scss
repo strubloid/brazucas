@@ -1,8 +1,79 @@
+// Overlay filter for immersive slideshow
+.slideshow-filter-overlay {
+  position: absolute;
+  top: 2.5rem;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  // Allow filter UI to be interactive
+  .category-filter {
+    pointer-events: auto;
+    background: rgba(255,255,255,0.92);
+    border-radius: 2rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 0.5rem 2rem 0.5rem 2rem;
+    margin: 0 auto;
+    min-width: 320px;
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    @media (max-width: 600px) {
+      padding: 0.5rem 0.5rem;
+      min-width: 0;
+    }
+  }
+  .category-buttons {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  h3 {
+    color: #374151;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+}
+
+.ads-page.slideshow {
+  position: relative;
+  .animated-slideshow {
+    position: relative;
+    overflow: hidden;
+  }
+}
 .ads-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #f8fffe 0%, #f0f9ff 100%);
-  padding-top: 90px;
-  padding-bottom: 60px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+
+  &.slideshow {
+    .ads-display {
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    .animated-slideshow {
+      margin: 0 !important;
+      max-width: 100vw !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      background: linear-gradient(
+          135deg,
+          rgb(17, 24, 39) 0%,
+          rgb(30, 41, 59) 50%,
+          rgb(51, 65, 85) 100%
+        ) !important;
+      min-height: 90vh !important;
+      height: 90vh !important;
+    }
+  }
 }
 
 .ads-container {
@@ -331,5 +402,55 @@
     p {
       font-size: 1rem;
     }
+  }
+}
+
+.ads-page .ads-header,
+.ads-page .category-filter,
+.ads-page .ads-cta {
+  @media (min-width: 768px) {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.ads-page .ads-header {
+  margin-bottom: 2rem;
+  background: white;
+  border-radius: 0;
+  box-shadow: var(--shadow-light, 0 2px 8px rgba(0, 0, 0, 0.04));
+  padding: 2rem 0 1rem 0;
+}
+
+.ads-page .ads-header .news__view-toggle {
+  margin-top: 1.5rem;
+}
+
+.ads-page .ads-header .view-toggle__btn {
+  background: transparent;
+  border: 2px solid #009639;
+  color: #009639;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &:hover {
+    background: #009639;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+  }
+
+  &.active {
+    background: #009639;
+    color: white;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
   }
 }
