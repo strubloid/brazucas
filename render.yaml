@@ -3,8 +3,8 @@ services:
   - type: web
     name: brazucas-app
     env: node
-    buildCommand: cd frontend && npm install && npm run build && cd ../backend && npm install && npm run build
-    startCommand: cd backend && npm start
+    buildCommand: chmod +x bash/BuildSystems.sh && ./bash/BuildSystems.sh
+    startCommand: chmod +x bash/StartServer.sh && ./bash/StartServer.sh
     envVars:
       - key: NODE_ENV
         value: production
