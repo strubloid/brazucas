@@ -63,23 +63,53 @@ console.log('🔄 Setting up route wrapper...');
 const wrapHandler = (handler: any) => {
   return async (req: express.Request, res: express.Response) => {
     try {
+      // Convert Express request to Netlify event format
       const event = {
         httpMethod: req.method,
         headers: req.headers,
-        body: JSON.stringify(req.body),
-        queryStringParameters: req.query,
+        body: req.body ? JSON.stringify(req.body) : null,
+        queryStringParameters: req.query || {},
         path: req.path,
+        rawQuery: req.url?.split('?')[1] || '',
+        rawUrl: req.url || '',
       };
 
-      const response = await handler(event, {});
+      // Convert Express context to Netlify context
+      const context = {
+        functionName: req.path.replace('/api/', ''),
+        functionVersion: '1',
+        invokedFunctionArn: '',
+        memoryLimitInMB: '1024',
+        getRemainingTimeInMillis: () => 30000,
+      };
+
+      console.log(`📞 Calling handler for ${req.method} ${req.path}`);
+      const response = await handler(event, context);
       
-      res.status(response.statusCode);
+      // Convert Netlify response back to Express response
+      if (response.statusCode) {
+        res.status(response.statusCode);
+      }
+      
       if (response.headers) {
         Object.entries(response.headers).forEach(([key, value]) => {
           res.set(key, value as string);
         });
       }
-      res.send(response.body);
+      
+      // Handle different response body types
+      if (response.body) {
+        try {
+          // Try to parse as JSON first
+          const jsonBody = JSON.parse(response.body);
+          res.json(jsonBody);
+        } catch {
+          // If not JSON, send as text
+          res.send(response.body);
+        }
+      } else {
+        res.status(response.statusCode || 500).end();
+      }
     } catch (error) {
       console.error('Handler error:', error);
       res.status(500).json({ error: 'Internal server error' });

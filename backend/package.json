@@ -10,12 +10,10 @@
     "lint": "eslint src --ext .ts --max-warnings 0",
     "lint:fix": "eslint src --ext .ts --fix",
     "build": "tsc",
-    "dev": "netlify dev",
     "start": "node dist/server.js",
     "dev:server": "ts-node src/server.ts"
   },
   "dependencies": {
-    "@netlify/functions": "^2.4.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/jsonwebtoken": "^9.0.5",
