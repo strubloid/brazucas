@@ -1,6 +1,6 @@
 # Brazucas em Cork - Community Web Platform
 
-A full-stack web platform built for the Brazilian community in Cork, Ireland. This project features a modern React frontend with TypeScript and a serverless backend using Netlify Functions.
+A full-stack web platform built for the Brazilian community in Cork, Ireland. This project features a modern React frontend with TypeScript and an Express.js backend with MongoDB.
 
 ## 🚀 Features
 
@@ -41,7 +41,6 @@ A full-stack web platform built for the Brazilian community in Cork, Ireland. Th
 - **Jest + React Testing Library** for testing
 
 ### Backend
-- **Netlify Serverless Functions**
 - **TypeScript** for type safety
 - **JWT** for authentication
 - **Zod** for input validation
@@ -49,7 +48,6 @@ A full-stack web platform built for the Brazilian community in Cork, Ireland. Th
 - **Jest** for testing
 
 ### Development & Deployment
-- **Netlify** for hosting and deployment
 - **ESLint + Prettier** for code quality
 - **Concurrently** for development workflow
 
@@ -69,7 +67,7 @@ brazucas/
 │   │   └── utils/           # Utility functions
 │   ├── public/              # Static assets
 │   └── package.json
-├── backend/                 # Netlify serverless functions
+├── backend/                 
 │   ├── src/
 │   │   ├── __tests__/       # Test files
 │   │   ├── auth.ts          # Authentication utilities
@@ -84,7 +82,6 @@ brazucas/
 │   │   ├── news.ts         # News CRUD endpoints
 │   │   └── ads.ts          # Advertisement endpoints
 │   └── package.json
-├── netlify.toml            # Netlify configuration
 └── package.json            # Root package.json
 ```
 
@@ -204,29 +201,6 @@ cd frontend && npm test
 - **Slide in** for content sections
 - **Hover effects** for interactive elements
 - **Smooth transitions** throughout
-
-## 🚀 Deployment
-
-### Netlify Deployment
-
-1. **Connect your repository** to Netlify
-2. **Set build settings**:
-   - Build command: `npm run build`
-   - Publish directory: `frontend/build`
-3. **Set environment variables** in Netlify dashboard
-4. **Deploy**
-
-The `netlify.toml` file is already configured for:
-- Frontend build process
-- Serverless function directory
-- Redirects for SPA routing and API endpoints
-
-### Environment Variables
-Set these in your Netlify dashboard:
-```
-JWT_SECRET=your-production-jwt-secret
-JWT_EXPIRES_IN=24h
-```
 
 ## 🔒 Security Features
 

@@ -107,6 +107,15 @@
   .dashboard-container {
     display: flex;
     min-height: 100vh;
+    
+    // Mobile-first approach
+    @media (max-width: 768px) {
+      flex-direction: column;
+    }
+    
+    @media (max-width: 480px) {
+      flex-direction: column;
+    }
   }
 
   .dashboard-sidebar {
@@ -114,9 +123,71 @@
     background: #1f2937;
     color: white;
     flex-shrink: 0;
+    position: relative;
+    z-index: 1000;
     
     @media (max-width: 768px) {
-      width: 260px;
+      width: 100%;
+      order: 2; // Move sidebar below main content on tablet
+      max-height: 200px;
+      overflow-y: auto;
+      
+      .sidebar-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 1rem;
+        
+        .nav-item {
+          flex: 1;
+          min-width: 120px;
+          padding: 0.5rem;
+          font-size: 0.875rem;
+          text-align: center;
+          justify-content: center;
+          border-radius: 0.5rem;
+          margin: 0;
+        }
+      }
+    }
+    
+    @media (max-width: 480px) {
+      width: 100%;
+      order: 2;
+      
+      .sidebar-header {
+        padding: 1rem;
+        text-align: center;
+        
+        .sidebar-title {
+          font-size: 1.25rem;
+        }
+        
+        .sidebar-subtitle {
+          font-size: 0.75rem;
+        }
+      }
+      
+      .sidebar-nav {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 0.5rem;
+        padding: 0.5rem;
+        
+        .nav-item {
+          padding: 0.75rem 0.5rem;
+          font-size: 0.75rem;
+          border-radius: 0.5rem;
+          text-align: center;
+          justify-content: center;
+          flex-direction: column;
+          
+          .nav-icon {
+            margin-bottom: 0.25rem;
+            margin-right: 0;
+          }
+        }
+      }
     }
 
     .sidebar-header {
@@ -207,11 +278,20 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
+    order: 1; // Ensure main content appears first on mobile
 
     .main-header {
       background: rgba(0, 0, 0, 0.1);
       padding: 2rem;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      
+      @media (max-width: 768px) {
+        padding: 1.5rem;
+      }
+      
+      @media (max-width: 480px) {
+        padding: 1rem;
+      }
 
       .main-title {
         font-size: 2rem;
@@ -219,6 +299,14 @@
         color: #f1f5f9;
         margin: 0;
         text-align: center;
+        
+        @media (max-width: 768px) {
+          font-size: 1.75rem;
+        }
+        
+        @media (max-width: 480px) {
+          font-size: 1.5rem;
+        }
       }
     }
 
@@ -237,6 +325,10 @@
         @media (max-width: 768px) {
           padding: 1rem;
         }
+        
+        @media (max-width: 480px) {
+          padding: 0.75rem;
+        }
 
         // Add subtle animation to overview grid
         .overview-grid {
@@ -247,6 +339,18 @@
           opacity: 0;
           animation: fadeInUp 0.8s ease forwards;
           width: 100%;
+          
+          @media (max-width: 768px) {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+          }
+          
+          @media (max-width: 480px) {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+          }
           max-width: 1440px;
 
           @media (max-width: 768px) {
@@ -276,10 +380,28 @@
           transition: all 0.3s ease;
           min-height: 140px;
 
+          @media (max-width: 768px) {
+            padding: 2rem;
+            min-height: 120px;
+            gap: 1rem;
+          }
+          
+          @media (max-width: 480px) {
+            padding: 1.5rem;
+            min-height: 100px;
+            gap: 1rem;
+            flex-direction: column;
+            text-align: center;
+          }
+
           &:hover {
             transform: translateY(-2px);
             background: rgba(255, 255, 255, 0.15);
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            
+            @media (max-width: 480px) {
+              transform: none; // Disable hover effects on mobile
+            }
           }
 
           .stat-icon {
@@ -292,6 +414,18 @@
             font-size: 2rem;
             background: #3b82f6;
             color: white;
+            
+            @media (max-width: 768px) {
+              width: 3.5rem;
+              height: 3.5rem;
+              font-size: 1.75rem;
+            }
+            
+            @media (max-width: 480px) {
+              width: 3rem;
+              height: 3rem;
+              font-size: 1.5rem;
+            }
 
             &.published {
               background: #10b981;
@@ -311,9 +445,23 @@
           }
 
           .stat-content {
+            @media (max-width: 480px) {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+            }
+            
             .stat-number {
               font-size: 2.5rem;
               font-weight: 700;
+              
+              @media (max-width: 768px) {
+                font-size: 2rem;
+              }
+              
+              @media (max-width: 480px) {
+                font-size: 1.75rem;
+              }
               color: #f1f5f9;
               margin: 0 0 0.5rem 0;
               line-height: 1;
@@ -877,6 +1025,12 @@
         @media (max-width: 768px) {
           width: 100%;
           justify-content: flex-end;
+          gap: 0.5rem;
+        }
+        
+        @media (max-width: 480px) {
+          flex-direction: column;
+          gap: 0.5rem;
         }
 
         .dashboard__news-button {
@@ -887,6 +1041,19 @@
           font-weight: 600;
           cursor: pointer;
           transition: all 0.2s ease;
+          white-space: nowrap;
+          
+          @media (max-width: 768px) {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+          }
+          
+          @media (max-width: 480px) {
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            width: 100%;
+            text-align: center;
+          }
 
           &--edit {
             background: #3b82f6;
@@ -1332,6 +1499,19 @@
   margin-bottom: 3rem;
   position: relative;
   overflow: hidden;
+  
+  @media (max-width: 768px) {
+    padding: 2rem;
+    width: 98%;
+    border-radius: 1rem;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 1rem;
+    width: 100%;
+    border-radius: 0.75rem;
+    margin-bottom: 2rem;
+  }
 
   // Animated gradient overlay
   &::before {
@@ -1363,6 +1543,54 @@
     background: rgba(17, 24, 39, 0.3);
     position: relative;
     z-index: 1;
+    
+    @media (max-width: 768px) {
+      border-radius: 0.75rem;
+    }
+    
+    @media (max-width: 480px) {
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      display: block;
+      white-space: nowrap;
+      
+      thead, tbody, tr {
+        display: block;
+      }
+      
+      thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+      
+      tr {
+        border: 1px solid rgba(75, 85, 99, 0.3);
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        position: relative;
+        background: rgba(17, 24, 39, 0.5);
+      }
+      
+      td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+        text-align: left;
+        white-space: normal;
+        
+        &:before {
+          content: attr(data-label) ": ";
+          position: absolute;
+          left: 1rem;
+          width: 45%;
+          text-align: left;
+          font-weight: 600;
+          color: #9ca3af;
+        }
+      }
+    }
 
     th, td {
       padding: 1.5rem 1.25rem;
@@ -1370,6 +1598,14 @@
       border-bottom: 1px solid rgba(75, 85, 99, 0.3);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
+      
+      @media (max-width: 768px) {
+        padding: 1.25rem 1rem;
+      }
+      
+      @media (max-width: 480px) {
+        padding: 0.75rem 1rem;
+      }
     }
 
     thead {

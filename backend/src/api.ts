@@ -1,4 +1,9 @@
-import { Handler } from '@netlify/functions';
+// Handler function type definition
+type Handler = (event: any, context: any) => Promise<{
+  statusCode: number;
+  headers?: Record<string, string>;
+  body: string;
+}>;
 
 const handler: Handler = async (event, context) => {
   console.log('ServerStatus function called:', event.path);
@@ -24,7 +29,7 @@ const handler: Handler = async (event, context) => {
     const serverStatus = {
       status: 'ONLINE',
       timestamp: new Date().toISOString(),
-      server: 'Brazucas em Cork - Netlify Functions',
+      server: 'Brazucas em Cork - Express Server',
       environment: process.env.NODE_ENV || 'development',
       version: '1.0.0',
       uptime: process.uptime(),

@@ -3,7 +3,6 @@
 ## ✅ Completed Features
 
 ### Backend Architecture (100% Complete)
-- **Netlify Serverless Functions** with TypeScript
 - **JWT Authentication** with bcryptjs password hashing
 - **Role-based Access Control** (normal user, admin, advertiser)
 - **SOLID Principles** implementation with dependency injection
@@ -52,7 +51,6 @@
 - **ESLint + Prettier** for code quality
 - **TypeScript** strict configuration
 - **Concurrently** for parallel dev server
-- **Netlify CLI** integration
 - **Jest + React Testing Library** setup
 - **Git workflow** with proper .gitignore
 
@@ -128,7 +126,6 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
 ### 4. Production Deployment (30 minutes)
 - Environment variables setup
-- Netlify deployment configuration
 - CI/CD pipeline integration
 
 ## 📱 Target Audience Features
@@ -166,8 +163,7 @@ npm run build
 # Run tests
 npm test
 
-# Deploy to Netlify
-netlify deploy --prod
+npm run start
 ```
 
 ## 📊 Project Statistics

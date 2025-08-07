@@ -1,7 +1,11 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { dbConnection } from './database';
+
+// Load environment variables from .env file
+dotenv.config();
 
 console.log('🚀 Starting Brazucas Backend Server...');
 console.log('📊 Environment Variables Check:');
@@ -58,12 +62,12 @@ app.get('/health', (req, res) => {
 });
 console.log('  ✅ Health check endpoint configured');
 
-// Convert Netlify function to Express route
+// Convert handler function to Express route
 console.log('🔄 Setting up route wrapper...');
 const wrapHandler = (handler: any) => {
   return async (req: express.Request, res: express.Response) => {
     try {
-      // Convert Express request to Netlify event format
+      // Convert Express request to event format
       const event = {
         httpMethod: req.method,
         headers: req.headers,
@@ -74,7 +78,7 @@ const wrapHandler = (handler: any) => {
         rawUrl: req.url || '',
       };
 
-      // Convert Express context to Netlify context
+      // Convert Express context to handler context
       const context = {
         functionName: req.path.replace('/api/', ''),
         functionVersion: '1',
@@ -86,7 +90,7 @@ const wrapHandler = (handler: any) => {
       console.log(`📞 Calling handler for ${req.method} ${req.path}`);
       const response = await handler(event, context);
       
-      // Convert Netlify response back to Express response
+      // Convert handler response back to Express response
       if (response.statusCode) {
         res.status(response.statusCode);
       }
