@@ -15,32 +15,58 @@ console.log(`  JWT_EXPIRES_IN: ${process.env.JWT_EXPIRES_IN || 'NOT SET'}`);
 
 console.log('📦 Loading modules...');
 
-// Import all handlers
-import { handler as registerHandler } from './register';
-import { handler as loginHandler } from './login';
-import { handler as meHandler } from './me';
-import { handler as newsHandler } from './news';
-import { handler as adsHandler } from './ads';
-import { handler as serviceCategoriesHandler } from './service-categories';
-import { handler as adminStatsHandler } from './admin-stats';
+console.log('📦 Loading modules...');
 
+// Import all handlers
+console.log('📂 Loading route handlers...');
+import { handler as registerHandler } from './register';
+console.log('  ✅ Register handler loaded');
+import { handler as loginHandler } from './login';
+console.log('  ✅ Login handler loaded');
+import { handler as meHandler } from './me';
+console.log('  ✅ Me handler loaded');
+import { handler as newsHandler } from './news';
+console.log('  ✅ News handler loaded');
+import { handler as adsHandler } from './ads';
+console.log('  ✅ Ads handler loaded');
+import { handler as serviceCategoriesHandler } from './service-categories';
+console.log('  ✅ Service categories handler loaded');
+import { handler as adminStatsHandler } from './admin-stats';
+console.log('  ✅ Admin stats handler loaded');
+
+console.log('🔧 Initializing Express app...');
 const app = express();
 const PORT = process.env.PORT || 3001;
+console.log(`🚪 Server will run on port: ${PORT}`);
+
+console.log(`🚪 Server will run on port: ${PORT}`);
 
 // Middleware
+console.log('🔧 Setting up middleware...');
 app.use(cors());
+console.log('  ✅ CORS middleware configured');
 app.use(express.json());
+console.log('  ✅ JSON parser middleware configured');
 
 // Serve static files from React build
+console.log('📁 Setting up static file serving...');
 const buildPath = path.join(__dirname, '../../frontend/build');
+console.log(`  📂 Build path: ${buildPath}`);
 app.use(express.static(buildPath));
+console.log('  ✅ Static file middleware configured');
+
+console.log('  ✅ Static file middleware configured');
 
 // Health check
+console.log('🏥 Setting up health check endpoint...');
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
+console.log('  ✅ Health check endpoint configured');
 
 // Convert Netlify function to Express route
+console.log('🔄 Setting up route wrapper...');
+console.log('🔄 Setting up route wrapper...');
 const wrapHandler = (handler: any) => {
   return async (req: express.Request, res: express.Response) => {
     try {
@@ -67,34 +93,69 @@ const wrapHandler = (handler: any) => {
     }
   };
 };
+console.log('  ✅ Route wrapper configured');
 
 // API Routes
+console.log('🛣️  Setting up API routes...');
 app.all('/api/register', wrapHandler(registerHandler));
+console.log('  ✅ /api/register route configured');
 app.all('/api/login', wrapHandler(loginHandler));
+console.log('  ✅ /api/login route configured');
 app.all('/api/me', wrapHandler(meHandler));
+console.log('  ✅ /api/me route configured');
 app.all('/api/news', wrapHandler(newsHandler));
+console.log('  ✅ /api/news route configured');
 app.all('/api/ads', wrapHandler(adsHandler));
+console.log('  ✅ /api/ads route configured');
 app.all('/api/service-categories', wrapHandler(serviceCategoriesHandler));
+console.log('  ✅ /api/service-categories route configured');
 app.all('/api/admin-stats', wrapHandler(adminStatsHandler));
+console.log('  ✅ /api/admin-stats route configured');
 
 // Serve React app for all non-API routes
+console.log('🎯 Setting up SPA fallback route...');
 app.get('*', (req, res) => {
   res.sendFile(path.join(buildPath, 'index.html'));
 });
+console.log('  ✅ SPA fallback route configured');
+
+console.log('  ✅ SPA fallback route configured');
 
 // Initialize database connection
+console.log('🗄️  Starting server initialization...');
 async function startServer() {
   try {
-    await dbConnection.connect();
-    console.log('Connected to MongoDB');
+    console.log('📡 Attempting to connect to MongoDB...');
+    console.log(`   Connection string starts with: ${process.env.MONGODB_URI ? process.env.MONGODB_URI.substring(0, 30) + '...' : 'UNDEFINED'}`);
     
+    await dbConnection.connect();
+    console.log('✅ Connected to MongoDB successfully!');
+    
+    console.log('🚀 Starting Express server...');
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`✅ Server running successfully on port ${PORT}`);
+      console.log(`🌐 Server is ready to accept connections!`);
+      console.log(`📋 Available endpoints:`);
+      console.log(`   Health: http://localhost:${PORT}/health`);
+      console.log(`   API: http://localhost:${PORT}/api/*`);
+      console.log(`   Frontend: http://localhost:${PORT}/`);
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error('❌ Failed to start server:');
+    console.error('Error details:', error);
+    console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace available');
+    
+    // Additional MongoDB-specific error information
+    if (error instanceof Error && error.message.includes('ENOTFOUND')) {
+      console.error('🔍 This appears to be a DNS resolution error.');
+      console.error('🔍 Check your MONGODB_URI environment variable.');
+      console.error(`🔍 Current MONGODB_URI length: ${process.env.MONGODB_URI ? process.env.MONGODB_URI.length : 0} characters`);
+    }
+    
     process.exit(1);
   }
 }
 
+console.log('🎬 Calling startServer function...');
 startServer();
