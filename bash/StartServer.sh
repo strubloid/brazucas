@@ -45,19 +45,43 @@ done
 if [ ${#missing_vars[@]} -ne 0 ]; then
     log_warning "Missing environment variables: ${missing_vars[*]}"
     log_warning "Make sure to set these in your deployment environment"
-    
-    # Show partial values for debugging (first 10 chars)
-    log_info "Current environment variable values:"
-    for var in "${required_vars[@]}"; do
-        val="${!var}"
-        if [ -n "$val" ]; then
-            echo "  $var: ${val:0:10}... (${#val} chars total)"
-        else
-            echo "  $var: NOT SET"
-        fi
-    done
-else
+fi
+
+# Show partial values for debugging (first 10 chars) - ALWAYS show this for debugging
+log_info "Current environment variable values:"
+for var in "${required_vars[@]}"; do
+    val="${!var}"
+    if [ -n "$val" ]; then
+        echo "  $var: ${val:0:20}... (${#val} chars total)"
+    else
+        echo "  $var: NOT SET"
+    fi
+done
+
+if [ ${#missing_vars[@]} -eq 0 ]; then
     log_success "All required environment variables are set"
+fi
+
+# Additional MongoDB URI validation
+log_info "MongoDB URI validation:"
+if [ -n "$MONGODB_URI" ]; then
+    uri_length=${#MONGODB_URI}
+    if [ $uri_length -lt 50 ]; then
+        log_warning "MONGODB_URI seems too short ($uri_length chars). Should be 80+ chars for MongoDB Atlas."
+    else
+        log_success "MONGODB_URI length looks reasonable ($uri_length chars)"
+    fi
+    
+    # Check if it starts with mongodb://  or mongodb+srv://
+    if [[ $MONGODB_URI == mongodb+srv://* ]]; then
+        log_success "MONGODB_URI uses SRV format (recommended)"
+    elif [[ $MONGODB_URI == mongodb://* ]]; then
+        log_info "MONGODB_URI uses standard format"
+    else
+        log_warning "MONGODB_URI doesn't start with mongodb:// or mongodb+srv://"
+    fi
+else
+    log_warning "MONGODB_URI is empty or not set"
 fi
 
 # Set default port if not provided

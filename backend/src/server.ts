@@ -15,8 +15,6 @@ console.log(`  JWT_EXPIRES_IN: ${process.env.JWT_EXPIRES_IN || 'NOT SET'}`);
 
 console.log('📦 Loading modules...');
 
-console.log('📦 Loading modules...');
-
 // Import all handlers
 console.log('📂 Loading route handlers...');
 import { handler as registerHandler } from './register';
@@ -39,8 +37,6 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 console.log(`🚪 Server will run on port: ${PORT}`);
 
-console.log(`🚪 Server will run on port: ${PORT}`);
-
 // Middleware
 console.log('🔧 Setting up middleware...');
 app.use(cors());
@@ -55,8 +51,6 @@ console.log(`  📂 Build path: ${buildPath}`);
 app.use(express.static(buildPath));
 console.log('  ✅ Static file middleware configured');
 
-console.log('  ✅ Static file middleware configured');
-
 // Health check
 console.log('🏥 Setting up health check endpoint...');
 app.get('/health', (req, res) => {
@@ -65,7 +59,6 @@ app.get('/health', (req, res) => {
 console.log('  ✅ Health check endpoint configured');
 
 // Convert Netlify function to Express route
-console.log('🔄 Setting up route wrapper...');
 console.log('🔄 Setting up route wrapper...');
 const wrapHandler = (handler: any) => {
   return async (req: express.Request, res: express.Response) => {
@@ -117,8 +110,6 @@ console.log('🎯 Setting up SPA fallback route...');
 app.get('*', (req, res) => {
   res.sendFile(path.join(buildPath, 'index.html'));
 });
-console.log('  ✅ SPA fallback route configured');
-
 console.log('  ✅ SPA fallback route configured');
 
 // Initialize database connection
