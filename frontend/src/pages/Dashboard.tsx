@@ -7,8 +7,10 @@ import { useAuth } from '../context/AuthContext';
 import { NewsService } from '../services/newsService';
 import { AdService } from '../services/adService';
 import { StatisticsService, DashboardStatistics } from '../services/statisticsService';
+import { ServiceCategoryService } from '../services/serviceCategoryService';
 import { NewsPost, CreateNewsRequest, UpdateNewsRequest } from '../types/news';
 import { Advertisement, CreateAdvertisementRequest, UpdateAdvertisementRequest } from '../types/ads';
+import { ServiceCategory } from '../types/serviceCategory';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ViewModeControls, { ViewMode } from '../components/common/ViewModeControls';
 import CardView from '../components/common/CardView';
@@ -267,6 +269,23 @@ const Dashboard: React.FC = () => {
     () => user?.role === UserRole.ADMIN ? AdService.getPendingAds() : Promise.resolve([]),
     [user?.role]
   );
+
+  // Fetch ad categories for the select input
+  const [adCategories, setAdCategories] = useState<ServiceCategory[]>([]);
+  const [adCategoriesLoading, setAdCategoriesLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    ServiceCategoryService.getAllCategories()
+      .then(categories => {
+        setAdCategories(categories);
+      })
+      .catch(() => {
+        setAdCategories([]);
+      })
+      .finally(() => {
+        setAdCategoriesLoading(false);
+      });
+  }, []);
 
   // Filter data based on selected statuses
   const filteredNews = React.useMemo(() => {
@@ -1883,17 +1902,15 @@ const Dashboard: React.FC = () => {
                       required
                     >
                       <option value="">Selecione uma categoria</option>
-                      <option value="Serviços Domésticos">Serviços Domésticos</option>
-                      <option value="Limpeza">Limpeza</option>
-                      <option value="Jardinagem">Jardinagem</option>
-                      <option value="Manutenção">Manutenção</option>
-                      <option value="Culinária">Culinária</option>
-                      <option value="Tutoria/Ensino">Tutoria/Ensino</option>
-                      <option value="Cuidado de Crianças">Cuidado de Crianças</option>
-                      <option value="Cuidado de Idosos">Cuidado de Idosos</option>
-                      <option value="Pet Care">Pet Care</option>
-                      <option value="Transporte">Transporte</option>
-                      <option value="Outros">Outros</option>
+                      {adCategoriesLoading ? (
+                        <option disabled>Carregando...</option>
+                      ) : (
+                        adCategories.map((category: ServiceCategory) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))
+                      )}
                     </select>
                   </div>
 
@@ -2028,6 +2045,7 @@ const Dashboard: React.FC = () => {
                             onDotClick={(index) => {
                               const currentCard = pendingPostCardRefs.current[currentPendingPostIndex];
                               const targetCard = pendingPostCardRefs.current[index];
+                              
                               
                               if (currentCard && targetCard && index !== currentPendingPostIndex) {
                                 // Animate current card out

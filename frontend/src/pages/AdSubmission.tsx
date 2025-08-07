@@ -16,8 +16,9 @@ const AdSubmission: React.FC = () => {
     []
   );
   
+  // Load all categories to match the admin table
   const { data: serviceCategories, loading: categoriesLoading } = useAsync<ServiceCategory[]>(
-    () => ServiceCategoryService.getActiveCategories(),
+    () => ServiceCategoryService.getAllCategories(),
     []
   );
 
@@ -93,7 +94,7 @@ const AdSubmission: React.FC = () => {
       const submitData: CreateAdvertisementRequest = {
         title: formData.title.trim(),
         description: formData.description.trim(),
-        category: formData.category.trim(),
+            category: formData.category.trim(), // now this is the category id
         price: formData.price.trim(),
         contactEmail: formData.contactEmail.trim(),
         published: true, // Submit for approval
