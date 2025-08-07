@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import anime from 'animejs';
 import ScrollReveal from 'scrollreveal';
 import { useAnimateOnMount } from '../hooks/useAnimateOnMount';
@@ -18,10 +18,8 @@ import ThreeXView from '../components/common/ThreeXView';
 import ListView from '../components/common/ListView';
 import { NewsCard } from '../components/common/NewsCard';
 import { AdCard } from '../components/common/AdCard';
-import { StatusFilter } from '../components/common/StatusFilter';
 import { EnhancedStatusFilter } from '../components/common/EnhancedStatusFilter';
-import { StatusManager, NewsStatus, AdStatus } from '../types/status';
-import { StatusSystemContext } from '../types/statusSystem';
+import { StatusManager } from '../types/status';
 import { UserRole } from '../types/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -56,9 +54,7 @@ const Dashboard: React.FC = () => {
   const [submitSuccess, setSubmitSuccess] = useState<string>('');
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const [selectedPost, setSelectedPost] = useState<NewsPost | null>(null);
-  const [selectedAd, setSelectedAd] = useState<Advertisement | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showAdDetailsModal, setShowAdDetailsModal] = useState(false);
   
   // Status filtering states - Initialize with default statuses to prevent empty state
   const [selectedNewsStatuses, setSelectedNewsStatuses] = useState<string[]>(['draft', 'pending_approval', 'published', 'rejected']);
@@ -85,7 +81,7 @@ const Dashboard: React.FC = () => {
       duration: 800,
       delay: 100,
       easing: 'cubic-bezier(0.5, 0, 0, 1)',
-    }) as any; // Type assertion to bypass any remaining type conflicts
+    }) as typeof ScrollReveal; // Type assertion to bypass any remaining type conflicts
 
     // Animate the stats table container
     sr.reveal('.stats-table-container, .user-stats-container', {
@@ -222,9 +218,9 @@ const Dashboard: React.FC = () => {
   
   // 3x view pagination state
   const [currentPage3x, setCurrentPage3x] = useState<number>(0);
-  const [currentAdsPage3x, setCurrentAdsPage3x] = useState<number>(0);
-  const [currentPendingPostsPage3x, setCurrentPendingPostsPage3x] = useState<number>(0);
-  const [currentPendingAdsPage3x, setCurrentPendingAdsPage3x] = useState<number>(0);
+  const [currentAdsPage3x] = useState<number>(0);
+  const [currentPendingPostsPage3x] = useState<number>(0);
+  const [currentPendingAdsPage3x] = useState<number>(0);
 
   // Statistics state
   const [statistics, setStatistics] = useState<DashboardStatistics>({
@@ -452,7 +448,7 @@ const Dashboard: React.FC = () => {
       // Make sure to reset the flag even if not an admin
       isRefreshingRef.current = false;
     }
-  }, [user?.role, loadingStats, lastRefreshTime, fetchStatistics, refetch, refetchPending, refetchAds, refetchPendingAds]);
+  }, [user?.role, loadingStats, lastRefreshTime, refetch, refetchPending, refetchAds, refetchPendingAds]);
   
   // Reference to track if initial fetch has run
   const hasInitialFetchRunRef = React.useRef(false);
@@ -890,32 +886,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleViewAdDetails = (ad: Advertisement) => {
-    setSelectedAd(ad);
-    setShowAdDetailsModal(true);
-  };
-
-  const closeAdDetailsModal = () => {
-    setSelectedAd(null);
-    setShowAdDetailsModal(false);
-  };
-
   // Wrapper functions for list view actions
-  const handleApprovePost = (postId: string) => {
-    handleApproval(postId, true);
-  };
-
-  const handleRejectPost = (postId: string) => {
-    handleApproval(postId, false);
-  };
-
-  const handleApproveAd = (adId: string) => {
-    handleAdApproval(adId, true);
-  };
-
-  const handleRejectAd = (adId: string) => {
-    handleAdApproval(adId, false);
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -925,12 +896,6 @@ const Dashboard: React.FC = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
-  };
-
-  const truncateContent = (content: string | null | undefined, maxLength: number = 80) => {
-    if (!content) return '';
-    if (content.length <= maxLength) return content;
-    return content.substring(0, maxLength) + '...';
   };
 
   const handleViewDetails = (post: NewsPost) => {
@@ -956,48 +921,6 @@ const Dashboard: React.FC = () => {
     } else {
       // approved === null and published === false (or undefined)
       return { text: 'Rascunho', class: 'draft' };
-    }
-  };
-
-  const getAdStatus = (ad: Advertisement) => {
-    if (ad.published && ad.approved === true) {
-      return { text: 'Publicado', class: 'published' };
-    } else if (ad.approved === true && !ad.published) {
-      return { text: 'Aguardando Aprovação', class: 'pending' };
-    } else if (ad.approved === false) {
-      return { text: 'Rejeitado', class: 'rejected' };
-    } else if (ad.approved === null && ad.published) {
-      // User tried to publish but needs approval
-      return { text: 'Aguardando Aprovação', class: 'pending' };
-    } else {
-      // approved === null and published === false (or undefined)
-      return { text: 'Rascunho', class: 'draft' };
-    }
-  };
-
-  const getStatusDate = (post: NewsPost) => {
-    if (post.published && post.approved === true) {
-      return `Publicado em ${new Date(post.updatedAt).toLocaleDateString('pt-BR')}`;
-    } else if (post.approved !== null && post.approvedAt) {
-      const action = post.approved ? 'Publicado' : 'Rejeitado';
-      return `${action} em ${new Date(post.approvedAt).toLocaleDateString('pt-BR')}`;
-    } else if (post.approved === null && post.published) {
-      return `Enviado para aprovação em ${new Date(post.createdAt).toLocaleDateString('pt-BR')}`;
-    } else {
-      return `Criado em ${new Date(post.createdAt).toLocaleDateString('pt-BR')}`;
-    }
-  };
-
-  const getAdStatusDate = (ad: Advertisement) => {
-    if (ad.published && ad.approved === true) {
-      return `Publicado em ${new Date(ad.updatedAt).toLocaleDateString('pt-BR')}`;
-    } else if (ad.approved !== null && ad.approvedAt) {
-      const action = ad.approved ? 'Publicado' : 'Rejeitado';
-      return `${action} em ${new Date(ad.approvedAt).toLocaleDateString('pt-BR')}`;
-    } else if (ad.approved === null && ad.published) {
-      return `Enviado para aprovação em ${new Date(ad.createdAt).toLocaleDateString('pt-BR')}`;
-    } else {
-      return `Criado em ${new Date(ad.createdAt).toLocaleDateString('pt-BR')}`;
     }
   };
 
@@ -2213,7 +2136,6 @@ const Dashboard: React.FC = () => {
                                 cardRef={el => pendingAdCardRefs.current[index] = el}
                                 onApprove={(ad) => handleAdApproval(ad.id, true)}
                                 onReject={(ad) => handleAdApproval(ad.id, false)}
-                                onView={handleViewAdDetails}
                                 viewType="card"
                                 isPending={true}
                               />
@@ -2230,7 +2152,6 @@ const Dashboard: React.FC = () => {
                                 index={index}
                                 onApprove={(ad) => handleAdApproval(ad.id, true)}
                                 onReject={(ad) => handleAdApproval(ad.id, false)}
-                                onView={handleViewAdDetails}
                                 viewType="3x"
                                 isPending={true}
                               />
@@ -2246,7 +2167,6 @@ const Dashboard: React.FC = () => {
                                 index={index}
                                 onApprove={(ad) => handleAdApproval(ad.id, true)}
                                 onReject={(ad) => handleAdApproval(ad.id, false)}
-                                onView={handleViewAdDetails}
                                 viewType="list"
                                 isPending={true}
                                 listItemProps={listItemProps}

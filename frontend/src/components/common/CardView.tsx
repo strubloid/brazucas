@@ -3,22 +3,20 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import './CardView.scss';
 
-interface CardViewProps {
-  items: any[];
+interface CardViewProps<T = unknown> {
+  items: T[];
   currentIndex: number;
   onPrevious: () => void;
   onNext: () => void;
   onDotClick: (index: number) => void;
-  renderCard: (item: any, index: number) => React.ReactNode;
+  renderCard: (item: T, index: number) => React.ReactNode;
   containerRef?: React.RefObject<HTMLDivElement>;
   cardRefs?: React.MutableRefObject<(HTMLDivElement | null)[]>;
   className?: string;
   cardsPerPage?: number; // New prop to control how many cards to show
 }
 
-type TransitionDirection = 'next' | 'prev' | null;
-
-const CardView: React.FC<CardViewProps> = ({
+const CardView = <T,>({
   items,
   currentIndex,
   onPrevious,
@@ -29,7 +27,7 @@ const CardView: React.FC<CardViewProps> = ({
   cardRefs,
   className = '',
   cardsPerPage = 3 // Default to 3 cards
-}) => {
+}: CardViewProps<T>) => {
   // Simplified state management - MUST be before any early returns
   const [animationState, setAnimationState] = useState<{
     isAnimating: boolean;
@@ -92,7 +90,7 @@ const CardView: React.FC<CardViewProps> = ({
         toIndex: effectiveCurrentIndex
       });
     }
-  }, [effectiveCurrentIndex, items?.length, animationState.toIndex]);
+  }, [effectiveCurrentIndex, items, animationState.toIndex]);
 
   // Fallback safety mechanism - if animation gets stuck, reset after timeout
   useEffect(() => {
@@ -173,7 +171,6 @@ const CardView: React.FC<CardViewProps> = ({
       } else {
         // Multi-card view - show multiple cards
         const startIndex = effectiveCurrentIndex;
-        const endIndex = (effectiveCurrentIndex + cardsPerPage - 1) % items.length;
         
         // Check if this index should be visible
         let isVisible = false;
@@ -248,7 +245,7 @@ const CardView: React.FC<CardViewProps> = ({
       <div className="cards-container">
         {visibleItems.map(({ item, index }) => (
           <div
-            key={item.id || `${index}-${animationState.isAnimating ? animationState.direction : 'static'}`}
+            key={(item as { id?: string }).id || `${index}-${animationState.isAnimating ? animationState.direction : 'static'}`}
             className={getCardClasses(index)}
             onAnimationEnd={handleAnimationEnd}
             ref={cardRefs ? el => {

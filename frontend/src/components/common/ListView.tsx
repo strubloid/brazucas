@@ -1,19 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './ListView.scss';
 
-interface ListViewProps {
-  items: any[];
-  renderListItem: (item: any, index: number, listItemProps?: any) => React.ReactNode;
+interface ListViewProps<T = unknown> {
+  items: T[];
+  renderListItem: (item: T, index: number, listItemProps?: Record<string, unknown>) => React.ReactNode;
   className?: string;
   listType?: 'news' | 'ads'; // Add listType prop to differentiate
 }
 
-const ListView: React.FC<ListViewProps> = ({
+const ListView = <T,>({
   items = [], // Default to empty array
   renderListItem,
   className = '',
   listType = 'news' // Default to news type
-}) => {
+}: ListViewProps<T>) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
   const itemHeight = listType === 'ads' ? 500 : 300; // Much larger height for ads
@@ -86,7 +86,7 @@ const ListView: React.FC<ListViewProps> = ({
           
           // Pass the styling information to the renderListItem function
           const listItemProps = {
-            key: item.id || `item-${actualIndex}`,
+            key: (item as { id?: string }).id || `item-${actualIndex}`,
             className: `${itemClass} smooth-reveal ${isFromLeft ? 'from-left' : 'from-right'}`,
             style: {
               height: `${itemHeight}px`,

@@ -117,7 +117,7 @@ export const useStatusSystem = (
     } finally {
       setLoading(false);
     }
-  }, [context, autoFetch, selectedStatuses.length]);
+  }, [context, autoFetch, selectedStatuses.length, initialStatuses.length, storageKey]);
 
   // Fallback status data when API is not available
   const getFallbackStatuses = (ctx: StatusSystemContext): AvailableStatus[] => {

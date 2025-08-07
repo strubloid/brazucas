@@ -1,6 +1,6 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faNewspaper, faEdit, faTrash, faEye, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faEye, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { NewsPost } from '../../types/news';
 import { StatusManager } from '../../types/status';
 
@@ -155,12 +155,10 @@ export const NewsCard: React.FC<NewsCardProps> = ({
   const cardClass = viewType === '3x' ? 'pokemon-card-3x' : 'pokemon-card';
   const contentClass = viewType === '3x' ? 'card-content-3x' : 'card-content';
   const headerClass = viewType === '3x' ? 'card-header-3x' : 'card-header';
-  const badgesClass = viewType === '3x' ? 'status-badges-3x' : 'status-badges';
   const imageClass = viewType === '3x' ? 'card-image-3x' : 'card-image';
   const titleClass = viewType === '3x' ? 'card-title-3x' : 'card-title';
   const descriptionClass = viewType === '3x' ? 'card-description-3x' : 'card-description';
   const footerClass = viewType === '3x' ? 'card-footer-3x' : 'card-footer';
-  const dateClass = viewType === '3x' ? 'card-date-3x' : 'card-date';
   const actionsClass = viewType === '3x' ? 'card-actions-3x' : 'card-actions';
 
   // Get proper status using the new status system
@@ -172,7 +170,6 @@ export const NewsCard: React.FC<NewsCardProps> = ({
   // Determine if this is actually pending based on data, not just isPending prop
   const isActuallyPending = newsStatus === 'pending_approval' || post.approved === null;
   const isPublished = post.published && post.approved === true;
-  const isDraft = !post.published && post.approved !== true;
 
   return (
     <div

@@ -36,7 +36,7 @@ class ApiClient {
         // If we have a response with validation errors
         if (error.response?.data?.error === 'Validation failed' && error.response?.data?.data) {
           const validationErrors = error.response.data.data;
-          const errorMessage = validationErrors.map((err: any) => 
+          const errorMessage = validationErrors.map((err: { field: string; message: string }) => 
             `${err.field}: ${err.message}`
           ).join(', ');
           

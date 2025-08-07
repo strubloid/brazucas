@@ -43,22 +43,22 @@ declare module 'scrollreveal' {
 // Also override any global types
 declare global {
   interface Window {
-    ScrollReveal: any;
+    ScrollReveal: ScrollRevealConstructor;
   }
 }
 
 // Explicitly declare for module resolution
 declare const ScrollReveal: {
   (): {
-    reveal(target: string | Element | NodeList, options?: any): any;
-    clean(target: string | Element | NodeList): any;
+    reveal(target: string | Element | NodeList, options?: ScrollRevealOptions): ScrollRevealObject;
+    clean(target: string | Element | NodeList): ScrollRevealObject;
     destroy(): void;
-    sync(): any;
+    sync(): ScrollRevealObject;
   };
-  (options?: any): {
-    reveal(target: string | Element | NodeList, options?: any): any;
-    clean(target: string | Element | NodeList): any;
+  (options?: ScrollRevealOptions): {
+    reveal(target: string | Element | NodeList, options?: ScrollRevealOptions): ScrollRevealObject;
+    clean(target: string | Element | NodeList): ScrollRevealObject;
     destroy(): void;
-    sync(): any;
+    sync(): ScrollRevealObject;
   };
 };

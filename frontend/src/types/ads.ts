@@ -12,6 +12,12 @@ export interface Advertisement {
   createdAt: string;
   updatedAt: string;
   published: boolean;
+  // Optional properties that might exist in some implementations
+  status?: string;
+  location?: string;
+  contact?: string;
+  date?: string;
+  imageUrl?: string;
 }
 
 export interface CreateAdvertisementRequest {

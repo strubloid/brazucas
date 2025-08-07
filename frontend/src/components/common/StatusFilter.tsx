@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusManager, NewsStatus, AdStatus } from '../../types/status';
+import { StatusManager } from '../../types/status';
 import './StatusFilter.scss';
 
 export interface StatusFilterProps {

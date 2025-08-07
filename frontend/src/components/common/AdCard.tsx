@@ -1,18 +1,19 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAd, faEdit, faTrash, faEye, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faEye, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { StatusManager } from '../../types/status';
+import { Advertisement } from '../../types/ads';
 
 export interface AdCardProps {
-  ad: any;
+  ad: Advertisement;
   index: number;
   cardRef?: (el: HTMLDivElement | null) => void;
-  onEdit?: (ad: any) => void;
-  onDelete?: (ad: any) => void;
-  onPublish?: (ad: any) => void;
-  onView?: (ad: any) => void;
-  onApprove?: (ad: any) => void;
-  onReject?: (ad: any) => void;
+  onEdit?: (ad: Advertisement) => void;
+  onDelete?: (ad: Advertisement) => void;
+  onPublish?: (ad: Advertisement) => void;
+  onView?: (ad: Advertisement) => void;
+  onApprove?: (ad: Advertisement) => void;
+  onReject?: (ad: Advertisement) => void;
   viewType?: 'card' | '3x' | 'list';
   isPending?: boolean;
   listItemProps?: {
@@ -50,7 +51,6 @@ export const AdCard: React.FC<AdCardProps> = ({
   // Status-based logic variables for consistent behavior
   const isActuallyPending = adStatus === 'pending_approval' || adStatus === 'draft';
   const isPublished = adStatus === 'published';
-  const isDraft = adStatus === 'draft';
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -60,11 +60,15 @@ export const AdCard: React.FC<AdCardProps> = ({
     });
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(price);
+  const formatPrice = (price: string) => {
+    const numPrice = parseFloat(price.replace(/[^\d.,]/g, '').replace(',', '.'));
+    if (!isNaN(numPrice)) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'EUR'
+      }).format(numPrice);
+    }
+    return price;
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -137,7 +141,7 @@ export const AdCard: React.FC<AdCardProps> = ({
         
         <div className="list-item-footer">
           <span className="list-item-date">
-            Data: {formatDate(ad.createdAt || ad.date)}
+            Data: {formatDate(ad.createdAt || ad.date || ad.createdAt)}
           </span>
           <div className="list-item-actions">
             {isActuallyPending ? (
@@ -199,12 +203,10 @@ export const AdCard: React.FC<AdCardProps> = ({
   const cardClass = viewType === '3x' ? 'pokemon-card-3x' : 'pokemon-card';
   const contentClass = viewType === '3x' ? 'card-content-3x' : 'card-content';
   const headerClass = viewType === '3x' ? 'card-header-3x' : 'card-header';
-  const badgesClass = viewType === '3x' ? 'status-badges-3x' : 'status-badges';
   const imageClass = viewType === '3x' ? 'card-image-3x' : 'card-image';
   const titleClass = viewType === '3x' ? 'card-title-3x' : 'card-title';
   const descriptionClass = viewType === '3x' ? 'card-description-3x' : 'card-description';
   const footerClass = viewType === '3x' ? 'card-footer-3x' : 'card-footer';
-  const dateClass = viewType === '3x' ? 'card-date-3x' : 'card-date';
   const actionsClass = viewType === '3x' ? 'card-actions-3x' : 'card-actions';
   const detailsClass = viewType === '3x' ? 'card-details-3x' : 'card-details';
 
@@ -236,7 +238,7 @@ export const AdCard: React.FC<AdCardProps> = ({
             </div>
             {/* Add date below status badge */}
             <div className="card-header-date">
-              {formatDate(ad.createdAt || ad.date)}
+              {formatDate(ad.createdAt || ad.date || ad.createdAt)}
             </div>
           </div>
           

@@ -4,23 +4,23 @@ import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons
 import anime from 'animejs';
 import './ThreeXView.scss';
 
-interface ThreeXViewProps {
-  items: any[];
-  renderCard: (item: any, index: number) => React.ReactNode;
+interface ThreeXViewProps<T = unknown> {
+  items: T[];
+  renderCard: (item: T, index: number) => React.ReactNode;
   className?: string;
   itemsPerPage?: number;
   currentPage?: number;
   onPageChange?: (page: number) => void;
 }
 
-const ThreeXView: React.FC<ThreeXViewProps> = ({
+const ThreeXView = <T,>({
   items,
   renderCard,
   className = '',
   itemsPerPage = 3,  // Changed from 9 to 3 for 3x1 layout (3 cards per row)
   currentPage: propCurrentPage,
   onPageChange
-}) => {
+}: ThreeXViewProps<T>) => {
   const [internalCurrentPage, setInternalCurrentPage] = useState(propCurrentPage || 0);
   
   // Use either controlled or uncontrolled current page
@@ -89,12 +89,6 @@ const ThreeXView: React.FC<ThreeXViewProps> = ({
     });
   }, [currentPage]);
 
-  const updatePage = (newPage: number) => {
-    setInternalCurrentPage(newPage);
-    if (onPageChange) {
-      onPageChange(newPage);
-    }
-  };
   
   const handleNext = () => {
     if (currentPage < totalPages - 1) {
@@ -153,7 +147,7 @@ const ThreeXView: React.FC<ThreeXViewProps> = ({
       <div className={`cards-3x-grid ${getCurrentPageItems().length === 1 ? 'cards-1' : getCurrentPageItems().length === 2 ? 'cards-2' : ''}`}>
         {getCurrentPageItems().map((item, index) => (
           <div
-            key={item.id || `${currentPage}-${index}`}
+            key={(item as { id?: string }).id || `${currentPage}-${index}`}
             ref={el => cardRefs.current[index] = el}
             className="card-3x-wrapper"
           >

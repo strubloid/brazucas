@@ -42,8 +42,8 @@ const AdminCategories: React.FC = () => {
       await ServiceCategoryService.deleteCategory(id);
       setSuccess('Categoria excluída com sucesso!');
       fetchCategories();
-    } catch (err: any) {
-      setError(err.message || 'Erro ao excluir categoria');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro ao excluir categoria');
     } finally {
       setDeletingId(null);
     }
@@ -64,8 +64,8 @@ const AdminCategories: React.FC = () => {
       setSuccess('Categoria adicionada com sucesso!');
       setNewCategory('');
       fetchCategories();
-    } catch (err: any) {
-      setError(err.message || 'Erro ao adicionar categoria');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro ao adicionar categoria');
     } finally {
       setAdding(false);
     }
