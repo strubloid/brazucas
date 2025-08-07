@@ -2,9 +2,13 @@
   command = "cd frontend && npm run build"
   publish = "frontend/build"
 
+[build.environment]
+  NODE_VERSION = "18"
+
 [functions]
   directory = "backend/src"
   node_bundler = "esbuild"
+  external_node_modules = ["@netlify/functions"]
 
 [dev]
   targetPort = 3333
