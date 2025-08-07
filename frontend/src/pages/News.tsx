@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAnimateOnMount } from '../hooks/useAnimateOnMount';
 import { useAsync } from '../hooks/useAsync';
 import { NewsService } from '../services/newsService';
 import { NewsPost } from '../types/news';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import AnimatedNewsSlideshow from '../components/common/AnimatedNewsSlideshow';
 import './News.scss';
 
 const News: React.FC = () => {
+  const [viewMode, setViewMode] = useState<'slideshow' | 'grid'>('slideshow');
   const headerRef = useAnimateOnMount('fadeIn');
   const gridRef = useAnimateOnMount('slideIn', 200);
 
@@ -46,40 +48,58 @@ const News: React.FC = () => {
     <div className="news">
       <div className="news__container">
         <header ref={headerRef} className="news__header">
-          <h1 className="news__title">Notícias</h1>
-          <p className="news__subtitle">
-            Fique por dentro de tudo que acontece na comunidade brasileira em Cork
-          </p>
+          <h1 className="news__title">Notícias</h1>          
+          {/* View Mode Toggle */}
+          <div className="news__view-toggle">
+            <button 
+              className={`view-toggle__btn ${viewMode === 'slideshow' ? 'active' : ''}`}
+              onClick={() => setViewMode('slideshow')}
+            >
+              📽️ Apresentação
+            </button>
+            <button 
+              className={`view-toggle__btn ${viewMode === 'grid' ? 'active' : ''}`}
+              onClick={() => setViewMode('grid')}
+            >
+              📋 Lista
+            </button>
+          </div>
         </header>
 
         {news && news.length > 0 ? (
-          <div ref={gridRef} className="news__grid">
-            {news.map((post) => (
-              <article key={post.id} className="news__card">
-                {post.imageUrl && (
-                  <div className="news__card-image">
-                    <img src={post.imageUrl} alt={post.title} />
-                  </div>
-                )}
-                <div className="news__card-content">
-                  <h2 className="news__card-title">{post.title}</h2>
-                  <p className="news__card-excerpt">{post.excerpt}</p>
-                  <div className="news__card-meta">
-                    <time className="news__card-date">
-                      {new Date(post.createdAt).toLocaleDateString('pt-BR', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </time>
-                  </div>
-                  <Link to={`/news/${post.id}`} className="news__card-link">
-                    Ler notícia completa →
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
+          <>
+            {viewMode === 'slideshow' ? (
+              <AnimatedNewsSlideshow newsItems={news} />
+            ) : (
+              <div ref={gridRef} className="news__grid">
+                {news.map((post) => (
+                  <article key={post.id} className="news__card">
+                    {post.imageUrl && (
+                      <div className="news__card-image">
+                        <img src={post.imageUrl} alt={post.title} />
+                      </div>
+                    )}
+                    <div className="news__card-content">
+                      <h2 className="news__card-title">{post.title}</h2>
+                      <p className="news__card-excerpt">{post.excerpt}</p>
+                      <div className="news__card-meta">
+                        <time className="news__card-date">
+                          {new Date(post.createdAt).toLocaleDateString('pt-BR', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                        </time>
+                      </div>
+                      <Link to={`/news/${post.id}`} className="news__card-link">
+                        Ler notícia completa →
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </>
         ) : (
           <div className="news__empty">
             <div className="news__empty-icon">📰</div>

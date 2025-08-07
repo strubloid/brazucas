@@ -1,0 +1,92 @@
+.admin-categories-page {
+  max-width: 500px;
+  margin: 2rem auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 2rem 2rem 1.5rem 2rem;
+}
+.admin-categories-page h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #009639;
+}
+.add-category-form {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.add-category-form input {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+.add-category-form button {
+  background: #009639;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.add-category-form button:disabled {
+  background: #b7e0c2;
+  cursor: not-allowed;
+}
+.success-message {
+  color: #009639;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.error-message {
+  color: #dc2626;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.categories-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+}
+.categories-list-table th, .categories-list-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 1.05rem;
+  color: #374151;
+}
+.categories-list-table th {
+  background: #f8fffe;
+  font-weight: 700;
+  text-align: left;
+}
+.categories-list-table td {
+  vertical-align: middle;
+}
+.categories-list-table tr.inactive td {
+  color: #bdbdbd;
+  text-decoration: line-through;
+}
+.delete-category-btn {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 1rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-left: 0.5rem;
+}
+.delete-category-btn:disabled {
+  background: #f3bdbd;
+  color: #fff;
+  cursor: not-allowed;
+  opacity: 0.7;
+}

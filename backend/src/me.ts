@@ -2,13 +2,13 @@ import { HandlerEvent, HandlerContext } from '@netlify/functions';
 import { UserService } from './services';
 import { MongoUserRepository } from './mongoRepositories';
 import { dbConnection } from './database';
-import { createResponse, handleError, requireAuth, handleCors } from './utils';
+import { createResponse, handleError, requireAuth, handleOptionsRequest } from './utils';
 
 export const handler = async (event: HandlerEvent, context: HandlerContext) => {
   try {
     // Handle CORS preflight
-    const corsResponse = handleCors(event);
-    if (corsResponse) return corsResponse;
+    const optionsResponse = handleOptionsRequest(event);
+    if (optionsResponse) return optionsResponse;
 
     if (event.httpMethod !== 'GET') {
       return createResponse(405, {

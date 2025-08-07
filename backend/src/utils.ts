@@ -19,9 +19,7 @@ export function createResponse<T>(
     statusCode,
     headers: {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      ...handleCors({} as HandlerEvent), // Get consistent CORS headers
     },
     body: JSON.stringify(body),
   };
@@ -95,7 +93,16 @@ export function parseRequestBody<T>(event: HandlerEvent): T {
   }
 }
 
-export function handleCors(event: HandlerEvent): {
+export function handleCors(event: HandlerEvent): Record<string, string> {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cache-Control, Pragma, Expires',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Max-Age': '86400', // 24 hours
+  };
+}
+
+export function handleOptionsRequest(event: HandlerEvent): {
   statusCode: number;
   headers: Record<string, string>;
   body: string;
@@ -103,11 +110,7 @@ export function handleCors(event: HandlerEvent): {
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-      },
+      headers: handleCors(event),
       body: '',
     };
   }

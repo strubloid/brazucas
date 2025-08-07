@@ -1,7 +1,7 @@
 import { HandlerEvent, HandlerContext } from '@netlify/functions';
 import { UserService } from './services';
 import { InMemoryUserRepository } from './repositories';
-import { createResponse, handleError, parseRequestBody, handleCors } from './utils';
+import { createResponse, handleError, parseRequestBody, handleOptionsRequest } from './utils';
 import { UserRole } from './types';
 import { z } from 'zod';
 
@@ -19,8 +19,8 @@ const createAdminSchema = z.object({
 export const handler = async (event: HandlerEvent, context: HandlerContext) => {
   try {
     // Handle CORS preflight
-    const corsResponse = handleCors(event);
-    if (corsResponse) return corsResponse;
+    const optionsResponse = handleOptionsRequest(event);
+    if (optionsResponse) return optionsResponse;
 
     if (event.httpMethod !== 'POST') {
       return createResponse(405, {

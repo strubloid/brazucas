@@ -1,4 +1,5 @@
 import { User, NewsPost, Advertisement, UserRole } from './types';
+import { ServiceCategory } from './types/serviceCategory';
 
 // Repository interfaces (Dependency Inversion Principle)
 export interface IUserRepository {
@@ -7,6 +8,7 @@ export interface IUserRepository {
   create(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User>;
   update(id: string, updates: Partial<User>): Promise<User>;
   delete(id: string): Promise<boolean>;
+  count(): Promise<number>;
 }
 
 export interface INewsRepository {
@@ -21,9 +23,19 @@ export interface INewsRepository {
 export interface IAdRepository {
   findAll(): Promise<Advertisement[]>;
   findById(id: string): Promise<Advertisement | null>;
-  findByAdvertiser(advertiserId: string): Promise<Advertisement[]>;
+  findByAdvertiser(authorId: string): Promise<Advertisement[]>;
   create(ad: Omit<Advertisement, 'id' | 'createdAt' | 'updatedAt'>): Promise<Advertisement>;
   update(id: string, updates: Partial<Advertisement>): Promise<Advertisement>;
+  delete(id: string): Promise<boolean>;
+}
+
+export interface IServiceCategoryRepository {
+  findAll(): Promise<ServiceCategory[]>;
+  findById(id: string): Promise<ServiceCategory | null>;
+  findByName(name: string): Promise<ServiceCategory | null>;
+  findActive(): Promise<ServiceCategory[]>;
+  create(category: Omit<ServiceCategory, 'id' | 'createdAt' | 'updatedAt'>): Promise<ServiceCategory>;
+  update(id: string, updates: Partial<ServiceCategory>): Promise<ServiceCategory>;
   delete(id: string): Promise<boolean>;
 }
 
@@ -75,6 +87,10 @@ export class InMemoryUserRepository implements IUserRepository {
     
     this.users.splice(userIndex, 1);
     return true;
+  }
+
+  async count(): Promise<number> {
+    return this.users.length;
   }
 }
 
@@ -144,8 +160,8 @@ export class InMemoryAdRepository implements IAdRepository {
     return this.ads.find(ad => ad.id === id) || null;
   }
 
-  async findByAdvertiser(advertiserId: string): Promise<Advertisement[]> {
-    return this.ads.filter(ad => ad.advertiserId === advertiserId);
+  async findByAdvertiser(authorId: string): Promise<Advertisement[]> {
+    return this.ads.filter(ad => ad.authorId === authorId);
   }
 
   async create(adData: Omit<Advertisement, 'id' | 'createdAt' | 'updatedAt'>): Promise<Advertisement> {

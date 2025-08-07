@@ -1,10 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import anime from 'animejs';
+import ScrollReveal from 'scrollreveal';
 import { useAnimateOnMount } from '../hooks/useAnimateOnMount';
 import { useAsync } from '../hooks/useAsync';
 import { useAuth } from '../context/AuthContext';
 import { NewsService } from '../services/newsService';
+import { AdService } from '../services/adService';
+import { StatisticsService, DashboardStatistics } from '../services/statisticsService';
+import { ServiceCategoryService } from '../services/serviceCategoryService';
 import { NewsPost, CreateNewsRequest, UpdateNewsRequest } from '../types/news';
+import { Advertisement, CreateAdvertisementRequest, UpdateAdvertisementRequest } from '../types/ads';
+import { ServiceCategory } from '../types/serviceCategory';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import ViewModeControls, { ViewMode } from '../components/common/ViewModeControls';
+import CardView from '../components/common/CardView';
+import ThreeXView from '../components/common/ThreeXView';
+import ListView from '../components/common/ListView';
+import { NewsCard } from '../components/common/NewsCard';
+import { AdCard } from '../components/common/AdCard';
+import { StatusFilter } from '../components/common/StatusFilter';
+import { EnhancedStatusFilter } from '../components/common/EnhancedStatusFilter';
+import { StatusManager, NewsStatus, AdStatus } from '../types/status';
+import { StatusSystemContext } from '../types/statusSystem';
+import { UserRole } from '../types/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faHome, 
@@ -15,52 +33,573 @@ import {
   faUsers,
   faTrash,
   faClock,
-  faEye
+  faEye,
+  faEdit,
+  faSpinner,
+  faChartBar,
+  faFileAlt
 } from '@fortawesome/free-solid-svg-icons';
 import './Dashboard.scss';
+
+import AdminCategories from './AdminCategories';
+import './AdminCategories.scss';
 
 const Dashboard: React.FC = () => {
   const dashboardRef = useAnimateOnMount('fadeIn');
   const { user } = useAuth();  
-  const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'create' | 'approve-posts' | 'approve-ads'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'create' | 'ads' | 'create-ad' | 'approve-posts' | 'approve-ads' | 'categories'>('overview');
+  const [previousTab, setPreviousTab] = useState<'overview' | 'news' | 'create' | 'ads' | 'create-ad' | 'approve-posts' | 'approve-ads' | 'categories'>('overview');
   const [editingNews, setEditingNews] = useState<NewsPost | null>(null);
+  const [editingAd, setEditingAd] = useState<Advertisement | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string>('');
   const [submitSuccess, setSubmitSuccess] = useState<string>('');
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const [selectedPost, setSelectedPost] = useState<NewsPost | null>(null);
+  const [selectedAd, setSelectedAd] = useState<Advertisement | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showAdDetailsModal, setShowAdDetailsModal] = useState(false);
+  
+  // Status filtering states - Initialize with default statuses to prevent empty state
+  const [selectedNewsStatuses, setSelectedNewsStatuses] = useState<string[]>(['draft', 'pending_approval', 'published', 'rejected']);
+  const [selectedAdStatuses, setSelectedAdStatuses] = useState<string[]>(['draft', 'pending_approval', 'approved', 'published', 'rejected', 'expired']);
+
+  // Initialize status filters after component mounts
+  useEffect(() => {
+    try {
+      setSelectedNewsStatuses(StatusManager.getNewsStatuses());
+      setSelectedAdStatuses(StatusManager.getAdStatuses());
+    } catch (error) {
+      console.error('Error initializing status filters:', error);
+      // Fallback to empty arrays if StatusManager fails
+      setSelectedNewsStatuses([]);
+      setSelectedAdStatuses([]);
+    }
+  }, []);
+
+  // Initialize ScrollReveal animations
+  useEffect(() => {
+    const sr = ScrollReveal({
+      reset: true, // Changed back to true for the alternating effect
+      distance: '80px',
+      duration: 800,
+      delay: 100,
+      easing: 'cubic-bezier(0.5, 0, 0, 1)',
+    }) as any; // Type assertion to bypass any remaining type conflicts
+
+    // Animate the stats table container
+    sr.reveal('.stats-table-container, .user-stats-container', {
+      origin: 'top',
+      duration: 1000,
+      delay: 200,
+      scale: 0.9,
+      reset: false, // Keep stats visible once shown
+    });
+
+    // Animate table rows sequentially
+    sr.reveal('.stats-table tbody tr', {
+      origin: 'left',
+      duration: 600,
+      delay: 100,
+      interval: 150,
+      reset: false, // Keep table rows visible
+    });
+
+    // Animate admin extra stats cards
+    sr.reveal('.admin-extra-stats .stat-card', {
+      origin: 'bottom',
+      duration: 800,
+      delay: 300,
+      interval: 200,
+      scale: 0.8,
+      reset: false, // Keep stats cards visible
+    });
+
+    // Animate approval cards
+    sr.reveal('.approval-card', {
+      origin: 'bottom',
+      duration: 600,
+      delay: 100,
+      interval: 100,
+      reset: false,
+    });
+
+    // Animate news cards
+    sr.reveal('.dashboard__news-item', {
+      origin: 'right',
+      duration: 700,
+      delay: 150,
+      interval: 120,
+      reset: false,
+    });
+
+    // Animate CardView items (Pokemon cards and ad cards)
+    sr.reveal('.pokemon-card, .pokemon-card-3x', {
+      origin: 'bottom',
+      duration: 800,
+      delay: 200,
+      scale: 0.85,
+      interval: 100,
+      reset: false, // Keep cards visible once shown
+    });
+
+    // Animate ThreeXView items with staggered effect
+    sr.reveal('.pokemon-card-3x', {
+      origin: 'left',
+      duration: 700,
+      delay: 100,
+      interval: 150,
+      distance: '80px',
+      reset: false, // Keep 3x view cards visible
+    });
+
+    // Enhanced ListView items with alternating left/right reveal - Now handled by ListView component
+    // ListView component will handle its own ScrollReveal animations for better control
+
+    // Animate ViewModeControls
+    sr.reveal('.view-mode-controls', {
+      origin: 'top',
+      duration: 600,
+      delay: 150,
+      reset: false,
+    });
+
+    // Animate status filters
+    sr.reveal('.dashboard-status-filter', {
+      origin: 'top',
+      duration: 600,
+      delay: 100,
+      reset: false,
+    });
+
+    // Animate pokemon-carousel-container
+    sr.reveal('.pokemon-carousel-container', {
+      origin: 'bottom',
+      duration: 800,
+      delay: 200,
+      reset: false,
+    });
+
+    // Animate empty state messages
+    sr.reveal('.dashboard__empty, .no-pending-posts, .no-pending-content', {
+      origin: 'bottom',
+      duration: 600,
+      delay: 200,
+      scale: 0.9,
+      reset: false,
+    });
+
+    return () => {
+      sr.destroy();
+    };
+  }, [activeTab]);
+  
+  // Carousel state for news
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Carousel state for ads
+  const [currentAdCardIndex, setCurrentAdCardIndex] = useState(0);
+  const adCarouselRef = useRef<HTMLDivElement>(null);
+  const adCardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Carousel state for pending posts approval
+  const [currentPendingPostIndex, setCurrentPendingPostIndex] = useState(0);
+  const pendingPostCarouselRef = useRef<HTMLDivElement>(null);
+  const pendingPostCardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Carousel state for pending ads approval
+  const [currentPendingAdIndex, setCurrentPendingAdIndex] = useState(0);
+  const pendingAdCarouselRef = useRef<HTMLDivElement>(null);
+  const pendingAdCardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // View mode states for all carousels
+  const [newsViewMode, setNewsViewMode] = useState<ViewMode>('card');
+  const [adsViewMode, setAdsViewMode] = useState<ViewMode>('card');
+  const [pendingPostsViewMode, setPendingPostsViewMode] = useState<ViewMode>('card');
+  const [pendingAdsViewMode, setPendingAdsViewMode] = useState<ViewMode>('card');
+  
+  // 3x view pagination state
+  const [currentPage3x, setCurrentPage3x] = useState<number>(0);
+  const [currentAdsPage3x, setCurrentAdsPage3x] = useState<number>(0);
+  const [currentPendingPostsPage3x, setCurrentPendingPostsPage3x] = useState<number>(0);
+  const [currentPendingAdsPage3x, setCurrentPendingAdsPage3x] = useState<number>(0);
+
+  // Statistics state
+  const [statistics, setStatistics] = useState<DashboardStatistics>({
+    totalUsers: 0,
+    totalNews: 0,
+    publishedNews: 0,
+    draftNews: 0,
+    totalAds: 0,
+    publishedAds: 0,
+    draftAds: 0,
+    pendingPosts: 0,
+    pendingAds: 0
+  });
 
   const { data: news, loading, refetch } = useAsync<NewsPost[]>(
-    () => NewsService.getAllNews(),
-    []
+    () => {
+      if (!user) return Promise.resolve([]);
+      // Admins see all news, regular users see only their own
+      return user.role === 'admin' ? NewsService.getAllNews() : NewsService.getMyNews();
+    },
+    [user?.role, user?.id]
   );
 
   // Fetch pending news for admin
   const { data: pendingNews, loading: pendingLoading, refetch: refetchPending } = useAsync<NewsPost[]>(
-    () => user?.role === 'admin' ? NewsService.getPendingNews() : Promise.resolve([]),
+    () => user?.role === UserRole.ADMIN ? NewsService.getPendingNews() : Promise.resolve([]),
     [user?.role]
   );
 
-  // Debug logging
+  // Fetch advertisements based on user role
+  const { data: ads, loading: adsLoading, refetch: refetchAds } = useAsync<Advertisement[]>(
+    () => {
+      if (!user) return Promise.resolve([]);
+      // Admins see all ads, regular users see only their own
+      return user.role === 'admin' ? AdService.getAllAds() : AdService.getMyAds();
+    },
+    [user?.role, user?.id]
+  );
+
+  // Fetch pending advertisements for admin
+  const { data: pendingAds, loading: pendingAdsLoading, refetch: refetchPendingAds } = useAsync<Advertisement[]>(
+    () => user?.role === UserRole.ADMIN ? AdService.getPendingAds() : Promise.resolve([]),
+    [user?.role]
+  );
+
+  // Fetch ad categories for the select input
+  const [adCategories, setAdCategories] = useState<ServiceCategory[]>([]);
+  const [adCategoriesLoading, setAdCategoriesLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    ServiceCategoryService.getAllCategories()
+      .then(categories => {
+        setAdCategories(categories);
+      })
+      .catch(() => {
+        setAdCategories([]);
+      })
+      .finally(() => {
+        setAdCategoriesLoading(false);
+      });
+  }, []);
+
+  // Filter data based on selected statuses
+  const filteredNews = React.useMemo(() => {
+    if (!news || !Array.isArray(news)) return [];
+    
+    // If no statuses selected, don't show any items
+    if (selectedNewsStatuses.length === 0) {
+      console.log('Dashboard: No news statuses selected, showing no news');
+      return [];
+    }
+    
+    try {
+      return news.filter(newsPost => {
+        // Safety check - ensure newsPost exists and has required properties
+        if (!newsPost || typeof newsPost !== 'object') {
+          console.warn('Invalid news post in filter:', newsPost);
+          return false;
+        }
+        
+        const status = StatusManager.getNewsStatus({
+          published: newsPost.published || false,
+          approved: newsPost.approved
+        });
+        return selectedNewsStatuses.includes(status);
+      });
+    } catch (error) {
+      console.error('Error filtering news:', error);
+      return [];
+    }
+  }, [news, selectedNewsStatuses]);
+
+  const filteredAds = React.useMemo(() => {
+    if (!ads || !Array.isArray(ads) || selectedAdStatuses.length === 0) return [];
+    
+    try {
+      return ads.filter(ad => {
+        // Safety check - ensure ad exists and has required properties
+        if (!ad || typeof ad !== 'object') {
+          console.warn('Invalid ad in filter:', ad);
+          return false;
+        }
+        
+        const status = StatusManager.getAdStatus({
+          published: ad.published || false,
+          approved: ad.approved
+        });
+        return selectedAdStatuses.includes(status);
+      });
+    } catch (error) {
+      return [];
+    }
+  }, [ads, selectedAdStatuses]);
+
+  // State for statistics loading
+  const [loadingStats, setLoadingStats] = useState<boolean>(false);
+  
+  // Debounce mechanism - Track last refresh time to prevent rapid clicks
+  const [lastRefreshTime, setLastRefreshTime] = useState<number>(0);
+  
+  // Stats debug state to verify updates
+  const [statsUpdated, setStatsUpdated] = useState<number>(0);
+
+  // Fetch statistics for admin dashboard
+  const fetchStatistics = React.useCallback(async () => {
+    if (user?.role === UserRole.ADMIN) {
+      try {
+        console.log('Fetching fresh statistics...');
+        const stats = await StatisticsService.getDashboardStatistics();
+        
+        console.log('Statistics received:', stats);
+        
+        if (stats && typeof stats === 'object') {
+          // Force a rerender by creating a new object with a timestamp
+          setStatistics({
+            ...stats,
+            // This ensures the object is different from the previous one
+            _updatedAt: Date.now() 
+          });
+          
+          // Update stats counter to verify refresh
+          setStatsUpdated(prev => prev + 1);
+          
+          return stats;
+        } else {
+          console.error('Invalid statistics format received:', stats);
+          return null;
+        }
+      } catch (error) {
+        console.error('Error fetching statistics:', error);
+        // Keep default statistics (all zeros)
+        return null;
+      }
+    }
+    return null;
+  }, [user?.role]);
+  
+  // Reference to track if a refresh is in progress
+  const isRefreshingRef = React.useRef(false);
+  
+  // Function to refresh all data with debouncing
+  const refreshAllData = React.useCallback(async () => {
+    console.log('Refresh clicked. Current state:', { 
+      isRefreshing: isRefreshingRef.current, 
+      loadingStats: loadingStats 
+    });
+    
+    // Strong protection against concurrent refreshes
+    if (isRefreshingRef.current || loadingStats) {
+      console.log('Refresh already in progress, ignoring click');
+      return;
+    }
+    
+    // Set the refreshing flag immediately to prevent any race conditions
+    isRefreshingRef.current = true;
+    
+    // Prevent multiple rapid clicks (debouncing)
+    const now = Date.now();
+    if (now - lastRefreshTime < 3000) { // 3 second cooldown
+      console.log('Refresh too soon, ignoring click');
+      isRefreshingRef.current = false; // Reset flag if we're not proceeding
+      return;
+    }
+    
+    // Update last refresh time
+    setLastRefreshTime(now);
+    
+    if (user?.role === UserRole.ADMIN) {
+      try {
+        // Set loading state once
+        setLoadingStats(true);
+        console.log('Starting refresh process...');
+        
+        // First get statistics to ensure it's fresh
+        console.log('Fetching statistics...');
+        const newStats = await StatisticsService.getDashboardStatistics();
+        console.log('Statistics received in refreshAllData:', newStats);
+        
+        // Only update if we have valid stats
+        if (newStats && typeof newStats === 'object') {
+          console.log('Updating statistics state with new data');
+          // No need to call setStatistics twice, the fetchStatistics already does it
+        }
+        
+        // Then refresh other data in parallel
+        console.log('Refreshing other data sources...');
+        await Promise.all([
+          refetch(),
+          refetchPending(),
+          refetchAds(),
+          refetchPendingAds()
+        ]);
+        
+        console.log('All data refreshed successfully');
+        
+      } catch (error) {
+        console.error('Error refreshing data:', error);
+      } finally {
+        console.log('Refresh process complete, resetting state');
+        setLoadingStats(false);
+        // Reset the refreshing flag after operation completes
+        isRefreshingRef.current = false;
+      }
+    } else {
+      // Make sure to reset the flag even if not an admin
+      isRefreshingRef.current = false;
+    }
+  }, [user?.role, loadingStats, lastRefreshTime, fetchStatistics, refetch, refetchPending, refetchAds, refetchPendingAds]);
+  
+  // Reference to track if initial fetch has run
+  const hasInitialFetchRunRef = React.useRef(false);
+  
+  // Fetch statistics on component mount, but only once
   React.useEffect(() => {
-    if (user && news) {
-      console.log('Debug - User:', user);
-      console.log('Debug - News:', news);
-      news.forEach(newsPost => {
-        console.log(`News "${newsPost.title}": authorId=${newsPost.authorId}, user.id=${user.id}, match=${newsPost.authorId === user.id}`);
-        console.log(`News ID format: "${newsPost.id}" (length: ${newsPost.id.length})`);
+    if (user?.role === UserRole.ADMIN && !loadingStats && !hasInitialFetchRunRef.current) {
+      console.log('Initial statistics fetch on component mount');
+      hasInitialFetchRunRef.current = true;
+      setLoadingStats(true);
+      fetchStatistics().finally(() => {
+        setLoadingStats(false);
       });
     }
-  }, [user, news]);
+  }, [user?.role, loadingStats, fetchStatistics]);
 
   const [formData, setFormData] = useState<CreateNewsRequest>({
     title: '',
     content: '',
-    excerpt: '',
     imageUrl: '',
     published: false,
   });
+
+  const [adFormData, setAdFormData] = useState<CreateAdvertisementRequest>({
+    title: '',
+    description: '',
+    category: '',
+    price: '',
+    contactEmail: '',
+    published: false,
+  });
+
+  // Initialize card positions - Must be before early return
+  useEffect(() => {
+    if (news && news.length > 0 && cardRefs.current.length > 0) {
+      cardRefs.current.forEach((card, index) => {
+        if (card) {
+          if (index === currentCardIndex) {
+            // Current card
+            anime.set(card, {
+              translateX: 0,
+              rotateY: 0,
+              opacity: 1,
+              scale: 1,
+              zIndex: 10
+            });
+          } else {
+            // Hidden cards
+            anime.set(card, {
+              translateX: index > currentCardIndex ? 600 : -600,
+              rotateY: index > currentCardIndex ? 90 : -90,
+              opacity: 0,
+              scale: 0.7,
+              zIndex: 1
+            });
+          }
+        }
+      });
+    }
+  }, [news, currentCardIndex]);
+
+  // Initialize ad card positions - Must be before early return
+  useEffect(() => {
+    if (ads && ads.length > 0 && adCardRefs.current.length > 0) {
+      adCardRefs.current.forEach((card, index) => {
+        if (card) {
+          if (index === currentAdCardIndex) {
+            // Current card
+            anime.set(card, {
+              translateX: 0,
+              rotateY: 0,
+              opacity: 1,
+              scale: 1,
+              zIndex: 10
+            });
+          } else {
+            // Hidden cards
+            anime.set(card, {
+              translateX: index > currentAdCardIndex ? 600 : -600,
+              rotateY: index > currentAdCardIndex ? 90 : -90,
+              opacity: 0,
+              scale: 0.7,
+              zIndex: 1
+            });
+          }
+        }
+      });
+    }
+  }, [ads, currentAdCardIndex]);
+
+  // Initialize pending posts card positions - Must be before early return
+  useEffect(() => {
+    if (pendingNews && pendingNews.length > 0 && pendingPostCardRefs.current.length > 0) {
+      pendingPostCardRefs.current.forEach((card, index) => {
+        if (card) {
+          if (index === currentPendingPostIndex) {
+            // Current card
+            anime.set(card, {
+              translateX: 0,
+              rotateY: 0,
+              opacity: 1,
+              scale: 1,
+              zIndex: 10
+            });
+          } else {
+            // Hidden cards
+            anime.set(card, {
+              translateX: index > currentPendingPostIndex ? 600 : -600,
+              rotateY: index > currentPendingPostIndex ? 90 : -90,
+              opacity: 0,
+              scale: 0.7,
+              zIndex: 1
+            });
+          }
+        }
+      });
+    }
+  }, [pendingNews, currentPendingPostIndex]);
+
+  // Initialize pending ads card positions - Must be before early return
+  useEffect(() => {
+    if (pendingAds && pendingAds.length > 0 && pendingAdCardRefs.current.length > 0) {
+      pendingAdCardRefs.current.forEach((card, index) => {
+        if (card) {
+          if (index === currentPendingAdIndex) {
+            // Current card
+            anime.set(card, {
+              translateX: 0,
+              rotateY: 0,
+              opacity: 1,
+              scale: 1,
+              zIndex: 10
+            });
+          } else {
+            // Hidden cards
+            anime.set(card, {
+              translateX: index > currentPendingAdIndex ? 600 : -600,
+              rotateY: index > currentPendingAdIndex ? 90 : -90,
+              opacity: 0,
+              scale: 0.7,
+              zIndex: 1
+            });
+          }
+        }
+      });
+    }
+  }, [pendingAds, currentPendingAdIndex]);
 
   // Check if user is authenticated AFTER all hooks are called
   if (!user) {
@@ -84,7 +623,6 @@ const Dashboard: React.FC = () => {
     setFormData({
       title: '',
       content: '',
-      excerpt: '',
       imageUrl: '',
       published: false,
     });
@@ -93,16 +631,59 @@ const Dashboard: React.FC = () => {
     setSubmitSuccess('');
   };
 
+  const resetAdForm = (): void => {
+    setAdFormData({
+      title: '',
+      description: '',
+      category: '',
+      price: '',
+      contactEmail: '',
+      published: false,
+    });
+    setEditingAd(null);
+    setSubmitError('');
+    setSubmitSuccess('');
+  };
+
+  const handleCancelNews = (): void => {
+    resetForm();
+    setActiveTab(previousTab);
+  };
+
+  const handleCancelAd = (): void => {
+    resetAdForm();
+    setActiveTab(previousTab);
+  };
+
+  const handleTabChange = (newTab: typeof activeTab): void => {
+    setPreviousTab(activeTab);
+    setActiveTab(newTab);
+  };
+
   const handleEditNews = (newsPost: NewsPost): void => {
     setFormData({
       title: newsPost.title,
       content: newsPost.content,
-      excerpt: newsPost.excerpt,
       imageUrl: newsPost.imageUrl || '',
       published: newsPost.published,
     });
     setEditingNews(newsPost);
+    setPreviousTab(activeTab);
     setActiveTab('create');
+  };
+
+  const handleEditAd = (ad: Advertisement): void => {
+    setAdFormData({
+      title: ad.title,
+      description: ad.description,
+      category: ad.category,
+      price: ad.price,
+      contactEmail: ad.contactEmail,
+      published: ad.published,
+    });
+    setEditingAd(ad);
+    setPreviousTab(activeTab);
+    setActiveTab('create-ad');
   };
 
   const handleDeleteNews = async (id: string): Promise<void> => {
@@ -114,6 +695,18 @@ const Dashboard: React.FC = () => {
       refetch();
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Erro ao excluir notícia');
+    }
+  };
+
+  const handleDeleteAd = async (id: string): Promise<void> => {
+    if (!window.confirm('Tem certeza que deseja excluir este anúncio?')) return;
+
+    try {
+      await AdService.deleteAd(id);
+      setSubmitSuccess('Anúncio excluído com sucesso!');
+      refetchAds();
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Erro ao excluir anúncio');
     }
   };
 
@@ -129,6 +722,26 @@ const Dashboard: React.FC = () => {
       refetch();
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Erro ao publicar notícia');
+    }
+  };
+
+  const handlePublishAd = async (id: string): Promise<void> => {
+    if (!window.confirm('Tem certeza que deseja publicar este anúncio?')) return;
+
+    try {
+      console.log('Publishing ad with ID:', id);
+      const updateData = {
+        id,
+        published: true
+      };
+      console.log('Update data being sent:', updateData);
+      
+      await AdService.updateAd(updateData);
+      setSubmitSuccess('Anúncio publicado com sucesso!');
+      refetchAds();
+    } catch (error) {
+      console.error('Error publishing ad:', error);
+      setSubmitError(error instanceof Error ? error.message : 'Erro ao publicar anúncio');
     }
   };
 
@@ -176,6 +789,57 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleAdInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setAdFormData(prev => ({
+        ...prev,
+        [name]: checked,
+      }));
+    } else {
+      setAdFormData(prev => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleAdSubmit = async (e: React.FormEvent): Promise<void> => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitError('');
+    setSubmitSuccess('');
+
+    try {
+      if (editingAd) {
+        // Update existing advertisement
+        const updateData: UpdateAdvertisementRequest = {
+          id: editingAd.id,
+          ...adFormData,
+        };
+        await AdService.updateAd(updateData);
+        setSubmitSuccess('Anúncio atualizado com sucesso!');
+      } else {
+        // Create new advertisement
+        await AdService.createAd(adFormData);
+        setSubmitSuccess('Anúncio criado com sucesso!');
+      }
+      
+      refetchAds();
+      
+      // Wait a bit to show the success message, then reset and change tab
+      setTimeout(() => {
+        resetAdForm();
+        setActiveTab('overview');
+      }, 2000);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Erro ao salvar anúncio');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleApproval = async (newsId: string, approved: boolean) => {
     try {
       setProcessingIds(prev => new Set(prev).add(newsId));
@@ -201,6 +865,58 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleAdApproval = async (adId: string, approved: boolean) => {
+    try {
+      setProcessingIds(prev => new Set(prev).add(adId));
+      
+      await AdService.approveAd({ id: adId, approved });
+      
+      // Refresh pending ads list
+      refetchPendingAds();
+      
+      // Show success message
+      const action = approved ? 'aprovado' : 'rejeitado';
+      setSubmitSuccess(`Anúncio ${action} com sucesso!`);
+      setTimeout(() => setSubmitSuccess(''), 3000);
+      
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Erro ao processar aprovação de anúncio');
+    } finally {
+      setProcessingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(adId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleViewAdDetails = (ad: Advertisement) => {
+    setSelectedAd(ad);
+    setShowAdDetailsModal(true);
+  };
+
+  const closeAdDetailsModal = () => {
+    setSelectedAd(null);
+    setShowAdDetailsModal(false);
+  };
+
+  // Wrapper functions for list view actions
+  const handleApprovePost = (postId: string) => {
+    handleApproval(postId, true);
+  };
+
+  const handleRejectPost = (postId: string) => {
+    handleApproval(postId, false);
+  };
+
+  const handleApproveAd = (adId: string) => {
+    handleAdApproval(adId, true);
+  };
+
+  const handleRejectAd = (adId: string) => {
+    handleAdApproval(adId, false);
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       year: 'numeric',
@@ -211,7 +927,8 @@ const Dashboard: React.FC = () => {
     });
   };
 
-  const truncateContent = (content: string, maxLength: number = 80) => {
+  const truncateContent = (content: string | null | undefined, maxLength: number = 80) => {
+    if (!content) return '';
     if (content.length <= maxLength) return content;
     return content.substring(0, maxLength) + '...';
   };
@@ -230,10 +947,26 @@ const Dashboard: React.FC = () => {
     if (post.published && post.approved === true) {
       return { text: 'Publicada', class: 'published' };
     } else if (post.approved === true && !post.published) {
-      return { text: 'Aprovado', class: 'approved' };
+      return { text: 'Aguardando Aprovação', class: 'pending' };
     } else if (post.approved === false) {
       return { text: 'Rejeitado', class: 'rejected' };
     } else if (post.approved === null && post.published) {
+      // User tried to publish but needs approval
+      return { text: 'Aguardando Aprovação', class: 'pending' };
+    } else {
+      // approved === null and published === false (or undefined)
+      return { text: 'Rascunho', class: 'draft' };
+    }
+  };
+
+  const getAdStatus = (ad: Advertisement) => {
+    if (ad.published && ad.approved === true) {
+      return { text: 'Publicado', class: 'published' };
+    } else if (ad.approved === true && !ad.published) {
+      return { text: 'Aguardando Aprovação', class: 'pending' };
+    } else if (ad.approved === false) {
+      return { text: 'Rejeitado', class: 'rejected' };
+    } else if (ad.approved === null && ad.published) {
       // User tried to publish but needs approval
       return { text: 'Aguardando Aprovação', class: 'pending' };
     } else {
@@ -246,13 +979,78 @@ const Dashboard: React.FC = () => {
     if (post.published && post.approved === true) {
       return `Publicado em ${new Date(post.updatedAt).toLocaleDateString('pt-BR')}`;
     } else if (post.approved !== null && post.approvedAt) {
-      const action = post.approved ? 'Aprovado' : 'Rejeitado';
+      const action = post.approved ? 'Publicado' : 'Rejeitado';
       return `${action} em ${new Date(post.approvedAt).toLocaleDateString('pt-BR')}`;
     } else if (post.approved === null && post.published) {
       return `Enviado para aprovação em ${new Date(post.createdAt).toLocaleDateString('pt-BR')}`;
     } else {
       return `Criado em ${new Date(post.createdAt).toLocaleDateString('pt-BR')}`;
     }
+  };
+
+  const getAdStatusDate = (ad: Advertisement) => {
+    if (ad.published && ad.approved === true) {
+      return `Publicado em ${new Date(ad.updatedAt).toLocaleDateString('pt-BR')}`;
+    } else if (ad.approved !== null && ad.approvedAt) {
+      const action = ad.approved ? 'Publicado' : 'Rejeitado';
+      return `${action} em ${new Date(ad.approvedAt).toLocaleDateString('pt-BR')}`;
+    } else if (ad.approved === null && ad.published) {
+      return `Enviado para aprovação em ${new Date(ad.createdAt).toLocaleDateString('pt-BR')}`;
+    } else {
+      return `Criado em ${new Date(ad.createdAt).toLocaleDateString('pt-BR')}`;
+    }
+  };
+
+  // Carousel functions for Pokemon card effect
+  const nextCard = () => {
+    if (!news || news.length === 0) return;
+    const nextIndex = (currentCardIndex + 1) % news.length;
+    setCurrentCardIndex(nextIndex);
+  };
+
+  const prevCard = () => {
+    if (!news || news.length === 0) return;
+    const prevIndex = (currentCardIndex - 1 + news.length) % news.length;
+    setCurrentCardIndex(prevIndex);
+  };
+
+  // Carousel functions for Ads Pokemon card effect
+  const nextAdCard = () => {
+    if (!ads || ads.length === 0) return;
+    const nextIndex = (currentAdCardIndex + 1) % ads.length;
+    setCurrentAdCardIndex(nextIndex);
+  };
+
+  const prevAdCard = () => {
+    if (!ads || ads.length === 0) return;
+    const prevIndex = (currentAdCardIndex - 1 + ads.length) % ads.length;
+    setCurrentAdCardIndex(prevIndex);
+  };
+
+  // Carousel functions for Pending Posts approval
+  const nextPendingPost = () => {
+    if (!pendingNews || pendingNews.length === 0) return;
+    const nextIndex = (currentPendingPostIndex + 1) % pendingNews.length;
+    setCurrentPendingPostIndex(nextIndex);
+  };
+
+  const prevPendingPost = () => {
+    if (!pendingNews || pendingNews.length === 0) return;
+    const prevIndex = (currentPendingPostIndex - 1 + pendingNews.length) % pendingNews.length;
+    setCurrentPendingPostIndex(prevIndex);
+  };
+
+  // Carousel functions for Pending Ads approval
+  const nextPendingAd = () => {
+    if (!pendingAds || pendingAds.length === 0) return;
+    const nextIndex = (currentPendingAdIndex + 1) % pendingAds.length;
+    setCurrentPendingAdIndex(nextIndex);
+  };
+
+  const prevPendingAd = () => {
+    if (!pendingAds || pendingAds.length === 0) return;
+    const prevIndex = (currentPendingAdIndex - 1 + pendingAds.length) % pendingAds.length;
+    setCurrentPendingAdIndex(prevIndex);
   };
 
   return (
@@ -275,7 +1073,7 @@ const Dashboard: React.FC = () => {
           <nav className="sidebar-nav">
             <button
               className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('overview')}
+              onClick={() => handleTabChange('overview')}
             >
               <FontAwesomeIcon icon={faHome} className="nav-icon" />
               <span>Visão Geral</span>
@@ -283,24 +1081,67 @@ const Dashboard: React.FC = () => {
             
             <button
               className={`nav-item ${activeTab === 'news' ? 'active' : ''}`}
-              onClick={() => setActiveTab('news')}
+              onClick={() => handleTabChange('news')}
             >
               <FontAwesomeIcon icon={faNewspaper} className="nav-icon" />
               <span>Notícias</span>
             </button>
             
+
             <button
-              className={`nav-item ${activeTab === 'create' ? 'active' : ''}`}
+              className={`nav-item ${activeTab === 'create' ? 'active' : ''} ${editingNews ? 'edit-mode' : ''}`}
               onClick={() => {
-                setActiveTab('create');
-                resetForm();
+                handleTabChange('create');
+                if (!editingNews) resetForm();
               }}
+              style={editingNews ? { backgroundColor: '#f5e88a', color: '#8b6f1a' } : {}}
             >
-              <FontAwesomeIcon icon={faPlus} className="nav-icon" />
-              <span>Nova Notícia</span>
+              <FontAwesomeIcon icon={editingNews ? faEdit : faPlus} className="nav-icon" />
+              <span>{editingNews ? 'Editar Notícia' : 'Nova Notícia'}</span>
             </button>
 
-            {user?.role === 'admin' && (
+            {/* Admin: Add categories tab below Nova Notícia */}
+            {user?.role === UserRole.ADMIN && (
+              <button
+                className={`nav-item ${activeTab === 'categories' ? 'active' : ''}`}
+                onClick={() => handleTabChange('categories')}
+                style={{ backgroundColor: '#e6f9f0', color: '#009639' }}
+              >
+                <FontAwesomeIcon icon={faPlus} className="nav-icon" />
+                <span>Gerenciar Categorias</span>
+              </button>
+            )}
+
+            {/* Anunciante Section - Only for advertisers and admins */}
+            {(user?.role === UserRole.ADVERTISER || user?.role === UserRole.ADMIN) && (
+              <>
+                <div className="nav-divider">
+                  <span>Anunciante</span>
+                </div>
+
+                <button
+                  className={`nav-item ${activeTab === 'ads' ? 'active' : ''}`}
+                  onClick={() => handleTabChange('ads')}
+                >
+                  <FontAwesomeIcon icon={faAd} className="nav-icon" />
+                  <span>Anúncios</span>
+                </button>
+
+                <button
+                  className={`nav-item ${activeTab === 'create-ad' ? 'active' : ''} ${editingAd ? 'edit-mode' : ''}`}
+                  onClick={() => {
+                    handleTabChange('create-ad');
+                    if (!editingAd) resetAdForm();
+                  }}
+                  style={editingAd ? { backgroundColor: '#f5e88a', color: '#8b6f1a' } : {}}
+                >
+                  <FontAwesomeIcon icon={editingAd ? faEdit : faPlus} className="nav-icon" />
+                  <span>{editingAd ? 'Editar Anúncio' : 'Novo Anúncio'}</span>
+                </button>
+              </>
+            )}
+
+            {user?.role === UserRole.ADMIN && (
               <>
                 <div className="nav-divider">
                   <span>Aprovações</span>
@@ -308,7 +1149,7 @@ const Dashboard: React.FC = () => {
                 
                 <button
                   className={`nav-item ${activeTab === 'approve-posts' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('approve-posts')}
+                  onClick={() => handleTabChange('approve-posts')}
                 >
                   <FontAwesomeIcon icon={faCheckCircle} className="nav-icon" />
                   <span>Aprovar Posts</span>
@@ -319,11 +1160,13 @@ const Dashboard: React.FC = () => {
                 
                 <button
                   className={`nav-item ${activeTab === 'approve-ads' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('approve-ads')}
+                  onClick={() => handleTabChange('approve-ads')}
                 >
                   <FontAwesomeIcon icon={faAd} className="nav-icon" />
                   <span>Aprovar Anúncios</span>
-                  <span className="badge">5</span>
+                  {pendingAds && pendingAds.length > 0 && (
+                    <span className="badge">{pendingAds.length}</span>
+                  )}
                 </button>
               </>
             )}
@@ -337,78 +1180,300 @@ const Dashboard: React.FC = () => {
               {activeTab === 'overview' && 'Dashboard'}
               {activeTab === 'news' && 'Gerenciar Notícias'}
               {activeTab === 'create' && (editingNews ? 'Editar Notícia' : 'Criar Nova Notícia')}
+              {activeTab === 'ads' && 'Gerenciar Anúncios'}
+              {activeTab === 'create-ad' && (editingAd ? 'Editar Anúncio' : 'Criar Novo Anúncio')}
               {activeTab === 'approve-posts' && 'Aprovar Posts de Usuários'}
               {activeTab === 'approve-ads' && 'Aprovar Anúncios'}
             </h1>
           </div>
 
           <div className="main-content">
+            {/* Admin Categories Tab */}
+            {activeTab === 'categories' && user?.role === UserRole.ADMIN && (
+              <AdminCategories />
+            )}
             {/* Overview Tab */}
             {activeTab === 'overview' && (
               <>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                marginBottom: '20px' 
+              }}>
+                <div>
+                  {user?.role === UserRole.ADMIN && (
+                    <>
+                      <h2>Dashboard Administrativo</h2>
+                      <small style={{ 
+                        color: '#7f8c8d', 
+                        fontSize: '12px',
+                        marginTop: '5px',
+                        display: 'block'
+                      }}>
+                        Stats atualizado: {statsUpdated} vezes | Última atualização: {lastRefreshTime ? new Date(lastRefreshTime).toLocaleTimeString() : 'Nunca'}
+                      </small>
+                    </>
+                  )}
+                </div>
+                {user?.role === UserRole.ADMIN && (
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent any default actions
+                      if (!loadingStats && !isRefreshingRef.current) {
+                        refreshAllData();
+                      }
+                    }}
+                    disabled={loadingStats}
+                    style={{
+                      background: loadingStats ? '#95a5a6' : '#2ecc71',
+                      color: 'white',
+                      border: 'none',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '4px',
+                      cursor: loadingStats ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={loadingStats ? faSpinner : faNewspaper} spin={loadingStats} />
+                    {loadingStats ? 'Atualizando dados...' : 'Atualizar Dashboard'}
+                  </button>
+                )}
+              </div>
               <div className="overview-grid">
-                <div className="stat-card">
-                  <div className="stat-icon">
-                    <FontAwesomeIcon icon={faNewspaper} />
-                  </div>
-                  <div className="stat-content">
-                    <h3 className="stat-number">{news?.length || 0}</h3>
-                    <p className="stat-label">Total de Notícias</p>
-                  </div>
-                </div>
-                
-                <div className="stat-card">
-                  <div className="stat-icon published">
-                    <FontAwesomeIcon icon={faEye} />
-                  </div>
-                  <div className="stat-content">
-                    <h3 className="stat-number">{news?.filter(n => n.published).length || 0}</h3>
-                    <p className="stat-label">Notícias Publicadas</p>
-                  </div>
-                </div>
-                
-                <div className="stat-card">
-                  <div className="stat-icon draft">
-                    <FontAwesomeIcon icon={faClock} />
-                  </div>
-                  <div className="stat-content">
-                    <h3 className="stat-number">{news?.filter(n => !n.published).length || 0}</h3>
-                    <p className="stat-label">Rascunhos</p>
-                  </div>
-                </div>
-
-                {user?.role === 'admin' && (
-                  <>
-                    <div className="stat-card">
-                      <div className="stat-icon pending">
-                        <FontAwesomeIcon icon={faCheckCircle} />
-                      </div>
-                      <div className="stat-content">
-                        <h3 className="stat-number">{pendingNews?.length || 0}</h3>
-                        <p className="stat-label">Posts Pendentes</p>
-                      </div>
-                    </div>
+                {user?.role === UserRole.ADMIN ? (
+                  // Admin Dashboard with comprehensive stats table
+                  <div className="stats-table-container">
+                    <table className="stats-table">
+                      <thead className="stats-header">
+                        <tr className="stats-row">
+                          <th className="stats-cell header-cell"></th>
+                          <th className="stats-cell header-cell">
+                            <FontAwesomeIcon icon={faNewspaper} />
+                            <span>Notícias</span>
+                          </th>
+                          <th className="stats-cell header-cell">
+                            <FontAwesomeIcon icon={faAd} />
+                            <span>Anúncios</span>
+                          </th>
+                          <th className="stats-cell header-cell">
+                            <FontAwesomeIcon icon={faChartBar} />
+                            <span>Total</span>
+                          </th>
+                        </tr>
+                      </thead>
+                      
+                      <tbody>
+                        <tr className="stats-row">
+                          <td className="stats-cell row-label">
+                            <FontAwesomeIcon icon={faFileAlt} />
+                            <span>Total</span>
+                          </td>
+                          <td className="stats-cell stat-number">
+                            {statistics.totalNews !== undefined ? statistics.totalNews : 0}
+                          </td>
+                          <td className="stats-cell stat-number">
+                            {statistics.totalAds !== undefined ? statistics.totalAds : 0}
+                          </td>
+                          <td className="stats-cell stat-number total">
+                            {(statistics.totalNews || 0) + (statistics.totalAds || 0)}
+                          </td>
+                        </tr>
+                        
+                        <tr className="stats-row">
+                          <td className="stats-cell row-label">
+                            <FontAwesomeIcon icon={faClock} />
+                            <span>Rascunhos</span>
+                          </td>
+                          <td className="stats-cell stat-number draft">
+                            {statistics.draftNews !== undefined ? statistics.draftNews : 0}
+                          </td>
+                          <td className="stats-cell stat-number draft">
+                            {statistics.draftAds !== undefined ? statistics.draftAds : 0}
+                          </td>
+                          <td className="stats-cell stat-number total">
+                            {(statistics.draftNews || 0) + (statistics.draftAds || 0)}
+                          </td>
+                        </tr>
+                        
+                        <tr className="stats-row">
+                          <td className="stats-cell row-label">
+                            <FontAwesomeIcon icon={faEye} />
+                            <span>Publicados</span>
+                          </td>
+                          <td className="stats-cell stat-number published">
+                            {statistics.publishedNews !== undefined ? statistics.publishedNews : 0}
+                          </td>
+                          <td className="stats-cell stat-number published">
+                            {statistics.publishedAds !== undefined ? statistics.publishedAds : 0}
+                          </td>
+                          <td className="stats-cell stat-number total">
+                            {(statistics.publishedNews || 0) + (statistics.publishedAds || 0)}
+                          </td>
+                        </tr>
+                        
+                        <tr className="stats-row">
+                          <td className="stats-cell row-label">
+                            <FontAwesomeIcon icon={faCheckCircle} />
+                            <span>Pendentes</span>
+                          </td>
+                          <td className="stats-cell stat-number pending">
+                            {statistics.pendingPosts !== undefined ? statistics.pendingPosts : 0}
+                          </td>
+                          <td className="stats-cell stat-number pending">
+                            {statistics.pendingAds !== undefined ? statistics.pendingAds : 0}
+                          </td>
+                          <td className="stats-cell stat-number total">
+                            {(statistics.pendingPosts || 0) + (statistics.pendingAds || 0)}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                     
-                    <div className="stat-card">
-                      <div className="stat-icon pending">
-                        <FontAwesomeIcon icon={faAd} />
-                      </div>
-                      <div className="stat-content">
-                        <h3 className="stat-number">5</h3>
-                        <p className="stat-label">Anúncios Pendentes</p>
-                      </div>
-                    </div>
-                    
-                    <div className="stat-card">
-                      <div className="stat-icon users">
-                        <FontAwesomeIcon icon={faUsers} />
-                      </div>
-                      <div className="stat-content">
-                        <h3 className="stat-number">247</h3>
-                        <p className="stat-label">Usuários Registrados</p>
+                    {/* Additional admin stats */}
+                    <div className="admin-extra-stats">
+                      <div className="stat-card">
+                        <div className="stat-icon users">
+                          <FontAwesomeIcon icon={faUsers} />
+                        </div>
+                        <div className="stat-content">
+                          <h3 className="stat-number">
+                            {statistics.totalUsers !== undefined ? statistics.totalUsers : 0}
+                          </h3>
+                          <p className="stat-label">Usuários Registrados</p>
+                        </div>
                       </div>
                     </div>
-                  </>
+                  </div>
+                ) : (
+                  // Regular user dashboard - show only their content
+                  <div className="user-stats-container">
+                    {user && [UserRole.ADVERTISER, UserRole.ADMIN].includes(user.role) ? (
+                      // Advertiser/Admin user can see both news and ads
+                      <table className="stats-table">
+                        <thead className="stats-header">
+                          <tr className="stats-row">
+                            <th className="stats-cell header-cell"></th>
+                            <th className="stats-cell header-cell">
+                              <FontAwesomeIcon icon={faNewspaper} />
+                              <span>Notícias</span>
+                            </th>
+                            <th className="stats-cell header-cell">
+                              <FontAwesomeIcon icon={faAd} />
+                              <span>Anúncios</span>
+                            </th>
+                            <th className="stats-cell header-cell">
+                              <FontAwesomeIcon icon={faChartBar} />
+                              <span>Total</span>
+                            </th>
+                          </tr>
+                        </thead>
+                        
+                        <tbody>
+                          <tr className="stats-row">
+                            <td className="stats-cell row-label">
+                              <FontAwesomeIcon icon={faFileAlt} />
+                              <span>Total</span>
+                            </td>
+                            <td className="stats-cell stat-number">
+                              {news?.length || 0}
+                            </td>
+                            <td className="stats-cell stat-number">
+                              {ads?.length || 0}
+                            </td>
+                            <td className="stats-cell stat-number total">
+                              {(news?.length || 0) + (ads?.length || 0)}
+                            </td>
+                          </tr>
+                          
+                          <tr className="stats-row">
+                            <td className="stats-cell row-label">
+                              <FontAwesomeIcon icon={faClock} />
+                              <span>Rascunhos</span>
+                            </td>
+                            <td className="stats-cell stat-number draft">
+                              {news?.filter(n => !n.published || n.approved !== true).length || 0}
+                            </td>
+                            <td className="stats-cell stat-number draft">
+                              {ads?.filter(a => !a.published || a.approved !== true).length || 0}
+                            </td>
+                            <td className="stats-cell stat-number total">
+                              {(news?.filter(n => !n.published || n.approved !== true).length || 0) + 
+                               (ads?.filter(a => !a.published || a.approved !== true).length || 0)}
+                            </td>
+                          </tr>
+                          
+                          <tr className="stats-row">
+                            <td className="stats-cell row-label">
+                              <FontAwesomeIcon icon={faEye} />
+                              <span>Publicados</span>
+                            </td>
+                            <td className="stats-cell stat-number published">
+                              {news?.filter(n => n.published && n.approved === true).length || 0}
+                            </td>
+                            <td className="stats-cell stat-number published">
+                              {ads?.filter(a => a.published && a.approved === true).length || 0}
+                            </td>
+                            <td className="stats-cell stat-number total">
+                              {(news?.filter(n => n.published && n.approved === true).length || 0) + 
+                               (ads?.filter(a => a.published && a.approved === true).length || 0)}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    ) : (
+                      // Regular user can only see news
+                      <table className="stats-table single-content">
+                        <thead className="stats-header">
+                          <tr className="stats-row">
+                            <th className="stats-cell header-cell"></th>
+                            <th className="stats-cell header-cell">
+                              <FontAwesomeIcon icon={faNewspaper} />
+                              <span>Notícias</span>
+                            </th>
+                          </tr>
+                        </thead>
+                        
+                        <tbody>
+                          <tr className="stats-row">
+                            <td className="stats-cell row-label">
+                              <FontAwesomeIcon icon={faFileAlt} />
+                              <span>Total</span>
+                            </td>
+                            <td className="stats-cell stat-number">
+                              {news?.length || 0}
+                            </td>
+                          </tr>
+                          
+                          <tr className="stats-row">
+                            <td className="stats-cell row-label">
+                              <FontAwesomeIcon icon={faClock} />
+                              <span>Rascunhos</span>
+                            </td>
+                            <td className="stats-cell stat-number draft">
+                              {news?.filter(n => !n.published || n.approved !== true).length || 0}
+                            </td>
+                          </tr>
+                          
+                          <tr className="stats-row">
+                            <td className="stats-cell row-label">
+                              <FontAwesomeIcon icon={faEye} />
+                              <span>Publicados</span>
+                            </td>
+                            <td className="stats-cell stat-number published">
+                              {news?.filter(n => n.published && n.approved === true).length || 0}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
                 )}
               </div>
               </>
@@ -420,59 +1485,275 @@ const Dashboard: React.FC = () => {
                 {loading ? (
                   <LoadingSpinner text="Carregando notícias..." />
                 ) : (
-                  <div className="dashboard__news-list">
-                    {news?.map((newsPost) => (
-                      <div key={newsPost.id} className="dashboard__news-item">
-                        <div className="dashboard__news-content">
-                          <h3 className="dashboard__news-title">{newsPost.title}</h3>
-                          <p className="dashboard__news-excerpt">{newsPost.excerpt}</p>
-                          <div className="dashboard__news-meta">
-                            <span className={`dashboard__news-status dashboard__news-status--${getPostStatus(newsPost).class}`}>
-                              {getPostStatus(newsPost).text}
-                            </span>
-                            <span className="dashboard__news-date">
-                              {getStatusDate(newsPost)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="dashboard__news-actions">
-                          {/* Debug: Show buttons for all posts temporarily */}
-                          {true && (
-                            <>
-                              <button
-                                onClick={() => handleEditNews(newsPost)}
-                                className="dashboard__news-button dashboard__news-button--edit"
-                              >
-                                Editar
-                              </button>
+                  <>
+                    <EnhancedStatusFilter
+                      context={{
+                        contentType: 'news',
+                        context: 'management',
+                        userId: user?.id ? parseInt(user.id) : undefined,
+                        userRole: user?.role === UserRole.ADMIN ? 'admin' : 'user'
+                      }}
+                      onSelectionChange={setSelectedNewsStatuses}
+                      className="dashboard-status-filter"
+                      options={{
+                        initialStatuses: selectedNewsStatuses,
+                        persistSelection: true,
+                        storageKey: 'dashboard-news-status-filter'
+                      }}
+                    />
+                    {filteredNews && filteredNews.length > 0 ? (
+                      <div className="pokemon-carousel-container">
+                        <ViewModeControls
+                          viewMode={newsViewMode}
+                          onViewModeChange={setNewsViewMode}
+                          totalItems={filteredNews.length}
+                          currentPage={newsViewMode === 'list' ? undefined : newsViewMode === 'card' ? 
+                            Math.min(currentCardIndex + 1, filteredNews.length) : 
+                            Math.min(currentPage3x + 1, Math.ceil(filteredNews.length / 3))}
+                          totalPages={newsViewMode === 'list' ? undefined : newsViewMode === 'card' ? 
+                            filteredNews.length > 0 ? filteredNews.length : 1 : 
+                            Math.max(1, Math.ceil(filteredNews.length / 3))}
+                        />
+                        
+                        {newsViewMode === 'card' ? (
+                          <CardView
+                            items={filteredNews}
+                            currentIndex={currentCardIndex}
+                            onPrevious={prevCard}
+                            onNext={nextCard}
+                            cardsPerPage={1}
+                            onDotClick={(index) => {
+                              const currentCard = cardRefs.current[currentCardIndex];
+                              const targetCard = cardRefs.current[index];
                               
-                              {!newsPost.published && (
-                                <button
-                                  onClick={() => handlePublishNews(newsPost.id)}
-                                  className="dashboard__news-button dashboard__news-button--publish"
-                                >
-                                  Publicar
-                                </button>
-                              )}
-                              
-                              <button
-                                onClick={() => handleDeleteNews(newsPost.id)}
-                                className="dashboard__news-button dashboard__news-button--delete"
-                              >
-                                Excluir
-                              </button>
-                            </>
-                          )}
-                        </div>
+                              if (currentCard && targetCard && index !== currentCardIndex) {
+                                // Animate current card out
+                                anime({
+                                  targets: currentCard,
+                                  opacity: [1, 0],
+                                  scale: [1, 0.7],
+                                  rotateY: [0, index > currentCardIndex ? 90 : -90],
+                                  duration: 300,
+                                  easing: 'easeInBack'
+                                });
+                                
+                                // Animate target card in
+                                anime({
+                                  targets: targetCard,
+                                  translateX: [index > currentCardIndex ? 600 : -600, 0],
+                                  rotateY: [index > currentCardIndex ? 90 : -90, 0],
+                                  opacity: [0, 1],
+                                  scale: [0.7, 1],
+                                  duration: 500,
+                                  delay: 150,
+                                  easing: 'easeOutExpo'
+                                });
+                                
+                                setCurrentCardIndex(index);
+                              }
+                            }}
+                            renderCard={(newsPost, index) => (
+                              <NewsCard
+                                post={newsPost}
+                                index={index}
+                                cardRef={el => cardRefs.current[index] = el}
+                                onEdit={handleEditNews}
+                                onDelete={(post) => handleDeleteNews(post.id)}
+                                onPublish={(post) => handlePublishNews(post.id)}
+                                viewType="card"
+                              />
+                            )}
+                            containerRef={carouselRef}
+                            cardRefs={cardRefs}
+                          />
+                        ) : newsViewMode === '3x' ? (
+                          <ThreeXView
+                            items={filteredNews}
+                            currentPage={currentPage3x}
+                            onPageChange={setCurrentPage3x}
+                            renderCard={(newsPost, index) => (
+                              <NewsCard
+                                post={newsPost}
+                                index={index}
+                                onEdit={handleEditNews}
+                                onDelete={(post) => handleDeleteNews(post.id)}
+                                onPublish={(post) => handlePublishNews(post.id)}
+                                viewType="3x"
+                              />
+                            )}
+                          />
+                        ) : (
+                          <ListView
+                            items={filteredNews}
+                            renderListItem={(newsPost, index, listItemProps) => (
+                              <NewsCard
+                                post={newsPost}
+                                index={index}
+                                onEdit={handleEditNews}
+                                onDelete={(post) => handleDeleteNews(post.id)}
+                                onPublish={(post) => handlePublishNews(post.id)}
+                                viewType="list"
+                                listItemProps={listItemProps}
+                              />
+                            )}
+                          />
+                        )}
                       </div>
-                    ))}
-                    
-                    {news?.length === 0 && (
+                    ) : filteredNews.length === 0 && news && news.length > 0 ? (
+                      <div className="dashboard__empty">
+                        <p>Nenhuma notícia encontrada com os filtros selecionados.</p>
+                        <button 
+                          className="btn btn-secondary"
+                          onClick={() => setSelectedNewsStatuses(StatusManager.getNewsStatuses())}
+                        >
+                          Limpar Filtros
+                        </button>
+                      </div>
+                    ) : (
                       <div className="dashboard__empty">
                         <p>Nenhuma notícia encontrada.</p>
                       </div>
                     )}
-                  </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Ads Management Tab */}
+            {activeTab === 'ads' && (
+              <div className="dashboard__news">
+                {adsLoading ? (
+                  <LoadingSpinner text="Carregando anúncios..." />
+                ) : (
+                  <>
+                    <EnhancedStatusFilter
+                      context={{
+                        contentType: 'ads',
+                        context: 'management',
+                        userId: user?.id ? parseInt(user.id) : undefined,
+                        userRole: user?.role === UserRole.ADMIN ? 'admin' : 'user'
+                      }}
+                      onSelectionChange={setSelectedAdStatuses}
+                      className="dashboard-status-filter"
+                      options={{
+                        initialStatuses: selectedAdStatuses,
+                        persistSelection: true,
+                        storageKey: 'dashboard-ads-status-filter'
+                      }}
+                    />
+                    {filteredAds && filteredAds.length > 0 ? (
+                      <div className="pokemon-carousel-container">
+                        <ViewModeControls
+                          viewMode={adsViewMode}
+                          onViewModeChange={setAdsViewMode}
+                          totalItems={filteredAds.length}
+                          currentPage={adsViewMode === 'list' ? undefined : adsViewMode === 'card' ? 
+                            Math.min(currentAdCardIndex + 1, filteredAds.length) : 
+                            Math.min(currentAdsPage3x + 1, Math.ceil(filteredAds.length / 3))}
+                          totalPages={adsViewMode === 'list' ? undefined : adsViewMode === 'card' ? 
+                            filteredAds.length > 0 ? filteredAds.length : 1 : 
+                            Math.max(1, Math.ceil(filteredAds.length / 3))}
+                        />
+                        
+                        {adsViewMode === 'card' ? (
+                          <CardView
+                            items={filteredAds}
+                            currentIndex={currentAdCardIndex}
+                            onPrevious={prevAdCard}
+                            onNext={nextAdCard}
+                            cardsPerPage={1}
+                            onDotClick={(index) => {
+                              const currentCard = adCardRefs.current[currentAdCardIndex];
+                              const targetCard = adCardRefs.current[index];
+                              
+                              if (currentCard && targetCard && index !== currentAdCardIndex) {
+                                // Animate current card out
+                                anime({
+                                  targets: currentCard,
+                                  opacity: [1, 0],
+                                  scale: [1, 0.7],
+                                  rotateY: [0, index > currentAdCardIndex ? 90 : -90],
+                                  duration: 300,
+                                  easing: 'easeInBack'
+                                });
+                                
+                                // Animate target card in
+                                anime({
+                                  targets: targetCard,
+                                  translateX: [index > currentAdCardIndex ? 600 : -600, 0],
+                                  rotateY: [index > currentAdCardIndex ? 90 : -90, 0],
+                                  opacity: [0, 1],
+                                  scale: [0.7, 1],
+                                  duration: 500,
+                                  delay: 150,
+                                  easing: 'easeOutExpo'
+                                });
+                                
+                                setCurrentAdCardIndex(index);
+                              }
+                            }}
+                            renderCard={(ad, index) => (
+                              <AdCard
+                                ad={ad}
+                                index={index}
+                                cardRef={el => adCardRefs.current[index] = el}
+                                onEdit={handleEditAd}
+                                onDelete={(ad) => handleDeleteAd(ad.id)}
+                                onPublish={(ad) => handlePublishAd(ad.id)}
+                                viewType="card"
+                              />
+                            )}
+                            containerRef={adCarouselRef}
+                            cardRefs={adCardRefs}
+                          />
+                        ) : adsViewMode === '3x' ? (
+                          <ThreeXView
+                            items={filteredAds}
+                            renderCard={(ad, index) => (
+                              <AdCard
+                                ad={ad}
+                                index={index}
+                                onEdit={handleEditAd}
+                                onDelete={(ad) => handleDeleteAd(ad.id)}
+                                onPublish={(ad) => handlePublishAd(ad.id)}
+                                viewType="3x"
+                              />
+                            )}
+                          />
+                        ) : (
+                          <ListView
+                            items={filteredAds}
+                            listType="ads"
+                            renderListItem={(ad, index, listItemProps) => (
+                              <AdCard
+                                ad={ad}
+                                index={index}
+                                onEdit={handleEditAd}
+                                onDelete={(ad) => handleDeleteAd(ad.id)}
+                                onPublish={(ad) => handlePublishAd(ad.id)}
+                                viewType="list"
+                                listItemProps={listItemProps}
+                              />
+                            )}
+                          />
+                        )}
+                      </div>
+                    ) : filteredAds.length === 0 && ads && ads.length > 0 ? (
+                      <div className="dashboard__empty">
+                        <p>Nenhum anúncio encontrado com os filtros selecionados.</p>
+                        <button 
+                          className="btn btn-secondary"
+                          onClick={() => setSelectedAdStatuses(StatusManager.getAdStatuses())}
+                        >
+                          Limpar Filtros
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="dashboard__empty">
+                        <p>Nenhum anúncio encontrado.</p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -508,20 +1789,6 @@ const Dashboard: React.FC = () => {
                   </div>
 
                   <div className="dashboard__field">
-                    <label htmlFor="excerpt" className="dashboard__label">Resumo</label>
-                    <textarea
-                      id="excerpt"
-                      name="excerpt"
-                      value={formData.excerpt}
-                      onChange={handleInputChange}
-                      className="dashboard__textarea"
-                      rows={3}
-                      required
-                      maxLength={300}
-                    />
-                  </div>
-
-                  <div className="dashboard__field">
                     <label htmlFor="content" className="dashboard__label">Conteúdo</label>
                     <textarea
                       id="content"
@@ -531,8 +1798,14 @@ const Dashboard: React.FC = () => {
                       className="dashboard__textarea dashboard__textarea--large"
                       rows={10}
                       required
-                      maxLength={10000}
+                      maxLength={500}
                     />
+                    <div className={`character-count ${
+                      formData.content.length > 450 ? 'at-limit' :
+                      formData.content.length > 400 ? 'approaching-limit' : ''
+                    }`}>
+                      {formData.content.length}/500 caracteres
+                    </div>
                   </div>
 
                   <div className="dashboard__field">
@@ -565,7 +1838,7 @@ const Dashboard: React.FC = () => {
                   <div className="dashboard__form-actions">
                     <button
                       type="button"
-                      onClick={resetForm}
+                      onClick={handleCancelNews}
                       className="dashboard__button dashboard__button--secondary"
                       disabled={isSubmitting}
                     >
@@ -587,59 +1860,267 @@ const Dashboard: React.FC = () => {
               </div>
             )}
 
+            {/* Create/Edit Advertisement Tab */}
+            {activeTab === 'create-ad' && (
+              <div className="dashboard__create">
+                <form onSubmit={handleAdSubmit} className="dashboard__form">
+                  {submitError && (
+                    <div className="dashboard__message dashboard__message--error">
+                      {submitError}
+                    </div>
+                  )}
+                  
+                  {submitSuccess && (
+                    <div className="dashboard__message dashboard__message--success">
+                      {submitSuccess}
+                    </div>
+                  )}
+
+                  <div className="dashboard__field">
+                    <label htmlFor="ad-title" className="dashboard__label">Título do Serviço</label>
+                    <input
+                      type="text"
+                      id="ad-title"
+                      name="title"
+                      value={adFormData.title}
+                      onChange={handleAdInputChange}
+                      className="dashboard__input"
+                      placeholder="Ex: Serviços de limpeza doméstica"
+                      maxLength={100}
+                      required
+                    />
+                  </div>
+
+                  <div className="dashboard__field">
+                    <label htmlFor="ad-category" className="dashboard__label">Categoria</label>
+                    <select
+                      id="ad-category"
+                      name="category"
+                      value={adFormData.category}
+                      onChange={handleAdInputChange}
+                      className="dashboard__input"
+                      required
+                    >
+                      <option value="">Selecione uma categoria</option>
+                      {adCategoriesLoading ? (
+                        <option disabled>Carregando...</option>
+                      ) : (
+                        adCategories.map((category: ServiceCategory) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+
+                  <div className="dashboard__field">
+                    <label htmlFor="ad-description" className="dashboard__label">Descrição do Serviço</label>
+                    <textarea
+                      id="ad-description"
+                      name="description"
+                      value={adFormData.description}
+                      onChange={handleAdInputChange}
+                      className="dashboard__textarea"
+                      placeholder="Descreva detalhadamente seu serviço, experiência e diferenciais..."
+                      rows={6}
+                      maxLength={500}
+                      required
+                    />
+                    <div className="char-count">
+                      {adFormData.description.length}/500 caracteres
+                    </div>
+                  </div>
+
+                  <div className="dashboard__field">
+                    <label htmlFor="ad-price" className="dashboard__label">Preço</label>
+                    <input
+                      type="text"
+                      id="ad-price"
+                      name="price"
+                      value={adFormData.price}
+                      onChange={handleAdInputChange}
+                      className="dashboard__input"
+                      placeholder="Ex: €20/hora, €50/dia, A combinar"
+                      maxLength={20}
+                      required
+                    />
+                  </div>
+
+                  <div className="dashboard__field">
+                    <label htmlFor="ad-contactEmail" className="dashboard__label">Email de Contato</label>
+                    <input
+                      type="email"
+                      id="ad-contactEmail"
+                      name="contactEmail"
+                      value={adFormData.contactEmail}
+                      onChange={handleAdInputChange}
+                      className="dashboard__input"
+                      placeholder="seu.email@exemplo.com"
+                      required
+                    />
+                  </div>
+
+                  <div className="dashboard__field dashboard__field--checkbox">
+                    <label htmlFor="ad-published" className="dashboard__checkbox-label">
+                      <input
+                        type="checkbox"
+                        id="ad-published"
+                        name="published"
+                        checked={adFormData.published}
+                        onChange={handleAdInputChange}
+                        className="dashboard__checkbox"
+                      />
+                      Enviar para aprovação
+                    </label>
+                  </div>
+
+                  <div className="dashboard__form-actions">
+                    <button
+                      type="button"
+                      onClick={handleCancelAd}
+                      className="dashboard__button dashboard__button--secondary"
+                      disabled={isSubmitting}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="dashboard__button dashboard__button--primary"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <LoadingSpinner size="small" text="" />
+                      ) : (
+                        editingAd ? 'Atualizar Anúncio' : 'Criar Anúncio'
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
             {/* Approve Posts Tab - Admin Only */}
-            {activeTab === 'approve-posts' && user?.role === 'admin' && (
+            {activeTab === 'approve-posts' && user?.role === UserRole.ADMIN && (
               <div className="approval-section">
-                <div className="approval-header">
-                  <h2>Posts Pendentes de Aprovação</h2>
-                  <p>Revise e aprove posts enviados por usuários</p>
-                </div>
-                
                 {pendingLoading ? (
                   <LoadingSpinner text="Carregando posts pendentes..." />
                 ) : (
-                  <div className="approval-grid">
+                  <>
+                    <EnhancedStatusFilter
+                      context={{
+                        contentType: 'news',
+                        context: 'approval',
+                        userId: user?.id ? parseInt(user.id) : undefined,
+                        userRole: 'admin'
+                      }}
+                      className="dashboard-status-filter approval-filter"
+                      compact={true}
+                      options={{
+                        persistSelection: true,
+                        storageKey: 'dashboard-approval-news-filter'
+                      }}
+                    />
                     {pendingNews && pendingNews.length > 0 ? (
-                      pendingNews.map((post) => (
-                        <div key={post.id} className="approval-card">
-                          <div className="approval-card-header">
-                            <h3>{post.title}</h3>
-                            <span className="pending-badge">Pendente</span>
-                          </div>
-                          <div className="approval-card-content">
-                            <p className="post-author">Por: {post.authorNickname}</p>
-                            <p className="post-excerpt">{truncateContent(post.excerpt || post.content)}</p>
-                            <div className="post-meta">
-                              <span>Enviado em {formatDate(post.createdAt)}</span>
-                            </div>
-                          </div>
-                          <div className="approval-actions">
-                            <button 
-                              className="btn-approve"
-                              onClick={() => handleApproval(post.id, true)}
-                              disabled={processingIds.has(post.id)}
-                            >
-                              <FontAwesomeIcon icon={faCheckCircle} />
-                              {processingIds.has(post.id) ? 'Processando...' : 'Aprovar'}
-                            </button>
-                            <button 
-                              className="btn-reject"
-                              onClick={() => handleApproval(post.id, false)}
-                              disabled={processingIds.has(post.id)}
-                            >
-                              <FontAwesomeIcon icon={faTrash} />
-                              {processingIds.has(post.id) ? 'Processando...' : 'Rejeitar'}
-                            </button>
-                            <button 
-                              className="btn-view"
-                              onClick={() => handleViewDetails(post)}
-                            >
-                              <FontAwesomeIcon icon={faEye} />
-                              Ver Detalhes
-                            </button>
-                          </div>
-                        </div>
-                      ))
+                      <div className="pokemon-carousel-container">
+                        <ViewModeControls
+                          viewMode={pendingPostsViewMode}
+                          onViewModeChange={setPendingPostsViewMode}
+                          totalItems={pendingNews.length}
+                          currentPage={pendingPostsViewMode === 'list' ? undefined : pendingPostsViewMode === 'card' ? 
+                            Math.min(currentPendingPostIndex + 1, pendingNews.length) : 
+                            Math.min(currentPendingPostsPage3x + 1, Math.ceil(pendingNews.length / 3))}
+                          totalPages={pendingPostsViewMode === 'list' ? undefined : pendingPostsViewMode === 'card' ? 
+                            pendingNews.length > 0 ? pendingNews.length : 1 : 
+                            Math.max(1, Math.ceil(pendingNews.length / 3))}
+                        />
+                        
+                        {pendingPostsViewMode === 'card' ? (
+                          <CardView
+                            items={pendingNews}
+                            currentIndex={currentPendingPostIndex}
+                            onPrevious={prevPendingPost}
+                            onNext={nextPendingPost}
+                            cardsPerPage={1}
+                            onDotClick={(index) => {
+                              const currentCard = pendingPostCardRefs.current[currentPendingPostIndex];
+                              const targetCard = pendingPostCardRefs.current[index];
+                              
+                              
+                              if (currentCard && targetCard && index !== currentPendingPostIndex) {
+                                // Animate current card out
+                                anime({
+                                  targets: currentCard,
+                                  opacity: [1, 0],
+                                  scale: [1, 0.7],
+                                  rotateY: [0, index > currentPendingPostIndex ? 90 : -90],
+                                  duration: 300,
+                                  easing: 'easeInBack'
+                                });
+                                
+                                // Animate target card in
+                                anime({
+                                  targets: targetCard,
+                                  translateX: [index > currentPendingPostIndex ? 600 : -600, 0],
+                                  rotateY: [index > currentPendingPostIndex ? 90 : -90, 0],
+                                  opacity: [0, 1],
+                                  scale: [0.7, 1],
+                                  duration: 500,
+                                  delay: 150,
+                                  easing: 'easeOutExpo'
+                                });
+                                
+                                setCurrentPendingPostIndex(index);
+                              }
+                            }}
+                            renderCard={(post, index) => (
+                              <NewsCard
+                                post={post}
+                                index={index}
+                                cardRef={el => pendingPostCardRefs.current[index] = el}
+                                onApprove={(post) => handleApproval(post.id, true)}
+                                onReject={(post) => handleApproval(post.id, false)}
+                                onView={handleViewDetails}
+                                viewType="card"
+                                isPending={true}
+                              />
+                            )}
+                            containerRef={pendingPostCarouselRef}
+                            cardRefs={pendingPostCardRefs}
+                          />
+                        ) : pendingPostsViewMode === '3x' ? (
+                          <ThreeXView
+                            items={pendingNews}
+                            renderCard={(post, index) => (
+                              <NewsCard
+                                post={post}
+                                index={index}
+                                onApprove={(post) => handleApproval(post.id, true)}
+                                onReject={(post) => handleApproval(post.id, false)}
+                                onView={handleViewDetails}
+                                viewType="3x"
+                                isPending={true}
+                              />
+                            )}
+                          />
+                        ) : (
+                          <ListView
+                            items={pendingNews}
+                            renderListItem={(post, index, listItemProps) => (
+                              <NewsCard
+                                post={post}
+                                index={index}
+                                onApprove={(post) => handleApproval(post.id, true)}
+                                onReject={(post) => handleApproval(post.id, false)}
+                                onView={handleViewDetails}
+                                viewType="list"
+                                isPending={true}
+                                listItemProps={listItemProps}
+                              />
+                            )}
+                          />
+                        )}
+                      </div>
                     ) : (
                       <div className="no-pending-posts">
                         <p>Não há posts pendentes de aprovação.</p>
@@ -648,53 +2129,139 @@ const Dashboard: React.FC = () => {
                         </button>
                       </div>
                     )}
-                  </div>
+                  </>
                 )}
               </div>
             )}
 
             {/* Approve Ads Tab - Admin Only */}
-            {activeTab === 'approve-ads' && user?.role === 'admin' && (
+            {activeTab === 'approve-ads' && user?.role === UserRole.ADMIN && (
               <div className="approval-section">
-                <div className="approval-header">
-                  <h2>Anúncios Pendentes de Aprovação</h2>
-                  <p>Revise e aprove anúncios enviados por usuários</p>
-                </div>
-                
-                <div className="approval-grid">
-                  {/* Mock pending ads - replace with real data */}
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="approval-card ad-card">
-                      <div className="approval-card-header">
-                        <h3>Anúncio #{i}</h3>
-                        <span className="pending-badge">Pendente</span>
+                {pendingAdsLoading ? (
+                  <LoadingSpinner text="Carregando anúncios pendentes..." />
+                ) : (
+                  <>
+                    <EnhancedStatusFilter
+                      context={{
+                        contentType: 'ads',
+                        context: 'approval',
+                        userId: user?.id ? parseInt(user.id) : undefined,
+                        userRole: 'admin'
+                      }}
+                      className="dashboard-status-filter approval-filter"
+                      compact={true}
+                      options={{
+                        persistSelection: true,
+                        storageKey: 'dashboard-approval-ads-filter'
+                      }}
+                    />
+                    {pendingAds && pendingAds.length > 0 ? (
+                      <div className="pokemon-carousel-container">
+                        <ViewModeControls
+                          viewMode={pendingAdsViewMode}
+                          onViewModeChange={setPendingAdsViewMode}
+                          totalItems={pendingAds.length}
+                          currentPage={pendingAdsViewMode === 'list' ? undefined : pendingAdsViewMode === 'card' ? 
+                            Math.min(currentPendingAdIndex + 1, pendingAds.length) : 
+                            Math.min(currentPendingAdsPage3x + 1, Math.ceil(pendingAds.length / 3))}
+                          totalPages={pendingAdsViewMode === 'list' ? undefined : pendingAdsViewMode === 'card' ? 
+                            pendingAds.length > 0 ? pendingAds.length : 1 : 
+                            Math.max(1, Math.ceil(pendingAds.length / 3))}
+                        />
+                        
+                        {pendingAdsViewMode === 'card' ? (
+                          <CardView
+                            items={pendingAds}
+                            currentIndex={currentPendingAdIndex}
+                            onPrevious={prevPendingAd}
+                            onNext={nextPendingAd}
+                            cardsPerPage={1}
+                            onDotClick={(index) => {
+                              const currentCard = pendingAdCardRefs.current[currentPendingAdIndex];
+                              const targetCard = pendingAdCardRefs.current[index];
+                              
+                              if (currentCard && targetCard && index !== currentPendingAdIndex) {
+                                // Animate current card out
+                                anime({
+                                  targets: currentCard,
+                                  opacity: [1, 0],
+                                  scale: [1, 0.7],
+                                  rotateY: [0, index > currentPendingAdIndex ? 90 : -90],
+                                  duration: 300,
+                                  easing: 'easeInBack'
+                                });
+                                
+                                // Animate target card in
+                                anime({
+                                  targets: targetCard,
+                                  translateX: [index > currentPendingAdIndex ? 600 : -600, 0],
+                                  rotateY: [index > currentPendingAdIndex ? 90 : -90, 0],
+                                  opacity: [0, 1],
+                                  scale: [0.7, 1],
+                                  duration: 500,
+                                  delay: 150,
+                                  easing: 'easeOutExpo'
+                                });
+                                
+                                setCurrentPendingAdIndex(index);
+                              }
+                            }}
+                            renderCard={(ad, index) => (
+                              <AdCard
+                                ad={ad}
+                                index={index}
+                                cardRef={el => pendingAdCardRefs.current[index] = el}
+                                onApprove={(ad) => handleAdApproval(ad.id, true)}
+                                onReject={(ad) => handleAdApproval(ad.id, false)}
+                                onView={handleViewAdDetails}
+                                viewType="card"
+                                isPending={true}
+                              />
+                            )}
+                            containerRef={pendingAdCarouselRef}
+                            cardRefs={pendingAdCardRefs}
+                          />
+                        ) : pendingAdsViewMode === '3x' ? (
+                          <ThreeXView
+                            items={pendingAds}
+                            renderCard={(ad, index) => (
+                              <AdCard
+                                ad={ad}
+                                index={index}
+                                onApprove={(ad) => handleAdApproval(ad.id, true)}
+                                onReject={(ad) => handleAdApproval(ad.id, false)}
+                                onView={handleViewAdDetails}
+                                viewType="3x"
+                                isPending={true}
+                              />
+                            )}
+                          />
+                        ) : (
+                          <ListView
+                            items={pendingAds}
+                            listType="ads"
+                            renderListItem={(ad, index, listItemProps) => (
+                              <AdCard
+                                ad={ad}
+                                index={index}
+                                onApprove={(ad) => handleAdApproval(ad.id, true)}
+                                onReject={(ad) => handleAdApproval(ad.id, false)}
+                                onView={handleViewAdDetails}
+                                viewType="list"
+                                isPending={true}
+                                listItemProps={listItemProps}
+                              />
+                            )}
+                          />
+                        )}
                       </div>
-                      <div className="approval-card-content">
-                        <p className="ad-title">Serviços de limpeza doméstica</p>
-                        <p className="ad-author">Por: anunciante{i}@email.com</p>
-                        <p className="ad-category">Categoria: Serviços</p>
-                        <p className="ad-price">€50/hora</p>
-                        <div className="ad-meta">
-                          <span>Enviado há 1 dia</span>
-                        </div>
+                    ) : (
+                      <div className="no-pending-content">
+                        <p>Nenhum anúncio pendente de aprovação.</p>
                       </div>
-                      <div className="approval-actions">
-                        <button className="btn-approve">
-                          <FontAwesomeIcon icon={faCheckCircle} />
-                          Aprovar
-                        </button>
-                        <button className="btn-reject">
-                          <FontAwesomeIcon icon={faTrash} />
-                          Rejeitar
-                        </button>
-                        <button className="btn-view">
-                          <FontAwesomeIcon icon={faEye} />
-                          Ver Detalhes
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -725,16 +2292,9 @@ const Dashboard: React.FC = () => {
                     </span>
                   </p>
                   {selectedPost.approved !== null && selectedPost.approvedAt && (
-                    <p><strong>{selectedPost.approved ? 'Aprovado' : 'Rejeitado'} em:</strong> {formatDate(selectedPost.approvedAt)}</p>
+                    <p><strong>{selectedPost.approved ? 'Publicado' : 'Rejeitado'} em:</strong> {formatDate(selectedPost.approvedAt)}</p>
                   )}
                 </div>
-                
-                {selectedPost.excerpt && (
-                  <div className="post-section">
-                    <h3>Resumo:</h3>
-                    <p>{selectedPost.excerpt}</p>
-                  </div>
-                )}
                 
                 <div className="post-section">
                   <h3>Conteúdo Completo:</h3>

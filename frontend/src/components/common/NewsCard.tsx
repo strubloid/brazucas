@@ -1,0 +1,333 @@
+import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faNewspaper, faEdit, faTrash, faEye, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { NewsPost } from '../../types/news';
+import { StatusManager } from '../../types/status';
+
+export interface NewsCardProps {
+  post: NewsPost;
+  index: number;
+  cardRef?: (el: HTMLDivElement | null) => void;
+  onEdit?: (post: NewsPost) => void;
+  onDelete?: (post: NewsPost) => void;
+  onPublish?: (post: NewsPost) => void;
+  onView?: (post: NewsPost) => void;
+  onApprove?: (post: NewsPost) => void;
+  onReject?: (post: NewsPost) => void;
+  viewType?: 'card' | '3x' | 'list';
+  isPending?: boolean;
+  listItemProps?: {
+    className?: string;
+    style?: React.CSSProperties;
+  };
+}
+
+export const NewsCard: React.FC<NewsCardProps> = ({
+  post,
+  index,
+  cardRef,
+  onEdit,
+  onDelete,
+  onPublish,
+  onView,
+  onApprove,
+  onReject,
+  viewType = 'card',
+  isPending = false,
+  listItemProps
+}) => {
+  // Safety check - if post is undefined, return null to prevent crashes
+  if (!post || typeof post !== 'object') {
+    console.warn('NewsCard: Received invalid post data:', post);
+    return null;
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger card click if clicking on buttons
+    if ((e.target as HTMLElement).closest('.action-btn')) {
+      return;
+    }
+    
+    // Only trigger edit for non-published posts
+    if (!post.published && onEdit) {
+      onEdit(post);
+    }
+  };
+
+  if (viewType === 'list') {
+    // Get proper status using the new status system
+    const newsStatus = StatusManager.getNewsStatus({ 
+      published: post.published || false, 
+      approved: post.approved 
+    });
+
+    // Combine default classes with passed listItemProps
+    const combinedClassName = [
+      'news-list-item',
+      newsStatus,
+      isPending ? 'pending' : '',
+      listItemProps?.className || ''
+    ].filter(Boolean).join(' ');
+
+    const combinedStyle = listItemProps?.style || {};
+
+    return (
+      <div 
+        className={combinedClassName}
+        style={combinedStyle}
+        ref={cardRef}
+      >
+        <div className="list-item-header">
+          <h3 className="list-item-title">{post.title}</h3>
+          <div className="status-badges">
+            {isPending ? (
+              <>
+                <span className="status-badge pending">POST PENDENTE</span>
+              </>
+            ) : (
+              <span className={`status-badge ${newsStatus}`}>
+                {StatusManager.getStatusLabel(newsStatus)}
+              </span>
+            )}
+          </div>
+        </div>
+        
+        <div className="list-item-content">
+          <p className="list-item-description">{post.content}</p>
+        </div>
+        
+        <div className="list-item-footer">
+          <span className="list-item-date">
+            Data: {formatDate(post.createdAt)}
+          </span>
+          <div className="list-item-actions">
+            {isPending ? (
+              <>
+                {onEdit && (
+                  <button className="action-btn edit" onClick={() => onEdit(post)}>
+                    <FontAwesomeIcon icon={faEdit} /> EDITAR
+                  </button>
+                )}
+                {onApprove && (
+                  <button className="action-btn approve" onClick={() => onApprove(post)}>
+                    <FontAwesomeIcon icon={faCheck} /> PUBLICAR
+                  </button>
+                )}
+                {onReject && (
+                  <button className="action-btn reject" onClick={() => onReject(post)}>
+                    <FontAwesomeIcon icon={faTimes} /> EXCLUIR
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                {onEdit && (
+                  <button className="action-btn edit" onClick={() => onEdit(post)}>
+                    <FontAwesomeIcon icon={faEdit} /> EDITAR
+                  </button>
+                )}
+                {onPublish && !post.published && (
+                  <button className="action-btn publish" onClick={() => onPublish(post)}>
+                    <FontAwesomeIcon icon={faEye} /> PUBLICAR
+                  </button>
+                )}
+                {onDelete && (
+                  <button className="action-btn delete" onClick={() => onDelete(post)}>
+                    <FontAwesomeIcon icon={faTrash} /> EXCLUIR
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const cardClass = viewType === '3x' ? 'pokemon-card-3x' : 'pokemon-card';
+  const contentClass = viewType === '3x' ? 'card-content-3x' : 'card-content';
+  const headerClass = viewType === '3x' ? 'card-header-3x' : 'card-header';
+  const badgesClass = viewType === '3x' ? 'status-badges-3x' : 'status-badges';
+  const imageClass = viewType === '3x' ? 'card-image-3x' : 'card-image';
+  const titleClass = viewType === '3x' ? 'card-title-3x' : 'card-title';
+  const descriptionClass = viewType === '3x' ? 'card-description-3x' : 'card-description';
+  const footerClass = viewType === '3x' ? 'card-footer-3x' : 'card-footer';
+  const dateClass = viewType === '3x' ? 'card-date-3x' : 'card-date';
+  const actionsClass = viewType === '3x' ? 'card-actions-3x' : 'card-actions';
+
+  // Get proper status using the new status system
+  const newsStatus = StatusManager.getNewsStatus({ 
+    published: post.published, 
+    approved: post.approved 
+  });
+
+  // Determine if this is actually pending based on data, not just isPending prop
+  const isActuallyPending = newsStatus === 'pending_approval' || post.approved === null;
+  const isPublished = post.published && post.approved === true;
+  const isDraft = !post.published && post.approved !== true;
+
+  return (
+    <div
+      key={post.id || `news-${viewType}-${index}`}
+      className={`${cardClass} ${isPending ? 'pending' : newsStatus} ${!post.published ? 'clickable' : ''}`}
+      ref={cardRef}
+      data-tilt
+      data-tilt-max="15"
+      data-tilt-speed="1000"
+      data-tilt-perspective="1000"
+      onClick={handleCardClick}
+      style={{ cursor: !post.published ? 'pointer' : 'default' }}
+    >
+      <div className="pokemon-card-inner">
+        <div className="pokemon-card-front">
+          <div className={headerClass}>
+            <div className="card-header-content">
+              {isPending ? (
+                <>
+                  <span className="status-badge pending">POST PENDENTE</span>
+                </>
+              ) : (
+                <span className={`status-badge ${newsStatus}`}>
+                  {StatusManager.getStatusLabel(newsStatus)}
+                </span>
+              )}
+            </div>
+            {/* Add date in header like AdCard */}
+            <div className="card-header-date">
+              {formatDate(post.createdAt)}
+            </div>
+          </div>
+          
+          <div className={contentClass}>
+            <div className={imageClass}>
+              {post.imageUrl ? (
+                <img src={post.imageUrl} alt={post.title} />
+              ) : (
+                <div className="placeholder-content">
+                  <div className="brazucas-logo">BRAZUCAS</div>
+                </div>
+              )}
+            </div>
+            
+            <h3 className={titleClass}>{post.title}</h3>
+            <p className={descriptionClass}>{post.content}</p>
+          </div>
+          
+          <div className={footerClass}>
+            {viewType === '3x' ? (
+              <>
+                <div className="card-description-section">
+                  <div className="card-description-footer-3x">
+                    {post.content}
+                  </div>
+                </div>
+                <div className="card-bottom-section">
+                  <div className={actionsClass}>
+                    {isActuallyPending ? (
+                      // Pending posts: show edit, approve/publish, and reject buttons
+                      <>
+                        {onEdit && (
+                          <button className="action-btn edit" onClick={() => onEdit(post)}>
+                          </button>
+                        )}
+                        {(onApprove || onPublish) && (
+                          <button className="action-btn publish" onClick={() => onApprove ? onApprove(post) : onPublish ? onPublish(post) : undefined}>
+                            <span>PUBLICAR</span>
+                          </button>
+                        )}
+                        {(onReject || onDelete) && (
+                          <button className="action-btn delete" onClick={() => onReject ? onReject(post) : onDelete ? onDelete(post) : undefined}>
+                          </button>
+                        )}
+                      </>
+                    ) : isPublished ? (
+                      // Published posts: only show delete button
+                      onDelete && (
+                        <button className="action-btn delete" onClick={() => onDelete(post)}>
+                        </button>
+                      )
+                    ) : (
+                      // Draft posts: show edit and publish buttons
+                      <>
+                        {onEdit && (
+                          <button className="action-btn edit" onClick={() => onEdit(post)}>
+                          </button>
+                        )}
+                        {onPublish && (
+                          <button className="action-btn publish" onClick={() => onPublish(post)}>
+                            <span>PUBLICAR</span>
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className={actionsClass}>
+                  {isActuallyPending ? (
+                    // Pending posts: show edit, approve/publish, and reject buttons
+                    <>
+                      {onEdit && (
+                        <button className="action-btn edit" onClick={() => onEdit(post)}>
+                          <FontAwesomeIcon icon={faEdit} />
+                        </button>
+                      )}
+                      {(onApprove || onPublish) && (
+                        <button className="action-btn publish" onClick={() => onApprove ? onApprove(post) : onPublish ? onPublish(post) : undefined}>
+                          <FontAwesomeIcon icon={faCheck} />
+                        </button>
+                      )}
+                      {(onReject || onDelete) && (
+                        <button className="action-btn delete" onClick={() => onReject ? onReject(post) : onDelete ? onDelete(post) : undefined}>
+                          <FontAwesomeIcon icon={faTimes} />
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {isPublished ? (
+                        // Published posts: only show delete button
+                        onDelete && (
+                          <button className="action-btn delete" onClick={() => onDelete(post)}>
+                            <FontAwesomeIcon icon={faTrash} />
+                            <span> EXCLUIR</span>
+                          </button>
+                        )
+                      ) : (
+                        // Draft posts: show edit and publish buttons
+                        <>
+                          {onEdit && (
+                            <button className="action-btn edit" onClick={() => onEdit(post)}>
+                              <FontAwesomeIcon icon={faEdit} />
+                              <span> EDITAR</span>
+                            </button>
+                          )}
+                          {onPublish && (
+                            <button className="action-btn publish" onClick={() => onPublish(post)}>
+                              <FontAwesomeIcon icon={faEye} />
+                              <span> PUBLICAR</span>
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

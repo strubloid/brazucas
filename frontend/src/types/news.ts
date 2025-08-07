@@ -16,7 +16,6 @@ export interface NewsPost {
 export interface CreateNewsRequest {
   title: string;
   content: string;
-  excerpt: string;
   imageUrl?: string;
   published?: boolean;
 }

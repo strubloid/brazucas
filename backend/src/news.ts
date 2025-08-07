@@ -8,7 +8,7 @@ import {
   requireAuth, 
   requireRole, 
   parseRequestBody, 
-  handleCors 
+  handleOptionsRequest 
 } from './utils';
 import { createNewsSchema, updateNewsSchema } from './validation';
 import { ApproveNewsRequest } from './types';
@@ -16,8 +16,8 @@ import { ApproveNewsRequest } from './types';
 export const handler = async (event: HandlerEvent, context: HandlerContext) => {
   try {
     // Handle CORS preflight
-    const corsResponse = handleCors(event);
-    if (corsResponse) return corsResponse;
+    const optionsResponse = handleOptionsRequest(event);
+    if (optionsResponse) return optionsResponse;
 
     // Connect to database and create repository
     const db = await dbConnection.connect();
@@ -51,6 +51,7 @@ async function handleGetNews(event: HandlerEvent, newsService: NewsService) {
   const newsId = event.queryStringParameters?.id;
   const publishedOnly = event.queryStringParameters?.published === 'true';
   const pendingOnly = event.queryStringParameters?.pending === 'true';
+  const myOnly = event.queryStringParameters?.my === 'true';
   
   if (newsId) {
     // Get specific news post
@@ -77,6 +78,14 @@ async function handleGetNews(event: HandlerEvent, newsService: NewsService) {
     }
     
     const news = await newsService.getPendingNews();
+    return createResponse(200, {
+      success: true,
+      data: news,
+    });
+  } else if (myOnly) {
+    // Get only current user's news posts
+    const user = requireAuth(event);
+    const news = await newsService.getMyNews(user.userId);
     return createResponse(200, {
       success: true,
       data: news,

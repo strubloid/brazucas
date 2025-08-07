@@ -54,24 +54,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async (): Promise<void> => {
       const token = AuthService.getToken();
-      console.log('AuthContext initialization - token found:', !!token);
       
       if (token) {
         try {
           // Initialize apiClient with the token
           AuthService.initializeApiClient();
-          console.log('AuthContext - calling getCurrentUser()');
           const user = await AuthService.getCurrentUser();
-          console.log('AuthContext - getCurrentUser() success:', user);
           dispatch({ type: 'LOGIN_SUCCESS', payload: { user, token } });
         } catch (error) {
-          console.error('AuthContext - getCurrentUser() failed:', error);
           // Token is invalid, remove it
           AuthService.logout();
           dispatch({ type: 'LOGOUT' });
         }
       } else {
-        console.log('AuthContext - no token found, setting loading false');
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     };

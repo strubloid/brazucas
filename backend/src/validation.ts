@@ -31,11 +31,7 @@ export const createNewsSchema = z.object({
   content: z
     .string()
     .min(1, 'Content is required')
-    .max(10000, 'Content must be less than 10000 characters'),
-  excerpt: z
-    .string()
-    .min(1, 'Excerpt is required')
-    .max(300, 'Excerpt must be less than 300 characters'),
+    .max(500, 'Content must be less than 500 characters'),
   imageUrl: z.string().url('Invalid image URL').optional().or(z.literal('').transform(() => undefined)),
   published: z.boolean().optional().default(false),
 });
@@ -50,40 +46,55 @@ export const updateNewsSchema = z.object({
   content: z
     .string()
     .min(1, 'Content is required')
-    .max(10000, 'Content must be less than 10000 characters')
-    .optional(),
-  excerpt: z
-    .string()
-    .min(1, 'Excerpt is required')
-    .max(300, 'Excerpt must be less than 300 characters')
+    .max(500, 'Content must be less than 500 characters')
     .optional(),
   imageUrl: z.string().url('Invalid image URL').optional().or(z.literal('').transform(() => undefined)),
   published: z.boolean().optional(),
 });
 
-export const createAdSchema = z.object({
+export const createAdvertisementSchema = z.object({
   title: z
     .string()
     .min(1, 'Title is required')
     .max(100, 'Title must be less than 100 characters'),
-  content: z
+  description: z
     .string()
-    .min(1, 'Content is required')
-    .max(500, 'Content must be less than 500 characters'),
-  imageUrl: z.string().url('Invalid image URL').optional(),
-  youtubeUrl: z
+    .min(1, 'Description is required')
+    .max(500, 'Description must be less than 500 characters'),
+  category: z
     .string()
-    .regex(
-      /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/,
-      'Invalid YouTube URL'
-    )
-    .optional(),
+    .min(1, 'Category is required')
+    .max(50, 'Category must be less than 50 characters'),
+  price: z
+    .string()
+    .min(1, 'Price is required')
+    .max(20, 'Price must be less than 20 characters'),
+  contactEmail: z.string().email('Invalid email format'),
+  published: z.boolean().default(false),
 });
 
-// Helper function to validate that either imageUrl or youtubeUrl is provided
-export const validateAdMedia = (data: {
-  imageUrl?: string;
-  youtubeUrl?: string;
-}): boolean => {
-  return !!(data.imageUrl || data.youtubeUrl);
-};
+export const updateAdvertisementSchema = z.object({
+  id: z.string().min(1, 'Advertisement ID is required'),
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(100, 'Title must be less than 100 characters')
+    .optional(),
+  description: z
+    .string()
+    .min(1, 'Description is required')
+    .max(500, 'Description must be less than 500 characters')
+    .optional(),
+  category: z
+    .string()
+    .min(1, 'Category is required')
+    .max(50, 'Category must be less than 50 characters')
+    .optional(),
+  price: z
+    .string()
+    .min(1, 'Price is required')
+    .max(20, 'Price must be less than 20 characters')
+    .optional(),
+  contactEmail: z.string().email('Invalid email format').optional(),
+  published: z.boolean().optional(),
+});

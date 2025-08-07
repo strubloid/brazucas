@@ -1,0 +1,442 @@
+// AnimatedNewsSlideshow.scss - Inspired by Codrops AnimatedFrameSlideshow
+
+.animated-slideshow {
+  position: relative;
+  width: 100%;
+  height: 90vh;
+  min-height: 700px;
+  background: linear-gradient(135deg, 
+    rgb(17, 24, 39) 0%, 
+    rgb(30, 41, 59) 50%, 
+    rgb(51, 65, 85) 100%);
+  overflow: hidden;
+  margin: 0 auto;
+  max-width: 100%;
+  border-radius: 0;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+
+  // SVG Shape Overlay for transition effects
+  .shape-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+    
+    path {
+      transition: d 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+
+  // Slides Container
+  .slides-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  .slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateX(100px);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &--current {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    &__content {
+      max-width: 800px;
+      padding: 3rem;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    &__text {
+      color: white;
+    }
+
+    &__title {
+      font-size: clamp(2rem, 5vw, 4rem);
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      background: linear-gradient(135deg, #ffffff, #e2e8f0);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: slideInUp 0.8s ease-out 0.2s both;
+    }
+
+    &__description {
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      line-height: 1.6;
+      margin-bottom: 2rem;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      animation: slideInUp 0.8s ease-out 0.4s both;
+    }
+
+    &__meta {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      animation: slideInUp 0.8s ease-out 0.6s both;
+    }
+
+    &__date {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.7);
+      font-style: italic;
+    }
+
+    &__status {
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+
+      &--published {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        text-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+      }
+
+      &--draft {
+        background: rgba(251, 191, 36, 0.2);
+        color: #fbbf24;
+        text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+      }
+
+      &--pending {
+        background: rgba(59, 130, 246, 0.2);
+        color: #3b82f6;
+        text-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+      }
+
+      &--rejected {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+      }
+    }
+  }
+
+  // Navigation
+  .slideshow-nav {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    z-index: 20;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 60px;
+    padding: 1.25rem 2.5rem;
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.75rem 1.25rem;
+    border-radius: 40px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    svg {
+      transition: transform 0.3s ease;
+    }
+
+    &--prev:hover svg {
+      transform: translateX(-3px);
+    }
+
+    &--next:hover svg {
+      transform: translateX(3px);
+    }
+  }
+
+  .slide-counter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: white;
+    min-width: 60px;
+    justify-content: center;
+
+    .current-slide {
+      color: #60a5fa;
+      font-size: 1.1rem;
+    }
+
+    .separator {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .total-slides {
+      color: rgba(255, 255, 255, 0.7);
+    }
+  }
+
+  // Instructions
+  .slideshow-instructions {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 20;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-style: italic;
+      white-space: nowrap;
+    }
+  }
+
+  // No news state
+  .no-news {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: white;
+    text-align: center;
+    padding: 2rem;
+
+    h3 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    p {
+      font-size: 1.1rem;
+      color: rgba(255, 255, 255, 0.7);
+      margin: 0;
+    }
+  }
+}
+
+// Animations
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .animated-slideshow {
+    height: 70vh;
+    min-height: 500px;
+    margin: 1rem;
+    border-radius: 16px;
+
+    .slide {
+      &__content {
+        padding: 2rem 1.5rem;
+      }
+
+      &__title {
+        font-size: clamp(1.5rem, 8vw, 2.5rem);
+        margin-bottom: 1rem;
+      }
+
+      &__description {
+        font-size: clamp(0.9rem, 4vw, 1.1rem);
+        margin-bottom: 1.5rem;
+      }
+
+      &__meta {
+        flex-direction: column;
+        gap: 1rem;
+      }
+    }
+
+    .slideshow-nav {
+      bottom: 2rem;
+      gap: 1rem;
+      padding: 0.75rem 1.5rem;
+
+      .nav-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+
+        span {
+          display: none;
+        }
+      }
+    }
+
+    .slideshow-instructions {
+      top: 1rem;
+      right: 1rem;
+      left: 1rem;
+      text-align: center;
+
+      p {
+        font-size: 0.7rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .animated-slideshow {
+    height: 60vh;
+    min-height: 400px;
+
+    .slide {
+      &__content {
+        padding: 1.5rem 1rem;
+      }
+
+      &__meta {
+        gap: 0.75rem;
+      }
+
+      &__status {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.7rem;
+      }
+    }
+
+    .slideshow-nav {
+      bottom: 1.5rem;
+      padding: 0.5rem 1rem;
+
+      .nav-btn {
+        padding: 0.4rem 0.8rem;
+
+        svg {
+          width: 18px;
+          height: 18px;
+        }
+      }
+
+      .slide-counter {
+        font-size: 0.9rem;
+        min-width: 50px;
+      }
+    }
+  }
+}
+
+// High-contrast mode support
+@media (prefers-contrast: high) {
+  .animated-slideshow {
+    .slide__title {
+      -webkit-text-fill-color: white;
+      background: none;
+    }
+
+    .slideshow-nav,
+    .slideshow-instructions {
+      background: rgba(0, 0, 0, 0.8);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+  }
+}
+
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+  .animated-slideshow {
+    .shape-overlay path {
+      transition: none;
+    }
+
+    .slide {
+      transition: opacity 0.3s ease;
+      transform: none !important;
+
+      &__title,
+      &__description,
+      &__meta {
+        animation: fadeIn 0.3s ease both;
+      }
+    }
+
+    .nav-btn {
+      &:hover svg {
+        transform: none;
+      }
+    }
+  }
+}
