@@ -38,7 +38,7 @@ console.log('  ✅ Admin stats handler loaded');
 
 console.log('🔧 Initializing Express app...');
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 4444;
 console.log(`🚪 Server will run on port: ${PORT}`);
 
 // Middleware
@@ -157,13 +157,18 @@ async function startServer() {
     console.log('✅ Connected to MongoDB successfully!');
     
     console.log('🚀 Starting Express server...');
-    app.listen(PORT, () => {
-      console.log(`✅ Server running successfully on port ${PORT}`);
-      console.log(`🌐 Server is ready to accept connections!`);
+    const port = Number(PORT);
+    
+    // Listen on all interfaces (0.0.0.0) to make it accessible from WSL
+    app.listen(port, '0.0.0.0', () => {
+      console.log(`✅ Server running successfully on port ${port}`);
+      console.log(`🌐 Server is ready to accept connections from all interfaces!`);
       console.log(`📋 Available endpoints:`);
-      console.log(`   Health: http://localhost:${PORT}/health`);
-      console.log(`   API: http://localhost:${PORT}/api/*`);
-      console.log(`   Frontend: http://localhost:${PORT}/`);
+      console.log(`   Windows: http://localhost:${port}/health`);
+      console.log(`   WSL: http://localhost:${port}/health`);
+      console.log(`   API: http://localhost:${port}/api/*`);
+      console.log(`   Frontend: http://localhost:${port}/`);
+      console.log(`   External: http://$(ip-address):${port}/health`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:');

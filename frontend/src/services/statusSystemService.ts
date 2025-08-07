@@ -49,7 +49,7 @@ class StatusSystemService {
       };
     }
     
-    const response = await apiClient.get('/status-system-get');
+    const response = await apiClient.get('/api/status-system-get');
     return response.data as StatusSystemResponse;
   }
 
@@ -86,7 +86,7 @@ class StatusSystemService {
         return this.getMockContextualStatuses(context);
       }
 
-      const response = await apiClient.get('/status-system-contextual', {
+      const response = await apiClient.get('/api/status-system-contextual', {
         params: {
           contentType: context.contentType,
           context: context.context
@@ -234,7 +234,7 @@ class StatusSystemService {
    * Change the status of a content item
    */
   async changeContentStatus(request: StatusChangeRequest): Promise<StatusChangeResult> {
-    const response = await apiClient.post('/status-system-change', request);
+    const response = await apiClient.post('/api/status-system-change', request);
     return response.data as StatusChangeResult;
   }
 
