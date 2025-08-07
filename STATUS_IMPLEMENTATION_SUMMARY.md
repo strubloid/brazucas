@@ -5,7 +5,7 @@
 ### Backend Infrastructure
 - **MongoDB Repository**: `mongoStatusRepository.ts` - Database operations for status management
 - **Service Layer**: `status-system.ts` - Business logic and API orchestration  
-- **Netlify Functions**: Individual function files for status endpoints
+- **Express API Routes**: Individual function files for status endpoints
   - `status-system-get.ts` - Get complete status system
   - `status-system-contextual.ts` - Get context-specific statuses
   - `status-system-change.ts` - Change content status
@@ -27,7 +27,7 @@
 
 ### The "Failed to fetch statuses" Error
 This error occurs because:
-1. ✅ **API Endpoints Created**: All Netlify functions are properly defined
+1. ✅ **API Endpoints Created**: All Express API routes are properly defined
 2. ✅ **MongoDB Integration**: Repository layer connects to existing MongoDB
 3. ✅ **Fallback System**: Frontend gracefully handles API failures
 4. ⚠️ **Server Not Running**: Development server needs to be started to test APIs
@@ -47,7 +47,7 @@ This error occurs because:
    cd c:\apps\brazucas
    npm run dev
    ```
-   This starts both frontend (port 3002) and backend Netlify functions
+   This starts both frontend (port 3002) and backend Express server
 
 2. **Navigate to Dashboard**: Go to `localhost:3002/dashboard`
 
@@ -57,9 +57,9 @@ This error occurs because:
    - **Different Content Types**: News vs Ads should have appropriate status sets
 
 4. **API Endpoints to Test**:
-   - `GET /.netlify/functions/status-system-get` - Complete status system
-   - `GET /.netlify/functions/status-system-contextual?contentType=news&context=management`
-   - `POST /.netlify/functions/status-system-change` - Status change operations
+   - `GET /api/status-system-get` - Complete status system
+   - `GET /api/status-system-contextual?contentType=news&context=management`
+   - `POST /api/status-system-change` - Status change operations
 
 ## 💡 **Current Capabilities**
 

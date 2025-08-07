@@ -159,7 +159,6 @@ cd backend
 npm install cors express serverless-http @types/aws-lambda
 
 # 2. Test ServerStatus function
-curl https://your-netlify-site.netlify.app/.netlify/functions/api
 
 # 3. Check what's missing
 # Visit the ServerStatus endpoint to see detailed configuration status
