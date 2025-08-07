@@ -1,4 +1,22 @@
-import { HandlerEvent, HandlerContext } from "@netlify/functions";
+// Event and context interfaces for serverless functions
+interface HandlerEvent {
+  httpMethod: string;
+  headers: any;
+  body: string | null;
+  queryStringParameters: any;
+  path: string;
+  rawQuery: string;
+  rawUrl: string;
+}
+
+interface HandlerContext {
+  functionName: string;
+  functionVersion: string;
+  invokedFunctionArn: string;
+  memoryLimitInMB: string;
+  getRemainingTimeInMillis: () => number;
+}
+
 import { UserService, NewsService, AdService } from './services';
 import { MongoUserRepository, MongoNewsRepository, MongoAdRepository } from './mongoRepositories';
 import { dbConnection } from './database';

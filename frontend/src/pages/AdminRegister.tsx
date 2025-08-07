@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAnimateOnMount } from '../hooks/useAnimateOnMount';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { UserRole } from '../types/auth';
+import { AuthService } from '../services/authService';
 import './AdminRegister.scss';
 
 interface AdminRegisterRequest {
@@ -89,38 +90,9 @@ const AdminRegister: React.FC = () => {
     try {
       console.log('Attempting admin registration...');
       
-      // Use the correct backend URL for local development
-      const backendUrl = process.env.NODE_ENV === 'development' 
-        ? 'http://localhost:4444/.netlify/functions/register'
-        : '/.netlify/functions/register';
+      // Use AuthService to register admin
+      const response = await AuthService.register(formData);
       
-      // Call the register endpoint with admin role
-      const response = await fetch(backendUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-
-      let data;
-      const responseText = await response.text();
-      console.log('Response text:', responseText);
-
-      try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('JSON parse error:', parseError);
-        throw new Error(`Erro do servidor: ${responseText.substring(0, 100)}...`);
-      }
-
-      if (!response.ok) {
-        throw new Error(data.error || `Erro HTTP ${response.status}: ${data.message || 'Erro desconhecido'}`);
-      }
-
       setSuccess('Administrador registrado com sucesso!');
       setTimeout(() => {
         navigate('/login');

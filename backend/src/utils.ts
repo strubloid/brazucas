@@ -1,4 +1,21 @@
-import { HandlerContext, HandlerEvent } from '@netlify/functions';
+// Event and context interfaces for serverless functions
+interface HandlerEvent {
+  httpMethod: string;
+  headers: any;
+  body: string | null;
+  queryStringParameters: any;
+  path: string;
+  rawQuery: string;
+  rawUrl: string;
+}
+
+interface HandlerContext {
+  functionName: string;
+  functionVersion: string;
+  invokedFunctionArn: string;
+  memoryLimitInMB: string;
+  getRemainingTimeInMillis: () => number;
+}
 import { ApiResponse, JWTPayload } from './types';
 import { AuthService } from './auth';
 import { ZodError } from 'zod';

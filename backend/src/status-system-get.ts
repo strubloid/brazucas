@@ -1,4 +1,10 @@
-import { Handler } from '@netlify/functions';
+// Handler function type definition
+type Handler = (event: any, context: any) => Promise<{
+  statusCode: number;
+  headers?: Record<string, string>;
+  body: string;
+}>;
+
 import { StatusSystemService } from './status-system';
 
 const statusService = new StatusSystemService();
