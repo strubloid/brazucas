@@ -1,5 +1,5 @@
 [build]
-  command = "cd backend && npm ci && cd ../frontend && npm ci && npm run build"
+  command = "cd backend && npm ci && cp package.json package-lock.json src/ && cd ../frontend && npm ci && npm run build"
   publish = "frontend/build"
 
 [build.environment]
@@ -8,13 +8,7 @@
 [functions]
   directory = "backend/src"
   node_bundler = "esbuild"
-  external_node_modules = [
-    "@netlify/functions",
-    "mongodb",
-    "zod", 
-    "jsonwebtoken",
-    "bcryptjs"
-  ]
+  external_node_modules = ["@netlify/functions"]
 
 [dev]
   targetPort = 3333
