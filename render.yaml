@@ -1,0 +1,22 @@
+services:
+  # Full-stack application (Frontend + Backend)
+  - type: web
+    name: brazucas-app
+    env: node
+    buildCommand: cd frontend && npm install && npm run build && cd ../backend && npm install --include=dev && npm run build
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false  # Set this in Render dashboard
+      - key: JWT_SECRET
+        sync: false  # Set this in Render dashboard  
+      - key: JWT_EXPIRES_IN
+        value: 24h
+      - key: SESSION_SECRET
+        sync: false  # Set this in Render dashboard
+      - key: ADMIN_SECRET_KEY
+        sync: false  # Set this in Render dashboard
+      - key: PORT
+        value: 10000
