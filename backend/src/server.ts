@@ -3,6 +3,18 @@ import cors from 'cors';
 import path from 'path';
 import { dbConnection } from './database';
 
+console.log('🚀 Starting Brazucas Backend Server...');
+console.log('📊 Environment Variables Check:');
+console.log(`  NODE_ENV: ${process.env.NODE_ENV || 'NOT SET'}`);
+console.log(`  PORT: ${process.env.PORT || 'NOT SET (will use 3001)'}`);
+console.log(`  MONGODB_URI: ${process.env.MONGODB_URI ? `${process.env.MONGODB_URI.substring(0, 20)}... (${process.env.MONGODB_URI.length} chars)` : 'NOT SET'}`);
+console.log(`  JWT_SECRET: ${process.env.JWT_SECRET ? `${process.env.JWT_SECRET.substring(0, 10)}... (${process.env.JWT_SECRET.length} chars)` : 'NOT SET'}`);
+console.log(`  SESSION_SECRET: ${process.env.SESSION_SECRET ? `${process.env.SESSION_SECRET.substring(0, 10)}... (${process.env.SESSION_SECRET.length} chars)` : 'NOT SET'}`);
+console.log(`  ADMIN_SECRET_KEY: ${process.env.ADMIN_SECRET_KEY ? `${process.env.ADMIN_SECRET_KEY.substring(0, 10)}... (${process.env.ADMIN_SECRET_KEY.length} chars)` : 'NOT SET'}`);
+console.log(`  JWT_EXPIRES_IN: ${process.env.JWT_EXPIRES_IN || 'NOT SET'}`);
+
+console.log('📦 Loading modules...');
+
 // Import all handlers
 import { handler as registerHandler } from './register';
 import { handler as loginHandler } from './login';
