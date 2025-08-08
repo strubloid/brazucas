@@ -11,11 +11,45 @@ import {
 
 class StatusSystemService {
   
+  // Toggle to enable/disable the status system service
+  // Set to false to disable all status system functionality
+  // 
+  // Usage examples:
+  // StatusSystemService.setEnabled(false); // Disable the service
+  // StatusSystemService.setEnabled(true);  // Enable the service
+  // const isEnabled = StatusSystemService.getEnabled(); // Check current state
+  private static isEnabled: boolean = false;
+  
+  /**
+   * Enable or disable the status system service
+   */
+  static setEnabled(enabled: boolean): void {
+    StatusSystemService.isEnabled = enabled;
+    console.log(`StatusSystemService ${enabled ? 'enabled' : 'disabled'}`);
+  }
+  
+  /**
+   * Check if the status system service is enabled
+   */
+  static getEnabled(): boolean {
+    return StatusSystemService.isEnabled;
+  }
+  
   /**
    * Get the complete status system configuration
    */
   async getStatusSystem(): Promise<StatusSystemResponse> {
-    const response = await apiClient.get('/status-system-get');
+    if (!StatusSystemService.isEnabled) {
+      console.log('StatusSystemService is disabled, returning empty response');
+      return {
+        contentTypes: [],
+        contexts: [],
+        statuses: [],
+        mappings: []
+      };
+    }
+    
+    const response = await apiClient.get('/api/status-system-get');
     return response.data as StatusSystemResponse;
   }
 
@@ -23,6 +57,28 @@ class StatusSystemService {
    * Get available statuses for a specific context
    */
   async getContextualStatuses(context: StatusSystemContext): Promise<ContextualStatusResponse> {
+    if (!StatusSystemService.isEnabled) {
+      console.log('StatusSystemService is disabled, returning minimal mock data');
+      return {
+        context: context,
+        availableStatuses: [
+          {
+            code: 'draft',
+            displayName: 'Rascunho',
+            colors: {
+              background: 'rgba(107, 114, 128, 0.15)',
+              border: '#6b7280',
+              text: '#787893',
+              headerBg: 'rgba(107, 114, 128, 0.1)'
+            },
+            isDefault: true,
+            sortOrder: 1
+          }
+        ],
+        defaultStatus: 'draft'
+      };
+    }
+    
     try {
       // For development environment, use mock data first
       if (process.env.NODE_ENV === 'development' || process.env.REACT_APP_USE_MOCK_STATUS_SYSTEM === 'true') {
@@ -30,7 +86,7 @@ class StatusSystemService {
         return this.getMockContextualStatuses(context);
       }
 
-      const response = await apiClient.get('/status-system-contextual', {
+      const response = await apiClient.get('/api/status-system-contextual', {
         params: {
           contentType: context.contentType,
           context: context.context
@@ -178,7 +234,7 @@ class StatusSystemService {
    * Change the status of a content item
    */
   async changeContentStatus(request: StatusChangeRequest): Promise<StatusChangeResult> {
-    const response = await apiClient.post('/status-system-change', request);
+    const response = await apiClient.post('/api/status-system-change', request);
     return response.data as StatusChangeResult;
   }
 
@@ -280,4 +336,5 @@ class StatusSystemService {
   }
 }
 
+export { StatusSystemService };
 export const statusSystemService = new StatusSystemService();

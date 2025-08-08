@@ -14,7 +14,48 @@ export interface DashboardStatistics {
 }
 
 export class StatisticsService {
+  
+  // Toggle to enable/disable the statistics service
+  // Set to false to disable all statistics functionality
+  // 
+  // Usage examples:
+  // StatisticsService.setEnabled(false); // Disable the service
+  // StatisticsService.setEnabled(true);  // Enable the service
+  // const isEnabled = StatisticsService.getEnabled(); // Check current state
+  private static isEnabled: boolean = false;
+  
+  /**
+   * Enable or disable the statistics service
+   */
+  static setEnabled(enabled: boolean): void {
+    StatisticsService.isEnabled = enabled;
+    console.log(`StatisticsService ${enabled ? 'enabled' : 'disabled'}`);
+  }
+  
+  /**
+   * Check if the statistics service is enabled
+   */
+  static getEnabled(): boolean {
+    return StatisticsService.isEnabled;
+  }
+  
   static async getDashboardStatistics(): Promise<DashboardStatistics> {
+    if (!StatisticsService.isEnabled) {
+      console.log('StatisticsService is disabled, returning mock data');
+      return {
+        totalUsers: 0,
+        totalNews: 0,
+        publishedNews: 0,
+        draftNews: 0,
+        totalAds: 0,
+        publishedAds: 0,
+        draftAds: 0,
+        pendingPosts: 0,
+        pendingAds: 0,
+        _updatedAt: Date.now()
+      };
+    }
+    
     try {
       console.log('StatisticsService: Fetching dashboard statistics');
       // Use the getWithCacheBusting method for reliable cache prevention
@@ -74,6 +115,11 @@ export class StatisticsService {
   }
 
   static async getUserCount(): Promise<number> {
+    if (!StatisticsService.isEnabled) {
+      console.log('StatisticsService is disabled, returning 0 for user count');
+      return 0;
+    }
+    
     try {
       // Add cache-busting query parameter to prevent caching
       const timestamp = new Date().getTime();

@@ -84,9 +84,11 @@ const ListView = <T,>({
             return null;
           }
           
+          // Generate unique key
+          const itemKey = (item as { id?: string }).id || `item-${actualIndex}`;
+          
           // Pass the styling information to the renderListItem function
           const listItemProps = {
-            key: (item as { id?: string }).id || `item-${actualIndex}`,
             className: `${itemClass} smooth-reveal ${isFromLeft ? 'from-left' : 'from-right'}`,
             style: {
               height: `${itemHeight}px`,
@@ -94,7 +96,11 @@ const ListView = <T,>({
             }
           };
           
-          return renderListItem(item, actualIndex, listItemProps);
+          return (
+            <div key={itemKey}>
+              {renderListItem(item, actualIndex, listItemProps)}
+            </div>
+          );
         })}
       </div>
       

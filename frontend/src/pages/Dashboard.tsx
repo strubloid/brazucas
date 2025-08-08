@@ -348,10 +348,7 @@ const Dashboard: React.FC = () => {
   const fetchStatistics = React.useCallback(async () => {
     if (user?.role === UserRole.ADMIN) {
       try {
-        console.log('Fetching fresh statistics...');
         const stats = await StatisticsService.getDashboardStatistics();
-        
-        console.log('Statistics received:', stats);
         
         if (stats && typeof stats === 'object') {
           // Force a rerender by creating a new object with a timestamp
@@ -456,7 +453,6 @@ const Dashboard: React.FC = () => {
   // Fetch statistics on component mount, but only once
   React.useEffect(() => {
     if (user?.role === UserRole.ADMIN && !loadingStats && !hasInitialFetchRunRef.current) {
-      console.log('Initial statistics fetch on component mount');
       hasInitialFetchRunRef.current = true;
       setLoadingStats(true);
       fetchStatistics().finally(() => {
