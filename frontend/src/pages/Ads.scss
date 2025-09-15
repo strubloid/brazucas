@@ -8,6 +8,7 @@
   display: flex;
   justify-content: center;
   pointer-events: none;
+  
   // Allow filter UI to be interactive
   .category-filter {
     pointer-events: auto;
@@ -21,22 +22,31 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    
     @media (max-width: 600px) {
       padding: 0.5rem 0.5rem;
       min-width: 0;
     }
-  }
-  .category-buttons {
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  h3 {
-    color: #374151;
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
+
+    // Override default filter styles for slideshow overlay
+    &.slideshow-filter {
+      margin-bottom: 0;
+      text-align: center;
+      
+      h3 {
+        color: #374151;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+      
+      .category-buttons {
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+    }
   }
 }
 
@@ -53,7 +63,23 @@
   padding-top: 10px;
   padding-bottom: 10px;
 
+  // Lista mode: maintain padding for proper spacing 
+  &:not(.slideshow) {
+    .ads-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+  }
+
+  // Slideshow mode: full width, no padding
   &.slideshow {
+    .ads-container {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+    }
+    
     .ads-display {
       padding: 0 !important;
       margin: 0 !important;
@@ -77,10 +103,6 @@
 }
 
 .ads-container {
-  // max-width: 1200px;
-  margin: 0 auto;
-  padding: 0;
-
   position: relative;
   width: 100%;
   height: 100%;
@@ -425,7 +447,12 @@
   background: white;
   border-radius: 0;
   box-shadow: var(--shadow-light, 0 2px 8px rgba(0, 0, 0, 0.04));
-  padding: 2rem 0 1rem 0;
+  padding: 2rem 2rem 1rem 2rem;
+  
+  // For slideshow mode: full width, no side padding
+  .ads-page.slideshow & {
+    padding: 2rem 0 1rem 0;
+  }
 }
 
 .ads-page .ads-header .news__view-toggle {

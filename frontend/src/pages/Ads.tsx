@@ -8,11 +8,16 @@ import { ServiceCategory } from '../types/serviceCategory';
 import { ServiceCategoryService } from '../services/serviceCategoryService';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import AnimatedAdsSlideshow from '../components/common/AnimatedAdsSlideshow';
+import CategoryFilter from '../components/common/CategoryFilter';
 import './Ads.scss';
 
 const Ads: React.FC = () => {
   const adsRef = useAnimateOnMount('fadeIn');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  
+  // Separate filter states for each view mode
+  const [selectedCategorySlideshow, setSelectedCategorySlideshow] = useState<string>('all');
+  const [selectedCategoryGrid, setSelectedCategoryGrid] = useState<string>('all');
+  
   const [viewMode, setViewMode] = useState<'slideshow' | 'grid'>('slideshow');
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
@@ -39,16 +44,66 @@ const Ads: React.FC = () => {
   }, []);
 
 
-  const filteredAds = ads?.filter(ad => 
-    selectedCategory === 'all' || ad.category === selectedCategory
-  ) || [];
+  // Create separate filtered arrays for each view mode with robust filtering
+  const filteredAdsSlideshow = React.useMemo(() => {
+    if (!ads) return [];
+    if (selectedCategorySlideshow === 'all') return ads;
+    
+    return ads.filter(ad => {
+      const adCategory = ad.category;
+      const selectedCategory = selectedCategorySlideshow;
+      
+      // Direct match
+      if (adCategory === selectedCategory) return true;
+      
+      // Case-insensitive match
+      if (adCategory?.toLowerCase() === selectedCategory?.toLowerCase()) return true;
+      
+      // Trimmed match
+      if (adCategory?.trim() === selectedCategory?.trim()) return true;
+      
+      return false;
+    });
+  }, [ads, selectedCategorySlideshow]);
 
-  // Auto-switch to grid mode if no ads in selected category and in slideshow mode
+  const filteredAdsGrid = React.useMemo(() => {
+    if (!ads) return [];
+    if (selectedCategoryGrid === 'all') return ads;
+    
+    return ads.filter(ad => {
+      const adCategory = ad.category;
+      const selectedCategory = selectedCategoryGrid;
+      
+      // Direct match
+      if (adCategory === selectedCategory) return true;
+      
+      // Case-insensitive match
+      if (adCategory?.toLowerCase() === selectedCategory?.toLowerCase()) return true;
+      
+      // Trimmed match
+      if (adCategory?.trim() === selectedCategory?.trim()) return true;
+      
+      return false;
+    });
+  }, [ads, selectedCategoryGrid]);
+
+  // Temporary debug logging to see what's happening
   React.useEffect(() => {
-    if (viewMode === 'slideshow' && filteredAds.length === 0) {
-      setViewMode('grid');
+    console.log('🐛 DEBUG INFO:');
+    console.log('- ads loaded:', ads?.length || 0);
+    console.log('- categories loaded:', categories?.length || 0);
+    console.log('- selectedCategorySlideshow:', selectedCategorySlideshow);
+    console.log('- selectedCategoryGrid:', selectedCategoryGrid);
+    console.log('- filteredAdsSlideshow count:', filteredAdsSlideshow?.length || 0);
+    console.log('- filteredAdsGrid count:', filteredAdsGrid?.length || 0);
+    if (ads && ads.length > 0) {
+      console.log('- First ad category:', ads[0]?.category);
+      console.log('- All ad categories:', Array.from(new Set(ads.map(ad => ad.category))));
     }
-  }, [viewMode, filteredAds.length]);
+    if (categories && categories.length > 0) {
+      console.log('- All filter categories:', categories.map(c => c.name));
+    }
+  }, [ads, categories, selectedCategorySlideshow, selectedCategoryGrid, filteredAdsSlideshow, filteredAdsGrid]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -90,7 +145,7 @@ const Ads: React.FC = () => {
   }
 
   return (
-    <div ref={adsRef} className="ads-page">
+    <div ref={adsRef} className={`ads-page ${viewMode === 'slideshow' ? 'slideshow' : ''}`}>
       <div className="ads-container">
         <div className="ads-header">
           <h1 className="ads-title">Anúncios</h1>
@@ -112,84 +167,45 @@ const Ads: React.FC = () => {
           </div>
         </div>
 
-
-
-        {/* Category Filter (always visible above grid, overlay in slideshow) */}
+        {/* Category Filter for Lista mode (visible above grid) */}
         {viewMode === 'grid' && (
-          categories.length > 0 ? (
-            <div className="category-filter">
-              <h3>Filtrar por categoria:</h3>
-              <div className="category-buttons">
-                <button
-                  key="all"
-                  className={`category-btn ${selectedCategory === 'all' ? 'active' : ''}`}
-                  onClick={() => setSelectedCategory('all')}
-                >
-                  Todas
-                </button>
-                {categories.map(category => (
-                  <button
-                    key={category.id}
-                    className={`category-btn ${selectedCategory === category.name ? 'active' : ''}`}
-                    onClick={() => setSelectedCategory(category.name)}
-                  >
-                    {category.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="category-filter">
-              <h3>Filtrar por categoria:</h3>
-              <div className="category-buttons">
-                <span style={{ color: '#6b7280', fontSize: '1rem' }}>Nenhuma categoria disponível</span>
-              </div>
-            </div>
-          )
+          <CategoryFilter
+            categories={categories}
+            selectedCategory={selectedCategoryGrid}
+            onCategoryChange={setSelectedCategoryGrid}
+          />
         )}
 
         {/* Ads Display */}
         <div className={`ads-display ${viewMode}`}>
-          {filteredAds.length > 0 ? (
-            viewMode === 'slideshow' ? (
+          {viewMode === 'slideshow' ? (
+            filteredAdsSlideshow.length > 0 ? (
               <AnimatedAdsSlideshow 
-                ads={filteredAds}
+                ads={filteredAdsSlideshow}
                 filterHeader={
-                  categories.length > 0 ? (
-                    <div className="category-filter slideshow-filter">
-                      <h3>Filtrar por categoria:</h3>
-                      <div className="category-buttons">
-                        <button
-                          key="all"
-                          className={`category-btn ${selectedCategory === 'all' ? 'active' : ''}`}
-                          onClick={() => setSelectedCategory('all')}
-                        >
-                          Todas
-                        </button>
-                        {categories.map(category => (
-                          <button
-                            key={category.id}
-                            className={`category-btn ${selectedCategory === category.name ? 'active' : ''}`}
-                            onClick={() => setSelectedCategory(category.name)}
-                          >
-                            {category.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="category-filter slideshow-filter">
-                      <h3>Filtrar por categoria:</h3>
-                      <div className="category-buttons">
-                        <span style={{ color: '#6b7280', fontSize: '1rem' }}>Nenhuma categoria disponível</span>
-                      </div>
-                    </div>
-                  )
+                  <CategoryFilter
+                    categories={categories}
+                    selectedCategory={selectedCategorySlideshow}
+                    onCategoryChange={setSelectedCategorySlideshow}
+                    className="slideshow-filter"
+                  />
                 }
               />
             ) : (
+              <div className="no-ads">
+                <h3>Nenhum anúncio encontrado</h3>
+                <p>
+                  {selectedCategorySlideshow === 'all' 
+                    ? 'Ainda não há anúncios publicados.' 
+                    : `Não há anúncios na categoria "${selectedCategorySlideshow}".`
+                  }
+                </p>
+              </div>
+            )
+          ) : (
+            filteredAdsGrid.length > 0 ? (
               <div className="ads-grid">
-                {filteredAds.map((ad) => (
+                {filteredAdsGrid.map((ad: Advertisement) => (
                   <div key={ad.id} className="ad-card">
                     <div className="ad-header">
                       <h3 className="ad-title">{ad.title}</h3>
@@ -219,17 +235,17 @@ const Ads: React.FC = () => {
                   </div>
                 ))}
               </div>
+            ) : (
+              <div className="no-ads">
+                <h3>Nenhum anúncio encontrado</h3>
+                <p>
+                  {selectedCategoryGrid === 'all' 
+                    ? 'Ainda não há anúncios publicados.' 
+                    : `Não há anúncios na categoria "${selectedCategoryGrid}".`
+                  }
+                </p>
+              </div>
             )
-          ) : (
-            <div className="no-ads">
-              <h3>Nenhum anúncio encontrado</h3>
-              <p>
-                {selectedCategory === 'all' 
-                  ? 'Ainda não há anúncios publicados.' 
-                  : `Não há anúncios na categoria "${selectedCategory}".`
-                }
-              </p>
-            </div>
           )}
         </div>
 

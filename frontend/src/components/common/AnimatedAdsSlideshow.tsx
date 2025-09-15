@@ -14,6 +14,11 @@ const AnimatedAdsSlideshow: React.FC<AnimatedAdsSlideshowProps> = ({ ads, filter
   const svgRef = useRef<SVGSVGElement>(null);
   const shapePath = useRef<SVGPathElement>(null);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('AnimatedAdsSlideshow - ads received:', { adsCount: ads.length, currentIndex, firstAd: ads[0]?.title });
+  }, [ads, currentIndex]);
+
   // Calculate SVG paths for animation frames
   const calculatePaths = useCallback(() => {
     if (!containerRef.current) return { initial: '', final: '' };
@@ -78,6 +83,18 @@ const AnimatedAdsSlideshow: React.FC<AnimatedAdsSlideshowProps> = ({ ads, filter
     }
   }, [animateSlides]);
 
+  // Reset currentIndex when ads array changes (due to filtering)
+  useEffect(() => {
+    if (ads.length > 0 && currentIndex >= ads.length) {
+      setCurrentIndex(0);
+    }
+  }, [ads.length, currentIndex]);
+
+  // Additional safety check - always reset to 0 when ads array changes completely  
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [ads]);
+
   // Auto-resize SVG on window resize
   useEffect(() => {
     const handleResize = () => {
@@ -126,6 +143,18 @@ const AnimatedAdsSlideshow: React.FC<AnimatedAdsSlideshowProps> = ({ ads, filter
   }
 
   const currentAd = ads[currentIndex];
+
+  // Safety check - if currentAd is undefined, don't render
+  if (!currentAd) {
+    return (
+      <div className="animated-slideshow">
+        <div className="no-ads">
+          <h3>Nenhum anúncio encontrado</h3>
+          <p>Não há anúncios para exibir com os filtros selecionados.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="animated-slideshow" ref={containerRef}>
